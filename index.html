@@ -1,166 +1,148 @@
 <!DOCTYPE html>
 <html lang="sv">
 <head>
-  <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
   <title>Priskalkylator</title>
 
-  <!-- App ikoner -->
+  <!-- Ikoner och manifest -->
+  <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" sizes="512x512" href="icon-512.png">
-  <link rel="manifest" href="manifest.webmanifest">
   <meta name="theme-color" content="#171923">
 
   <style>
     body {
-      font-family: Arial, sans-serif;
-      background: #171923;
-      color: white;
+      font-family: -apple-system, system-ui, Helvetica, Arial, sans-serif;
       margin: 0;
-      padding: 20px;
+      padding: 0;
+      background:#171923;
+      color: white;
       display: flex;
       justify-content: center;
+      align-items: center;
+      min-height: 100vh;
     }
     .card {
-      background: #1f2028;
-      padding: 20px;
-      border-radius: 12px;
+      max-width: 500px;
       width: 100%;
-      max-width: 400px;
-      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+      background: #1f2937;
+      padding: 20px;
+      border-radius: 16px;
+      box-shadow: 0 4px 20px rgba(0,0,0,0.4);
     }
     h1 {
       text-align: center;
+      margin-bottom: 20px;
     }
-    img.logo {
+    .logo {
       display: block;
-      margin: 0 auto 15px;
-      max-width: 80%;
+      margin: 0 auto 20px auto;
+      width: 200px; /* Gör loggan lagom stor */
     }
     label {
       display: block;
-      margin-top: 10px;
+      margin-top: 12px;
+      margin-bottom: 4px;
     }
     input, select {
       width: 100%;
-      padding: 8px;
-      margin-top: 4px;
-      border-radius: 6px;
-      border: none;
-    }
-    .result {
-      background: #000;
       padding: 10px;
-      border-radius: 6px;
-      margin-top: 15px;
-      text-align: center;
+      border-radius: 8px;
+      border: none;
+      margin-bottom: 12px;
     }
     button {
-      margin-top: 10px;
-      padding: 10px;
       width: 100%;
-      border: none;
-      border-radius: 6px;
-      background: #2d89ef;
+      padding: 12px;
+      background: #00d16c;
       color: white;
+      border: none;
+      border-radius: 8px;
       font-size: 16px;
-      cursor: pointer;
     }
-    button:hover {
-      background: #1b5fa7;
+    #result {
+      margin-top: 16px;
+      font-weight: bold;
+      text-align: center;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <img src="apple-touch-icon.png" alt="Logotyp" class="logo">
+    <img src="IMG_0028.jpeg" alt="Reklamgiganten Logga" class="logo">
+
     <h1>Priskalkylator</h1>
 
     <label>Pris per m² (kr)</label>
-    <input type="number" id="pris" value="699">
+    <input type="number" id="price" value="699">
 
     <label>Höjd (mm)</label>
-    <input type="number" id="hojd" placeholder="Höjd (mm)">
+    <input type="number" id="height">
 
     <label>Bredd (mm)</label>
-    <input type="number" id="bredd" placeholder="Bredd (mm)">
+    <input type="number" id="width">
 
     <label>Minimidebitering (kr)</label>
-    <input type="number" id="minimidebitering" value="0">
+    <input type="number" id="min" value="0">
 
     <label>Moms</label>
-    <select id="moms">
-      <option value="25" selected>Inkl. 25% moms</option>
+    <select id="vat">
       <option value="0">Exkl. moms</option>
+      <option value="25" selected>Inkl. 25% moms</option>
     </select>
 
-    <div class="result" id="resultat">Fyll i mått för att se priset.</div>
-    <button onclick="delaPris()">Dela priset</button>
-    <button onclick="laddaPDF()">Skapa offert (PDF)</button>
+    <div id="result">Fyll i mått för att se priset.</div>
+    <button id="shareBtn">Dela priset</button>
   </div>
 
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const prisInput = document.getElementById("pris");
-    const hojdInput = document.getElementById("hojd");
-    const breddInput = document.getElementById("bredd");
-    const momsInput = document.getElementById("moms");
-    const minInput = document.getElementById("minimidebitering");
-    const resultat = document.getElementById("resultat");
+    const priceInput = document.getElementById('price');
+    const heightInput = document.getElementById('height');
+    const widthInput = document.getElementById('width');
+    const minInput = document.getElementById('min');
+    const vatInput = document.getElementById('vat');
+    const resultDiv = document.getElementById('result');
+    const shareBtn = document.getElementById('shareBtn');
 
-    function beraknaPris() {
-      const pris = parseFloat(prisInput.value) || 0;
-      const hojd = parseFloat(hojdInput.value) || 0;
-      const bredd = parseFloat(breddInput.value) || 0;
-      const minDeb = parseFloat(minInput.value) || 0;
-      const moms = parseFloat(momsInput.value);
+    function calculate() {
+      const price = parseFloat(priceInput.value) || 0;
+      const h = parseFloat(heightInput.value) || 0;
+      const w = parseFloat(widthInput.value) || 0;
+      const min = parseFloat(minInput.value) || 0;
+      const vat = parseFloat(vatInput.value) || 0;
 
-      if (hojd > 0 && bredd > 0) {
-        const area = (hojd/1000) * (bredd/1000);
-        let kostnad = area * pris;
-        if (kostnad < minDeb) kostnad = minDeb;
-        let exklMoms = kostnad;
-        let inklMoms = moms > 0 ? kostnad * 1.25 : kostnad;
+      if (h > 0 && w > 0) {
+        const area = (h/1000) * (w/1000);
+        let total = Math.max(area * price, min);
+        const exkl = total;
+        const inkl = total * (1 + vat/100);
 
-        resultat.innerHTML = `
-          ${inklMoms.toFixed(2)} kr ${moms > 0 ? "(inkl. moms)" : "(exkl. moms)"}<br>
-          Area: ${area.toFixed(2)} m² – á-pris: ${pris} kr/m² – Exkl: ${exklMoms.toFixed(2)} kr
-        `;
+        resultDiv.innerHTML = `${inkl.toFixed(2)} kr (inkl. moms)<br>` +
+          `Area: ${area.toFixed(2)} m² • á-pris: ${price} kr/m² • Exkl: ${exkl.toFixed(2)} kr`;
+        return inkl.toFixed(2);
       } else {
-        resultat.textContent = "Fyll i mått för att se priset.";
+        resultDiv.innerHTML = "Fyll i mått för att se priset.";
+        return null;
       }
     }
 
-    [prisInput, hojdInput, breddInput, momsInput, minInput].forEach(el => {
-      el.addEventListener("input", beraknaPris);
+    // Räkna automatiskt när man skriver
+    [priceInput, heightInput, widthInput, minInput, vatInput].forEach(el => {
+      el.addEventListener('input', calculate);
     });
 
-    function delaPris() {
+    // Dela priset
+    shareBtn.addEventListener('click', async () => {
+      const pris = calculate();
+      if (!pris) return;
+      const text = `Offert: ${pris} kr via Priskalkylatorn`;
       if (navigator.share) {
-        navigator.share({
-          title: 'Priskalkylator',
-          text: resultat.innerText,
-          url: window.location.href
-        });
+        await navigator.share({ title: 'Priskalkylator', text });
       } else {
-        alert("Dela-funktionen stöds inte på denna enhet.");
+        alert("Dela-funktionen stöds inte i din webbläsare.");
       }
-    }
-
-    function laddaPDF() {
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.setFontSize(18);
-      doc.text("Offert", 20, 20);
-      doc.setFontSize(12);
-      doc.text("Företagsnamn: _______________________", 20, 40);
-      doc.text("Datum: " + new Date().toLocaleDateString(), 20, 50);
-      doc.text("Beräkning:", 20, 70);
-      doc.text(resultat.innerText, 20, 80);
-      doc.save("offert.pdf");
-    }
-
-    beraknaPris();
+    });
   </script>
 </body>
 </html>
