@@ -13,100 +13,11 @@
     :root { --bg:#0f1115; --card:#171923; --line:#2a2f3c; --focus:#3b82f6; --text:#fff; }
     * { box-sizing:border-box }
     body { font-family:-apple-system,system-ui,Helvetica,Arial,sans-serif; margin:0; background:var(--bg); color:var(--text); padding:24px }
-    .card { max-width:560px; margin:0 auto; background:var(--card); padding:20px; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.35) }
+    .card { max-width:640px; margin:0 auto; background:var(--card); padding:20px; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.35) }
     h1 { margin:0 0 12px; font-size:28px }
-    label { font-size:12px; opacity:.9; margin:14px 0 6px; display:block; letter-spacing:.04em }
-    input, select { width:100%; padding:14px 12px; border-radius:12px; border:1px solid var(--line); background:#0d0f16; color:#fff; font-size:16px; outline:none }
+    label { font-size:12px; opacity:.9; margin:12px 0 6px; display:block; letter-spacing:.04em }
+    input, select { width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--line); background:#0d0f16; color:#fff; font-size:16px; outline:none }
     input:focus, select:focus { border-color:var(--focus) }
     .row { display:flex; gap:10px }
     .row > div { flex:1 }
-    .hint { font-size:12px; opacity:.75; margin-top:6px }
-    .out { margin-top:16px; padding:14px 12px; border-radius:12px; background:#0d0f16; border:1px dashed var(--line); min-height:22px }
-    .muted { opacity:.85 }
-    .grid { display:grid; grid-template-columns:1fr 1fr; gap:10px }
-    .btn { margin-top:16px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#0d0f16; color:#fff; font-size:16px }
-  </style>
-</head>
-<body>
-  <div class="card">
-    <h1>Priskalkylator</h1>
-
-    <label for="pris">Pris per m² (kr)</label>
-    <input id="pris" type="number" inputmode="decimal" placeholder="t.ex. 699" value="699" min="0" step="0.01">
-
-    <div class="row">
-      <div>
-        <label for="hojd">Höjd (mm)</label>
-        <input id="hojd" type="number" inputmode="decimal" placeholder="Höjd (mm)" min="1">
-      </div>
-      <div>
-        <label for="bredd">Bredd (mm)</label>
-        <input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1">
-      </div>
-    </div>
-    <div class="hint muted">1000 mm = 1 meter</div>
-
-    <div class="grid">
-      <div>
-        <label for="minpris">Minimidebitering (kr)</label>
-        <input id="minpris" type="number" inputmode="decimal" placeholder="t.ex. 250" value="0" min="0" step="1">
-      </div>
-      <div>
-        <label for="moms">Moms</label>
-        <select id="moms">
-          <option value="0">Exkl. moms</option>
-          <option value="0.25" selected>Inkl. 25% moms</option>
-        </select>
-      </div>
-    </div>
-
-    <label>Beräknat pris</label>
-    <div id="result" class="out">Fyll i mått för att se priset.</div>
-    <div id="details" class="hint muted"></div>
-
-    <button class="btn" id="share">Dela priset</button>
-  </div>
-
-  <script>
-    const $ = id => document.getElementById(id);
-    const prisEl = $("pris"), hEl = $("hojd"), bEl = $("bredd");
-    const minEl = $("minpris"), momsEl = $("moms");
-    const res = $("result"), det = $("details"), shareBtn = $("share");
-
-    const fmt = n => Number(n).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-
-    function calc() {
-      const pris = parseFloat(prisEl.value);
-      const hmm = parseFloat(hEl.value);
-      const bmm = parseFloat(bEl.value);
-      const minpris = parseFloat(minEl.value || "0");
-      const moms = parseFloat(momsEl.value || "0");
-
-      if (![pris,hmm,bmm].every(v => isFinite(v) && v > 0)) {
-        res.textContent = "Fyll i mått för att se priset.";
-        det.textContent = "";
-        return;
-      }
-      const area = (hmm/1000) * (bmm/1000);
-      let exkl = area * pris;
-      if (minpris > 0 && exkl < minpris) exkl = minpris;
-      const inkl = exkl * (1 + moms);
-
-      res.textContent = `${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"}`;
-      det.textContent = `Area: ${fmt(area)} m² • á-pris: ${fmt(pris)} kr/m² • Exkl: ${fmt(exkl)} kr`;
-      shareBtn.onclick = () => {
-        const text = `Offert: ${fmt(inkl)} kr ${moms>0 ? "inkl. moms" : "exkl. moms"} — ${fmt(area)} m² (${hmm}×${bmm} mm, á ${fmt(pris)} kr/m²)`;
-        if (navigator.share) navigator.share({ text }).catch(()=>{});
-        else navigator.clipboard.writeText(text);
-      };
-    }
-    [prisEl,hEl,bEl,minEl,momsEl].forEach(el => (el.oninput = el.onchange = calc));
-    calc();
-
-    // PWA: registrera service worker för offline
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-    }
-  </script>
-</body>
-</html>
+    .grid2 { display:grid; grid-template-columns:1fr
