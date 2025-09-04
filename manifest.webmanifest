@@ -1,11 +1,22 @@
 {
   "name": "Priskalkylator",
-  "short_name": "Priskalk",
-  "start_url": ".",
+  "short_name": "Kalkylator",
+  "start_url": "index.html",
   "display": "standalone",
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
+  "background_color": "#171923",
+  "theme_color": "#171923",
+  "orientation": "portrait",
   "icons": [
-    { "src": "icon.svg", "sizes": "512x512", "type": "image/svg+xml", "purpose": "any maskable" }
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png"
+    },
+    {
+      "src": "icon-512.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any maskable"
+    }
   ]
 }
