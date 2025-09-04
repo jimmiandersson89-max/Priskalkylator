@@ -2,22 +2,144 @@
 <html lang="sv">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f1115" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title>Priskalkylator</title>
   <style>
-    :root { --bg:#0f1115; --card:#171923; --line:#2a2f3c; --focus:#3b82f6; --text:#fff; }
-    * { box-sizing:border-box }
-    body { font-family:-apple-system,system-ui,Helvetica,Arial,sans-serif; margin:0; background:var(--bg); color:var(--text); padding:24px }
-    .card { max-width:640px; margin:0 auto; background:var(--card); padding:20px; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.35) }
-    h1 { margin:0 0 12px; font-size:28px }
-    label { font-size:12px; opacity:.9; margin:12px 0 6px; display:block; letter-spacing:.04em }
-    input, select { width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--line); background:#0d0f16; color:#fff; font-size:16px; outline:none }
-    input:focus, select:focus { border-color:var(--focus) }
-    .row { display:flex; gap:10px }
-    .row > div { flex:1 }
-    .grid2 { display:grid; grid-template-columns:1fr
+    body {
+      font-family: system-ui, Arial, sans-serif;
+      background: #121212;
+      color: #f1f1f1;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: #1e1e1e;
+      padding: 20px;
+      border-radius: 12px;
+      max-width: 500px;
+      width: 100%;
+      box-shadow: 0 0 12px rgba(0,0,0,0.5);
+    }
+    h1 {
+      margin-top: 0;
+    }
+    label {
+      display: block;
+      margin-top: 12px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #f1f1f1;
+    }
+    button {
+      margin-top: 15px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      background: #4CAF50;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #45a049;
+    }
+    .result {
+      margin-top: 15px;
+      padding: 12px;
+      background: #2a2a2a;
+      border-radius: 6px;
+    }
+    img.logo {
+      display: block;
+      max-height: 80px;
+      margin: 0 auto 15px auto;
+    }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <!-- Din logga visas här -->
+    <img src="./logo.jpg" alt="Logotyp" class="logo" onerror="this.style.display='none'">
+
+    <h1>Priskalkylator</h1>
+
+    <label for="pris">Pris per m² (kr)</label>
+    <input id="pris" type="number" value="699">
+
+    <label for="höjd">Höjd (mm)</label>
+    <input id="höjd" type="number" placeholder="Höjd i mm">
+
+    <label for="bredd">Bredd (mm)</label>
+    <input id="bredd" type="number" placeholder="Bredd i mm">
+
+    <label for="minpris">Minimidebitering (kr)</label>
+    <input id="minpris" type="number" value="0">
+
+    <label for="moms">Moms</label>
+    <select id="moms">
+      <option value="1.25">Inkl. 25% moms</option>
+      <option value="1">Exkl. moms</option>
+    </select>
+
+    <div class="result" id="result">Fyll i måtten för att beräkna priset.</div>
+
+    <button onclick="beräkna()">Beräkna pris</button>
+    <button onclick="skapaPDF()">Skapa offert (PDF)</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    function beräkna() {
+      let prisPerM2 = parseFloat(document.getElementById("pris").value) || 0;
+      let höjd = parseFloat(document.getElementById("höjd").value) || 0;
+      let bredd = parseFloat(document.getElementById("bredd").value) || 0;
+      let minpris = parseFloat(document.getElementById("minpris").value) || 0;
+      let moms = parseFloat(document.getElementById("moms").value) || 1;
+
+      let areaM2 = (höjd/1000) * (bredd/1000);
+      let prisExkl = Math.max(areaM2 * prisPerM2, minpris);
+      let prisInkl = prisExkl * moms;
+
+      document.getElementById("result").innerText =
+        `${prisInkl.toFixed(2)} kr (inkl. moms)\n\nArea: ${areaM2.toFixed(2)} m² – á-pris: ${prisPerM2} kr/m² – Exkl: ${prisExkl.toFixed(2)} kr`;
+    }
+
+    async function skapaPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+
+      // Svart linje för företagsnamn
+      doc.setLineWidth(0.5);
+      doc.line(10, 20, 200, 20);
+
+      // Rubrik
+      doc.setFontSize(18);
+      doc.text("OFFERT", 105, 35, { align: "center" });
+
+      // Hämta data
+      let pris = document.getElementById("result").innerText;
+      let höjd = document.getElementById("höjd").value;
+      let bredd = document.getElementById("bredd").value;
+      let prisPerM2 = document.getElementById("pris").value;
+
+      doc.setFontSize(12);
+      doc.text(`Höjd: ${höjd} mm`, 20, 60);
+      doc.text(`Bredd: ${bredd} mm`, 20, 70);
+      doc.text(`Pris per m²: ${prisPerM2} kr`, 20, 80);
+      doc.text(`Resultat: ${pris}`, 20, 100);
+
+      // Spara PDF
+      doc.save("offert.pdf");
+    }
+  </script>
+</body>
+</html>
