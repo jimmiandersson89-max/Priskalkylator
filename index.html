@@ -26,7 +26,8 @@
     .out { margin-top:16px; padding:14px 12px; border-radius:12px; background:#0d0f16; border:1px dashed var(--line); min-height:22px }
     .btn { margin-top:12px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#0d0f16; color:#fff; font-size:16px; width:100% }
     .muted { opacity:.85 }
-    /* ---- Offert (endast vid utskrift) ---- */
+
+    /* ---- Offert (visas endast vid utskrift) ---- */
     #offer { display:none; }
     #offer h2 { margin:0 0 8px; font-size:22px }
     #offer table { width:100%; border-collapse:collapse; margin-top:12px; }
@@ -35,9 +36,10 @@
     #offer .muted { color:#666; font-size:12px }
     #offer .company { font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px; }
     #offer .headgrid { display:flex; justify-content:space-between; gap:16px; font-size:12px; }
+
     @media print {
       body { background:#fff; color:#000; padding:0 }
-      .card, .hint { display:none !important; }
+      .card, .hint { display:none !important; }     /* göm app-UI */
       #offer { display:block !important; padding:18mm; }
       @page { size: A4; margin: 12mm; }
       #companyInput { border:none; font-size:18px; font-weight:bold; width:100%; }
@@ -46,9 +48,9 @@
 </head>
 <body>
   <div class="card">
-    <!-- LOGGA (bara i kalkylatorn) -->
-    <div style="text-align:center; margin-bottom:12px;">
-      <img src="./IMG_0028.jpeg" alt="Logotyp" style="max-height:48px" onerror="this.style.display='none'">
+    <!-- LOGGA (dubbelt så stor nu: 96px hög) -->
+    <div style="text-align:center; margin-bottom:20px;">
+      <img src="./IMG_0028.jpeg" alt="Logotyp" style="max-height:96px" onerror="this.style.display='none'">
     </div>
 
     <h1>Priskalkylator</h1>
@@ -154,6 +156,8 @@
 
     const fmt = n => Number(n).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
 
+    let lastShareText = "";
+
     function calc() {
       const pris = parseFloat(prisEl.value);
       const hmm = parseFloat(hEl.value);
@@ -165,6 +169,7 @@
       if (![pris,hmm,bmm].every(v => isFinite(v) && v > 0)) {
         res.textContent = "Fyll i mått för att se priset.";
         det.textContent = "";
+        lastShareText = "";
         return;
       }
 
@@ -177,22 +182,48 @@
 
       res.textContent = `${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"}`;
       det.textContent = `Antal: ${antal} st • Area/st: ${fmt(areaPer)} m² • Total area: ${fmt(areaTot)} m² • á-pris: ${fmt(pris)} kr/m² • Exkl: ${fmt(exkl)} kr`;
+
+      lastShareText = `Offert: ${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"} — ${antal} st, ${hmm}×${bmm} mm, area/st ${fmt(areaPer)} m² (totalt ${fmt(areaTot)} m²), á ${fmt(pris)} kr/m².`;
     }
 
-    // Räkna automatiskt när något ändras/skrivs
     [prisEl,hEl,bEl,minEl,momsEl,antalEl].forEach(el => {
       el.addEventListener("input", calc);
       el.addEventListener("change", calc);
     });
 
-    // Dela-knapp (byter text varje gång du räknat)
-    shareBtn.onclick = () => {
-      const text = res.textContent;
-      if (navigator.share) navigator.share({ text }).catch(()=>{});
-      else navigator.clipboard.writeText(text);
-    };
+    async function sharePrice() {
+      const text = lastShareText || res.textContent || "Pris från Priskalkylatorn";
 
-    // PDF/utskrift
+      try {
+        if (navigator.share) {
+          await navigator.share({ title: "Offert", text, url: location.href });
+          return;
+        }
+      } catch (e) {}
+
+      try {
+        const mailto = `mailto:?subject=${encodeURIComponent("Offert")}&body=${encodeURIComponent(text + "\n\n" + location.href)}`;
+        window.location.href = mailto;
+        return;
+      } catch (e) {}
+
+      try {
+        await navigator.clipboard.writeText(text);
+        alert("Text kopierad! Klistra in i valfri app.");
+      } catch {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed";
+        ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.focus(); ta.select();
+        document.execCommand("copy");
+        ta.remove();
+        alert("Text kopierad! Klistra in i valfri app.");
+      }
+    }
+    shareBtn.onclick = sharePrice;
+
     pdfBtn.onclick = () => {
       const pris = parseFloat(prisEl.value);
       const hmm = parseFloat(hEl.value);
@@ -232,10 +263,8 @@
       window.print();
     };
 
-    // Första beräkning (om defaultvärden finns)
     calc();
 
-    // PWA offline
     if ("serviceWorker" in navigator) {
       window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
     }
