@@ -1,0 +1,73 @@
+<!doctype html>
+<html lang="sv">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+  <meta name="apple-mobile-web-app-capable" content="yes" />
+  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
+  <title>Priskalkylator</title>
+  <style>
+    body { font-family: -apple-system, system-ui, Helvetica, Arial, sans-serif; margin: 0; padding: 24px; background:#0f1115; color:#fff; }
+    .card { max-width: 520px; margin: 0 auto; background:#171923; padding: 20px; border-radius: 16px; box-shadow: 0 6px 24px rgba(0,0,0,.35); }
+    h1 { margin: 0 0 16px; font-size: 28px; }
+    label { font-size: 12px; opacity:.9; margin: 14px 0 6px; display:block; letter-spacing:.04em }
+    input { width:100%; padding:14px 12px; border-radius:12px; border:1px solid #2a2f3c; background:#0d0f16; color:#fff; font-size:16px; outline:none; }
+    input:focus { border-color:#3b82f6; }
+    .out { margin-top:16px; padding:14px 12px; border-radius:12px; background:#0d0f16; border:1px dashed #2a2f3c; min-height:22px }
+    .hint { font-size:12px; opacity:.75; margin-top:6px }
+    .row { display:flex; gap:10px }
+    .row > div { flex:1 }
+    .muted { opacity:.8 }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>Priskalkylator</h1>
+
+    <label for="pris">Ange pris per m²</label>
+    <input id="pris" type="number" inputmode="decimal" placeholder="t.ex. 699" value="699" min="0" step="0.01">
+
+    <label>Ange mått i millimeter</label>
+    <div class="row">
+      <div><input id="hojd" type="number" inputmode="decimal" placeholder="Höjd (mm)" min="1"></div>
+      <div><input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1"></div>
+    </div>
+    <div class="hint muted">Tip: 1000 mm = 1 meter</div>
+
+    <label>Beräknat pris</label>
+    <div id="result" class="out">Fyll i alla fält för att se priset.</div>
+    <div id="details" class="hint muted"></div>
+  </div>
+
+  <script>
+    const prisEl = document.getElementById('pris');
+    const hEl = document.getElementById('hojd');
+    const bEl = document.getElementById('bredd');
+    const res = document.getElementById('result');
+    const det = document.getElementById('details');
+
+    function fmt(n){ return Number(n).toLocaleString('sv-SE', { minimumFractionDigits: 2, maximumFractionDigits: 2 }); }
+
+    function calc() {
+      const pris = parseFloat(prisEl.value);
+      const hmm  = parseFloat(hEl.value);
+      const bmm  = parseFloat(bEl.value);
+      if (!isFinite(pris) || !isFinite(hmm) || !isFinite(bmm) || pris < 0 || hmm <= 0 || bmm <= 0) {
+        res.textContent = 'Fyll i alla fält för att se priset.';
+        det.textContent = '';
+        return;
+      }
+      const m2 = (hmm/1000) * (bmm/1000);
+      const prisSum = m2 * pris;
+      res.textContent = `${fmt(prisSum)} kr`;
+      det.textContent = `Area: ${fmt(m2)} m²  •  ${fmt(pris)} kr/m²`;
+    }
+
+    for (const el of [prisEl,hEl,bEl]) {
+      el.addEventListener('input', calc);
+      el.addEventListener('change', calc);
+    }
+    calc();
+  </script>
+</body>
+</html>
