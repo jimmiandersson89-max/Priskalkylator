@@ -3,271 +3,164 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <meta name="theme-color" content="#0f1115" />
-  <meta name="apple-mobile-web-app-capable" content="yes" />
-  <meta name="apple-mobile-web-app-status-bar-style" content="default" />
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="icon" href="icon.svg" type="image/svg+xml">
   <title>Priskalkylator</title>
+
+  <!-- App ikoner -->
+  <link rel="apple-touch-icon" href="apple-touch-icon.png">
+  <link rel="icon" sizes="512x512" href="icon-512.png">
+  <link rel="manifest" href="manifest.webmanifest">
+  <meta name="theme-color" content="#171923">
+
   <style>
-    :root { --bg:#0f1115; --card:#171923; --line:#2a2f3c; --focus:#3b82f6; --text:#fff; }
-    * { box-sizing:border-box }
-    body { font-family:-apple-system,system-ui,Helvetica,Arial,sans-serif; margin:0; background:var(--bg); color:var(--text); padding:24px }
-    .card { max-width:640px; margin:0 auto; background:var(--card); padding:20px; border-radius:16px; box-shadow:0 6px 24px rgba(0,0,0,.35) }
-    h1 { margin:0 0 12px; font-size:28px }
-    label { font-size:12px; opacity:.9; margin:12px 0 6px; display:block; letter-spacing:.04em }
-    input, select { width:100%; padding:12px 12px; border-radius:12px; border:1px solid var(--line); background:#0d0f16; color:#fff; font-size:16px; outline:none }
-    input:focus, select:focus { border-color:var(--focus) }
-    .row { display:flex; gap:10px }
-    .row > div { flex:1 }
-    .grid2 { display:grid; grid-template-columns:1fr 1fr; gap:10px }
-    .grid3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
-    .hint { font-size:12px; opacity:.75; margin-top:6px }
-    .out { margin-top:16px; padding:14px 12px; border-radius:12px; background:#0d0f16; border:1px dashed var(--line); min-height:22px }
-    .btn { margin-top:12px; padding:12px 14px; border:1px solid var(--line); border-radius:12px; background:#0d0f16; color:#fff; font-size:16px; width:100% }
-    .muted { opacity:.85 }
-
-    /* ---- Offert (visas endast vid utskrift) ---- */
-    #offer { display:none; }
-    #offer h2 { margin:0 0 8px; font-size:22px }
-    #offer table { width:100%; border-collapse:collapse; margin-top:12px; }
-    #offer th, #offer td { text-align:left; padding:8px 6px; border-bottom:1px solid #ddd; font-size:14px; }
-    #offer .total { font-weight:700; font-size:16px }
-    #offer .muted { color:#666; font-size:12px }
-    #offer .company { font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px; }
-    #offer .headgrid { display:flex; justify-content:space-between; gap:16px; font-size:12px; }
-
-    @media print {
-      body { background:#fff; color:#000; padding:0 }
-      .card, .hint { display:none !important; }     /* göm app-UI */
-      #offer { display:block !important; padding:18mm; }
-      @page { size: A4; margin: 12mm; }
-      #companyInput { border:none; font-size:18px; font-weight:bold; width:100%; }
+    body {
+      font-family: Arial, sans-serif;
+      background: #171923;
+      color: white;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+    }
+    .card {
+      background: #1f2028;
+      padding: 20px;
+      border-radius: 12px;
+      width: 100%;
+      max-width: 400px;
+      box-shadow: 0 0 10px rgba(0,0,0,0.5);
+    }
+    h1 {
+      text-align: center;
+    }
+    img.logo {
+      display: block;
+      margin: 0 auto 15px;
+      max-width: 80%;
+    }
+    label {
+      display: block;
+      margin-top: 10px;
+    }
+    input, select {
+      width: 100%;
+      padding: 8px;
+      margin-top: 4px;
+      border-radius: 6px;
+      border: none;
+    }
+    .result {
+      background: #000;
+      padding: 10px;
+      border-radius: 6px;
+      margin-top: 15px;
+      text-align: center;
+    }
+    button {
+      margin-top: 10px;
+      padding: 10px;
+      width: 100%;
+      border: none;
+      border-radius: 6px;
+      background: #2d89ef;
+      color: white;
+      font-size: 16px;
+      cursor: pointer;
+    }
+    button:hover {
+      background: #1b5fa7;
     }
   </style>
 </head>
 <body>
   <div class="card">
-    <!-- LOGGA (dubbelt så stor nu: 96px hög) -->
-    <div style="text-align:center; margin-bottom:20px;">
-      <img src="./IMG_0028.jpeg" alt="Logotyp" style="max-height:96px" onerror="this.style.display='none'">
-    </div>
-
+    <img src="apple-touch-icon.png" alt="Logotyp" class="logo">
     <h1>Priskalkylator</h1>
 
-    <!-- Kunduppgifter -->
-    <div class="grid2">
-      <div>
-        <label for="kundnamn">Kundnamn</label>
-        <input id="kundnamn" type="text" placeholder="Kundens namn">
-      </div>
-      <div>
-        <label for="telefon">Telefon</label>
-        <input id="telefon" type="tel" placeholder="070-123 45 67">
-      </div>
-    </div>
+    <label>Pris per m² (kr)</label>
+    <input type="number" id="pris" value="699">
 
-    <!-- Artikel & pris -->
-    <div class="grid3">
-      <div>
-        <label for="artikel">Artikel/Benämning</label>
-        <input id="artikel" type="text" placeholder="t.ex. Fönsterfrost, dekal, vepa">
-      </div>
-      <div>
-        <label for="pris">Pris per m² (kr)</label>
-        <input id="pris" type="number" inputmode="decimal" value="699" min="0" step="0.01">
-      </div>
-      <div>
-        <label for="antal">Antal (st)</label>
-        <input id="antal" type="number" inputmode="numeric" value="1" min="1" step="1">
-      </div>
-    </div>
+    <label>Höjd (mm)</label>
+    <input type="number" id="hojd" placeholder="Höjd (mm)">
 
-    <!-- Mått -->
-    <div class="row">
-      <div>
-        <label for="hojd">Höjd (mm)</label>
-        <input id="hojd" type="number" inputmode="decimal" placeholder="Höjd (mm)" min="1">
-      </div>
-      <div>
-        <label for="bredd">Bredd (mm)</label>
-        <input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1">
-      </div>
-    </div>
-    <div class="grid2">
-      <div>
-        <label for="minpris">Minimidebitering (kr)</label>
-        <input id="minpris" type="number" inputmode="decimal" value="0" min="0" step="1">
-      </div>
-      <div>
-        <label for="moms">Moms</label>
-        <select id="moms">
-          <option value="0">Exkl. moms</option>
-          <option value="0.25" selected>Inkl. 25% moms</option>
-        </select>
-      </div>
-    </div>
+    <label>Bredd (mm)</label>
+    <input type="number" id="bredd" placeholder="Bredd (mm)">
 
-    <div class="hint muted">1000 mm = 1 meter. Antal multiplicerar både area och pris.</div>
+    <label>Minimidebitering (kr)</label>
+    <input type="number" id="minimidebitering" value="0">
 
-    <label>Beräknat pris</label>
-    <div id="result" class="out">Fyll i mått för att se priset.</div>
-    <div id="details" class="hint"></div>
+    <label>Moms</label>
+    <select id="moms">
+      <option value="25" selected>Inkl. 25% moms</option>
+      <option value="0">Exkl. moms</option>
+    </select>
 
-    <button class="btn" id="share">Dela priset</button>
-    <button class="btn" id="pdf">Skapa offert (PDF)</button>
+    <div class="result" id="resultat">Fyll i mått för att se priset.</div>
+    <button onclick="delaPris()">Dela priset</button>
+    <button onclick="laddaPDF()">Skapa offert (PDF)</button>
   </div>
 
-  <!-- OFFERT (visas bara vid print/PDF) -->
-  <div id="offer" aria-hidden="true">
-    <div class="company">
-      <input id="companyInput" type="text" placeholder="Företagsnamn" style="width:100%; font-size:18px; font-weight:bold;">
-    </div>
-
-    <div class="headgrid">
-      <div>
-        <div><strong>Kund:</strong> <span id="off-kund"></span></div>
-        <div><strong>Telefon:</strong> <span id="off-tel"></span></div>
-      </div>
-      <div style="text-align:right">
-        <div><strong>Datum:</strong> <span id="offer-date"></span></div>
-      </div>
-    </div>
-
-    <h2 style="margin-top:12px;">Offert</h2>
-    <table>
-      <tbody id="offer-rows"></tbody>
-      <tfoot>
-        <tr><td colspan="2" style="border:none;"></td></tr>
-        <tr class="total"><td>Summa exkl. moms</td><td id="exkl"></td></tr>
-        <tr><td>Moms 25%</td><td id="momsrad"></td></tr>
-        <tr class="total"><td>Att betala</td><td id="inkl"></td></tr>
-      </tfoot>
-    </table>
-    <div class="muted" style="margin-top:10px">Priser i SEK. Offerten giltig i 30 dagar.</div>
-  </div>
-
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    const $ = id => document.getElementById(id);
-    const prisEl = $("pris"), hEl = $("hojd"), bEl = $("bredd");
-    const minEl = $("minpris"), momsEl = $("moms"), antalEl = $("antal");
-    const res = $("result"), det = $("details"), shareBtn = $("share"), pdfBtn = $("pdf");
-    const kundEl = $("kundnamn"), telEl = $("telefon"), artEl = $("artikel");
+    const prisInput = document.getElementById("pris");
+    const hojdInput = document.getElementById("hojd");
+    const breddInput = document.getElementById("bredd");
+    const momsInput = document.getElementById("moms");
+    const minInput = document.getElementById("minimidebitering");
+    const resultat = document.getElementById("resultat");
 
-    const fmt = n => Number(n).toLocaleString("sv-SE", { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+    function beraknaPris() {
+      const pris = parseFloat(prisInput.value) || 0;
+      const hojd = parseFloat(hojdInput.value) || 0;
+      const bredd = parseFloat(breddInput.value) || 0;
+      const minDeb = parseFloat(minInput.value) || 0;
+      const moms = parseFloat(momsInput.value);
 
-    let lastShareText = "";
+      if (hojd > 0 && bredd > 0) {
+        const area = (hojd/1000) * (bredd/1000);
+        let kostnad = area * pris;
+        if (kostnad < minDeb) kostnad = minDeb;
+        let exklMoms = kostnad;
+        let inklMoms = moms > 0 ? kostnad * 1.25 : kostnad;
 
-    function calc() {
-      const pris = parseFloat(prisEl.value);
-      const hmm = parseFloat(hEl.value);
-      const bmm = parseFloat(bEl.value);
-      const antal = Math.max(1, parseInt(antalEl.value || "1", 10));
-      const minpris = parseFloat(minEl.value || "0");
-      const moms = parseFloat(momsEl.value || "0");
-
-      if (![pris,hmm,bmm].every(v => isFinite(v) && v > 0)) {
-        res.textContent = "Fyll i mått för att se priset.";
-        det.textContent = "";
-        lastShareText = "";
-        return;
+        resultat.innerHTML = `
+          ${inklMoms.toFixed(2)} kr ${moms > 0 ? "(inkl. moms)" : "(exkl. moms)"}<br>
+          Area: ${area.toFixed(2)} m² – á-pris: ${pris} kr/m² – Exkl: ${exklMoms.toFixed(2)} kr
+        `;
+      } else {
+        resultat.textContent = "Fyll i mått för att se priset.";
       }
-
-      const areaPer = (hmm/1000) * (bmm/1000);
-      const areaTot = areaPer * antal;
-      let exkl = areaTot * pris;
-      if (minpris > 0 && exkl < minpris) exkl = minpris;
-      const momsBelopp = exkl * moms;
-      const inkl = exkl + momsBelopp;
-
-      res.textContent = `${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"}`;
-      det.textContent = `Antal: ${antal} st • Area/st: ${fmt(areaPer)} m² • Total area: ${fmt(areaTot)} m² • á-pris: ${fmt(pris)} kr/m² • Exkl: ${fmt(exkl)} kr`;
-
-      lastShareText = `Offert: ${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"} — ${antal} st, ${hmm}×${bmm} mm, area/st ${fmt(areaPer)} m² (totalt ${fmt(areaTot)} m²), á ${fmt(pris)} kr/m².`;
     }
 
-    [prisEl,hEl,bEl,minEl,momsEl,antalEl].forEach(el => {
-      el.addEventListener("input", calc);
-      el.addEventListener("change", calc);
+    [prisInput, hojdInput, breddInput, momsInput, minInput].forEach(el => {
+      el.addEventListener("input", beraknaPris);
     });
 
-    async function sharePrice() {
-      const text = lastShareText || res.textContent || "Pris från Priskalkylatorn";
-
-      try {
-        if (navigator.share) {
-          await navigator.share({ title: "Offert", text, url: location.href });
-          return;
-        }
-      } catch (e) {}
-
-      try {
-        const mailto = `mailto:?subject=${encodeURIComponent("Offert")}&body=${encodeURIComponent(text + "\n\n" + location.href)}`;
-        window.location.href = mailto;
-        return;
-      } catch (e) {}
-
-      try {
-        await navigator.clipboard.writeText(text);
-        alert("Text kopierad! Klistra in i valfri app.");
-      } catch {
-        const ta = document.createElement("textarea");
-        ta.value = text;
-        ta.style.position = "fixed";
-        ta.style.left = "-9999px";
-        document.body.appendChild(ta);
-        ta.focus(); ta.select();
-        document.execCommand("copy");
-        ta.remove();
-        alert("Text kopierad! Klistra in i valfri app.");
+    function delaPris() {
+      if (navigator.share) {
+        navigator.share({
+          title: 'Priskalkylator',
+          text: resultat.innerText,
+          url: window.location.href
+        });
+      } else {
+        alert("Dela-funktionen stöds inte på denna enhet.");
       }
     }
-    shareBtn.onclick = sharePrice;
 
-    pdfBtn.onclick = () => {
-      const pris = parseFloat(prisEl.value);
-      const hmm = parseFloat(hEl.value);
-      const bmm = parseFloat(bEl.value);
-      const antal = Math.max(1, parseInt(antalEl.value || "1", 10));
-      const minpris = parseFloat(minEl.value || "0");
-      const moms = parseFloat(momsEl.value || "0");
-      if (![pris,hmm,bmm].every(v => isFinite(v) && v > 0)) return;
-
-      const areaPer = (hmm/1000) * (bmm/1000);
-      const areaTot = areaPer * antal;
-      let exkl = areaTot * pris;
-      if (minpris > 0 && exkl < minpris) exkl = minpris;
-      const momsBelopp = exkl * moms;
-      const inkl = exkl + momsBelopp;
-
-      $("offer-date").textContent = new Date().toLocaleDateString("sv-SE");
-      $("off-kund").textContent = (kundEl.value || "-");
-      $("off-tel").textContent  = (telEl.value || "-");
-
-      const rows = $("offer-rows");
-      const ben = artEl.value ? artEl.value : "Artikel";
-      rows.innerHTML = `
-        <tr><th>Benämning</th><th>Belopp</th></tr>
-        <tr>
-          <td>
-            ${ben}<br>
-            ${antal} st — ${hmm} × ${bmm} mm per styck (area/st ${fmt(areaPer)} m², total ${fmt(areaTot)} m²)<br>
-            á ${fmt(pris)} kr/m²${minpris>0?` • minimidebitering ${fmt(minpris)} kr`:``}
-          </td>
-          <td>${fmt(exkl)} kr</td>
-        </tr>
-      `;
-      $("exkl").textContent = `${fmt(exkl)} kr`;
-      $("momsrad").textContent = `${fmt(momsBelopp)} kr`;
-      $("inkl").textContent = `${fmt(inkl)} kr`;
-      window.print();
-    };
-
-    calc();
-
-    if ("serviceWorker" in navigator) {
-      window.addEventListener("load", () => navigator.serviceWorker.register("./sw.js").catch(()=>{}));
+    function laddaPDF() {
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.setFontSize(18);
+      doc.text("Offert", 20, 20);
+      doc.setFontSize(12);
+      doc.text("Företagsnamn: _______________________", 20, 40);
+      doc.text("Datum: " + new Date().toLocaleDateString(), 20, 50);
+      doc.text("Beräkning:", 20, 70);
+      doc.text(resultat.innerText, 20, 80);
+      doc.save("offert.pdf");
     }
+
+    beraknaPris();
   </script>
 </body>
 </html>
