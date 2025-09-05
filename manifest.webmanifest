@@ -1,18 +1,21 @@
 {
   "name": "Priskalkylator",
   "short_name": "Kalkylator",
-  "id": "se.reklamgiganten.priskalkylator",
   "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
-  "lang": "sv-SE",
-  "dir": "ltr",
-  "start_url": "https://jimmiandersson89-max.github.io/Priskalkylator/index.html",
-  "scope": "https://jimmiandersson89-max.github.io/Priskalkylator/",
+  "id": "se.reklamgiganten.priskalkylator",
+  "start_url": "index.html",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
   "background_color": "#ffffff",
-  "theme_color": "#000000",
-
+  "theme_color": "#1a1a1a",
   "icons": [
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
@@ -24,35 +27,33 @@
       "sizes": "512x512",
       "type": "image/png",
       "purpose": "maskable"
-    },
-    {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
     }
   ],
-
   "screenshots": [
     {
       "src": "screenshot1.png",
       "sizes": "1280x720",
-      "type": "image/png",
-      "label": "Kalkylatorns startsida"
+      "type": "image/png"
     }
   ],
-
-  "categories": ["business", "utilities"],
-  "iarc_rating_id": "E",
-  "prefer_related_applications": false,
-
-  "launch_handler": {
-    "client_mode": "focus-existing"
-  },
-
-  "scope_extensions": [
+  "shortcuts": [
     {
-      "origin": "https://jimmiandersson89-max.github.io"
+      "name": "Ny offert",
+      "short_name": "Ny offert",
+      "description": "Starta en ny offert",
+      "url": "index.html?reset=true",
+      "icons": [{ "src": "icon-512.png", "sizes": "512x512" }]
+    },
+    {
+      "name": "Skapa PDF",
+      "short_name": "Skapa PDF",
+      "description": "Gå direkt till PDF-knappen",
+      "url": "index.html#pdf",
+      "icons": [{ "src": "icon-512.png", "sizes": "512x512" }]
     }
-  ]
+  ],
+  "related_applications": [],
+  "prefer_related_applications": false,
+  "lang": "sv",
+  "dir": "ltr"
 }
