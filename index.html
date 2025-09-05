@@ -36,16 +36,12 @@
       box-shadow:0 14px 40px rgba(0,0,0,.35);
       padding:22px 18px 20px;
     }
-
-    /* LOGGA + rubrik (som i din bild 1) */
     .logo{
       display:block; margin:4px auto 12px auto;
       width:220px; max-width:65%;
       border-radius:12px;
     }
-    h1{ margin:8px 0 18px; text-align:center; letter-spacing:.2px; font-size:30px }
-
-    /* STORA VITA FÄLT */
+    h1{ margin:8px 0 18px; text-align:center; font-size:30px }
     label{ display:block; font-size:12px; color:var(--muted); margin:14px 0 6px }
     input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
@@ -53,20 +49,17 @@
       outline:none; box-shadow: inset 0 1px 0 rgba(0,0,0,.06);
     }
     input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
-
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
     @media (min-width:720px){
       .grid2{ grid-template-columns:1fr 1fr }
       .grid3{ grid-template-columns:2fr 1fr 1fr }
     }
-
     .out{
       margin-top:16px; border-radius:14px; padding:14px 12px;
       background:#0b0d12; border:1px dashed var(--line); min-height:24px;
     }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
-
     .btn{
       margin-top:12px; width:100%; border:none; border-radius:14px;
       padding:14px 16px; font-size:16px; color:#fff; cursor:pointer;
@@ -74,8 +67,6 @@
     }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
-
-    /* --- OFFERT (endast vid utskrift/PDF) --- */
     #offer{ display:none }
     #offer h2{ margin:0 0 8px; font-size:22px }
     #offer table{ width:100%; border-collapse:collapse; margin-top:12px }
@@ -85,7 +76,6 @@
     #offer .company{ font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px }
     #offer .headgrid{ display:flex; justify-content:space-between; gap:16px; font-size:12px }
     #offer .footer-note{ margin-top:18px; font-size:11px; color:#444; text-align:center }
-
     @media print{
       body{ background:#fff; color:#000; padding:0 }
       .wrap,.hint{ display:none !important }
@@ -96,11 +86,10 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- LOGGA visas bara i kalkylatorn -->
     <img class="logo" src="./IMG_0028.jpeg" alt="Reklamgiganten" onerror="this.style.display='none'">
     <h1>Priskalkylator</h1>
 
-    <!-- NYTT: Företag (avsändare) -->
+    <!-- Avsändar-företag -->
     <label for="avsandare">Företag (avsändare)</label>
     <input id="avsandare" type="text" placeholder="Ditt företagsnamn">
 
@@ -120,7 +109,7 @@
     <div class="grid3">
       <div>
         <label for="artikel">Artikel/Benämning</label>
-        <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Printlaminat, Vinyl, Vinyl flerfärg, Solfilm">
+        <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Vinyl, Solfilm">
       </div>
       <div>
         <label for="pris">Pris per m² (kr)</label>
@@ -143,7 +132,6 @@
         <input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1">
       </div>
     </div>
-
     <div class="grid2">
       <div>
         <label for="minpris">Minimidebitering (kr)</label>
@@ -159,7 +147,6 @@
     </div>
 
     <div class="hint">1000 mm = 1 meter. Antal multiplicerar både area och pris.</div>
-
     <label>Beräknat pris</label>
     <div id="result" class="out">Fyll i mått för att se priset.</div>
     <div id="details" class="hint"></div>
@@ -168,10 +155,9 @@
     <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
   </div>
 
-  <!-- OFFERT (visas bara vid utskrift/PDF) -->
+  <!-- Offert vid utskrift -->
   <div id="offer" aria-hidden="true">
     <div class="company" id="off-company">Företagsnamn</div>
-
     <div class="headgrid">
       <div>
         <div><strong>Kund:</strong> <span id="off-kund"></span></div>
@@ -181,7 +167,6 @@
         <div><strong>Datum:</strong> <span id="offer-date"></span></div>
       </div>
     </div>
-
     <h2 style="margin-top:12px;">Offert</h2>
     <table>
       <tbody id="offer-rows"></tbody>
@@ -202,7 +187,6 @@
     const res = $("result"), det = $("details"), shareBtn = $("share"), pdfBtn = $("pdf");
     const kundEl = $("kundnamn"), telEl = $("telefon"), artEl = $("artikel"), avsEl = $("avsandare");
 
-    // Prislista – matchar om ordet ingår (skiftlägesokänsligt)
     const prislista = [
       { nyckel: "frost", pris: 699 },
       { nyckel: "printlaminat", pris: 799 },
@@ -234,7 +218,6 @@
       const areaTot = areaPer*antal;
       let exkl = areaTot*pris;
       if (minpris>0 && exkl<minpris) exkl = minpris;
-
       const momsBelopp = exkl*moms;
       const inkl = exkl+momsBelopp;
 
@@ -244,14 +227,12 @@
       lastShareText = `Offert: ${fmt(inkl)} kr ${moms>0?"(inkl. moms)":"(exkl. moms)"} — ${antal} st, ${hmm}×${bmm} mm, area/st ${fmt(areaPer)} m² (totalt ${fmt(areaTot)} m²), á ${fmt(pris)} kr/m².`;
     }
 
-    // Auto-pris från artikel
     artEl.addEventListener("input", () => {
       const t = artEl.value.trim().toLowerCase();
       for (const rad of prislista){
-        if (!rad.nyckel) continue;
         if (t.includes(rad.nyckel)){
           prisEl.value = rad.pris;
-          break; // första match vinner
+          break;
         }
       }
       calc();
@@ -271,7 +252,6 @@
     }
     shareBtn.onclick = sharePrice;
 
-    // PDF / utskrift
     pdfBtn.onclick = () => {
       const pris = parseFloat(prisEl.value);
       const hmm = parseFloat(hEl.value);
@@ -309,17 +289,32 @@
       $("exkl").textContent = `${fmt(exkl)} kr`;
       $("momsrad").textContent = `${fmt(momsBelopp)} kr`;
       $("inkl").textContent = `${fmt(inkl)} kr`;
-
-      window.print(); // välj “Spara som PDF”
+      window.print();
     };
 
-    // init
     calc();
 
-    // PWA offline (om du har sw.js)
-    if ("serviceWorker" in navigator){
-      window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
-    }
-  </script>
-</body>
-</html>
+    // PWA med uppdateringsknapp
+    if ("serviceWorker" in navigator) {
+      window.addEventListener("load", () => {
+        navigator.serviceWorker.register("./sw.js").then((reg) => {
+          reg.addEventListener("updatefound", () => {
+            const nw = reg.installing;
+            if (!nw) return;
+            nw.addEventListener("statechange", () => {
+              if (nw.state === "installed" && navigator.serviceWorker.controller) {
+                const bar = document.createElement("div");
+                bar.style.cssText = `
+                  position:fixed; left:12px; right:12px; bottom:12px; z-index:9999;
+                  background:#0b0d12; color:#fff; border:1px solid #2a2f3c;
+                  border-radius:12px; padding:10px 12px; font:14px/1.3 -apple-system,system-ui;
+                  box-shadow:0 6px 20px rgba(0,0,0,.3);
+                `;
+                bar.innerHTML = `
+                  Ny version tillgänglig
+                  <button id="reloadApp" style="
+                    float:right; background:#16a34a; border:none; color:#fff;
+                    padding:8px 12px; border-radius:8px; margin-left:10px; cursor:pointer;
+                  ">Uppdatera</button>
+                `;
+                document.body.append
