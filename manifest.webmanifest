@@ -1,22 +1,50 @@
 {
   "name": "Priskalkylator",
   "short_name": "Kalkylator",
-  "start_url": "index.html",
+  "id": "/",
+  "description": "Priskalkylator för tryck & dekor från ReklamGiganten.",
+  "start_url": "/index.html",
+  "scope": "/",
   "display": "standalone",
-  "background_color": "#171923",
+  "background_color": "#ffffff",
   "theme_color": "#171923",
   "orientation": "portrait",
+  "dir": "ltr",
+  "lang": "sv-SE",
+
   "icons": [
-    {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png"
-    },
     {
       "src": "icon-512.png",
       "sizes": "512x512",
       "type": "image/png",
-      "purpose": "any maskable"
+      "purpose": "any"
+    },
+    {
+      "src": "icon-512-maskable.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "apple-touch-icon.png",
+      "sizes": "180x180",
+      "type": "image/png",
+      "purpose": "any"
+    }
+  ],
+
+  "launch_handler": {
+    "client_mode": "navigate-existing"
+  },
+
+  "prefer_related_applications": false,
+
+  "screenshots": [
+    {
+      "src": "screenshot1.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "label": "Startsida med kalkylator"
     }
   ]
 }
