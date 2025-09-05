@@ -1,6 +1,6 @@
 // sw.js — Priskalkylator PWA Service Worker
 // ÖKA VERSION vid varje ny release så att alla får uppdateringen.
-const VERSION = "v14";
+const VERSION = "v15";
 const CACHE   = "priskalk-" + VERSION;
 
 // Lägg filer här som krävs offline. (Relativa sökvägar funkar bäst på GitHub Pages repo.)
