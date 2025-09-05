@@ -1,6 +1,6 @@
 // sw.js — Priskalkylator PWA Service Worker
 // Öka VERSION varje gång du släpper nytt (v18, v19, ...).
-const VERSION = "v18";
+const VERSION = "v19";
 const CACHE   = "priskalk-" + VERSION;
 
 // Filer vi alltid vill ha offline
