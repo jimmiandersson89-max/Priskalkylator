@@ -5,7 +5,7 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Priskalkylator</title>
 
-  <!-- PWA / app-ikon / manifest -->
+  <!-- PWA / ikoner -->
   <link rel="manifest" href="manifest.webmanifest">
   <link rel="apple-touch-icon" href="apple-touch-icon.png">
   <link rel="icon" sizes="512x512" href="icon-512.png">
@@ -77,25 +77,10 @@
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
-    /* Offert (vid utskrift) */
+    /* Offert (renderas till PDF via jsPDF) – behåller basic print-stil om någon ändå trycker skriv ut */
     #offer{ display:none }
     #offer h2{ margin:0 0 8px; font-size:22px }
-    #offer table{ width:100%; border-collapse:collapse; margin-top:12px }
-    #offer th,#offer td{ text-align:left; padding:8px 6px; border-bottom:1px solid #ddd; font-size:14px; vertical-align:top }
-    #offer th.right,#offer td.right{ text-align:right }
-    #offer .total{ font-weight:700; font-size:16px }
-    #offer .muted{ color:#666; font-size:12px }
-    /* "Offert från" blocket */
-    #offer .from-label{ font-size:12px; color:#666; margin-bottom:4px }
-    #offer .company{ font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px }
-    #offer .headgrid{ display:flex; justify-content:space-between; gap:16px; font-size:12px }
-    /* toppnotis under datum + bottenrad med vänster/höger */
-    #offer .valid-note{ margin-top:4px; color:#666; font-size:12px; }
-    #offer .offer-bottom{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px; }
-    #offer .offer-bottom .left{ font-size:12px; color:#444; }
-    #offer .offer-bottom .right{ text-align:right; }
-    #offer .offer-bottom .right .madeby{ font-size:12px; color:#444; margin-bottom:4px; }
-    #offer .footer-note{ display:none } /* gamla fotnoten döljs */
+    #offer .footer-note{ display:none }
 
     @media print{
       body{ background:#fff; color:#000; padding:0 }
@@ -202,47 +187,11 @@
     <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
   </div>
 
-  <!-- Offert (vid utskrift) -->
-  <div id="offer" aria-hidden="true">
-    <div class="headgrid">
-      <!-- VÄNSTER: Offert från + företagsnamn -->
-      <div>
-        <div class="from-label">Offert från</div>
-        <div class="company" id="off-company">Företagsnamn</div>
-      </div>
-      <!-- HÖGER: Datum + giltighet -->
-      <div style="text-align:right">
-        <div><strong>Datum:</strong> <span id="offer-date"></span></div>
-        <div class="valid-note">Offerten är giltig i 30 dagar</div>
-      </div>
-    </div>
-
-    <h2 style="margin-top:12px;">Offert</h2>
-    <table>
-      <thead>
-        <tr><th>Benämning / Mått</th><th class="right">Belopp</th></tr>
-      </thead>
-      <tbody id="offer-rows"></tbody>
-      <tfoot>
-        <tr><td colspan="2" style="border:none;"></td></tr>
-        <tr class="total"><td>Summa exkl. moms</td><td id="exkl" class="right"></td></tr>
-        <tr><td>Moms 25%</td><td id="momsrad" class="right"></td></tr>
-        <tr class="total"><td>Att betala</td><td id="inkl" class="right"></td></tr>
-      </tfoot>
-    </table>
-
-    <!-- Ny bottenrad med vänster/höger innehåll -->
-    <div class="offer-bottom">
-      <div class="left">www.reklamgiganten.com <span id="app-version"></span></div>
-      <div class="right">
-        <div class="madeby">Priskalkylatorn är skapad av ReklamGiganten</div>
-        <div><strong>Datum:</strong> <span id="offer-date-bottom"></span></div>
-      </div>
-    </div>
-  </div>
+  <!-- (behövs bara om någon ändå använder webbläsarens utskrift) -->
+  <div id="offer" aria-hidden="true"></div>
 
   <script>
-    // Håll detta i synk med sw.js VERSION (t.ex. V18, V19)
+    // Håll detta i synk med sw.js VERSION (t.ex. "v19")
     const APP_VERSION = "V18";
 
     const $ = id => document.getElementById(id);
@@ -326,7 +275,7 @@
     }
 
     // Lägg till mått
-    $("addMeasure").addEventListener("click", () => {
+    addMeasureBtn.addEventListener("click", () => {
       const hmm = parseFloat(hojdEl.value);
       const bmm = parseFloat(breddEl.value);
       const antal = Math.max(1, parseInt(antalEl.value||"1",10));
@@ -348,7 +297,7 @@
     });
 
     // Ta bort rad
-    $("measuresBody").addEventListener("click", (e) => {
+    measuresBody.addEventListener("click", (e) => {
       const btn = e.target.closest(".remove"); if (!btn) return;
       const i = parseInt(btn.dataset.i,10);
       if (!isFinite(i)) return;
@@ -371,51 +320,163 @@
         alert("Text kopierad!");
       }
     }
-    $("share").onclick = sharePrice;
-
-    // PDF / utskrift
-    $("pdf").onclick = () => {
-      if (lines.length === 0) return;
-
-      const today = new Date().toLocaleDateString("sv-SE");
-      $("offer-date").textContent = today;
-      $("offer-date-bottom").textContent = today;
-
-      $("off-company").textContent = (avsEl.value || "Företagsnamn");
-
-      const ben = artikelEl.value ? artikelEl.value : "Artikel";
-      const rowsEl = $("offer-rows");
-      rowsEl.innerHTML = lines.map(l => `
-        <tr>
-          <td>
-            <strong>${ben}</strong><br>
-            ${l.antal} st — ${l.hmm} × ${l.bmm} mm per styck<br>
-            Area/st ${fmt(l.areaPer)} m² (total ${fmt(l.areaTot)} m²), á ${fmt(l.pris)} kr/m²${l.min>0?` • min ${fmt(l.min)} kr`:``}
-          </td>
-          <td class="right">${fmt(l.exkl)} kr</td>
-        </tr>
-      `).join("");
-
-      const momsSats = parseFloat(momsEl.value||"0");
-      const exkl = lines.reduce((s,l)=>s+l.exkl,0);
-      const moms = exkl * momsSats;
-      const inkl = exkl + moms;
-      $("exkl").textContent = `${fmt(exkl)} kr`;
-      $("momsrad").textContent = `${fmt(moms)} kr`;
-      $("inkl").textContent = `${fmt(inkl)} kr${momsSats>0?" (inkl. moms)":" (exkl. moms)"}`;
-
-      window.print();
-    };
-
-    // Sätt versionsnummer i offerten
-    $("app-version").textContent = APP_VERSION;
+    shareBtn.onclick = sharePrice;
   </script>
 
-  <!-- SW-uppdateringsknapp (oförändrad) -->
+  <!-- jsPDF (måste ligga före vår PDF-funktion) -->
+  <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+
+  <!-- Skapa offert som PDF med jsPDF -->
+  <script>
+    $("pdf").onclick = () => {
+      if (!lines || lines.length === 0) {
+        alert("Lägg till minst ett mått först.");
+        return;
+      }
+
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF({ unit: "mm", format: "a4" });
+
+      // Marginaler + mått
+      const left = 15, right = 15, top = 18, bottom = 18;
+      const pageW = doc.internal.pageSize.getWidth();
+      const pageH = doc.internal.pageSize.getHeight();
+      let y = top;
+
+      // Hjälpare
+      const fmt = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
+      const addY = mm => { y += mm; };
+      const needPage = (h=0) => (y + h > pageH - bottom - 14); // buffert ovanför fot
+      const newPage = () => { doc.addPage(); y = top; drawHeader(); };
+
+      // Data från fälten
+      const today = new Date().toLocaleDateString("sv-SE");
+      const company = ($("avsandare").value || "Företagsnamn");
+      const customer = $("kundnamn").value || "";
+      const phone = $("telefon").value || "";
+      const artikel = $("artikel").value || "Artikel";
+      const momsSats = parseFloat($("moms").value || "0");
+
+      // Summeringar (exkl)
+      const sumExkl = lines.reduce((s,l)=>s+l.exkl,0);
+      const momsBelopp = sumExkl * momsSats;
+      const sumInkl = sumExkl + momsBelopp;
+
+      // Header
+      function drawHeader(){
+        doc.setFont("helvetica","bold");
+        doc.setFontSize(18);
+        doc.text("Offert", left, y);
+        // Höger: datum + giltighet
+        doc.setFontSize(11);
+        doc.setFont("helvetica","normal");
+        const rightX = pageW - right;
+        doc.text(`Datum: ${today}`, rightX, y, { align: "right" });
+        addY(6);
+        doc.setTextColor(90);
+        doc.text("Offerten är giltig i 30 dagar", rightX, y, { align: "right" });
+        doc.setTextColor(0);
+        addY(10);
+
+        // Vänster: Offert från + företag
+        doc.setFontSize(9);
+        doc.setTextColor(90);
+        doc.text("Offert från", left, y);
+        doc.setTextColor(0);
+        addY(5);
+        doc.setFont("helvetica","bold");
+        doc.setFontSize(12);
+        doc.text(company, left, y);
+        doc.setFont("helvetica","normal");
+
+        // Kundinfo
+        if (customer || phone){
+          addY(8);
+          doc.setFontSize(10);
+          if (customer) doc.text(`Kund: ${customer}`, left, y);
+          if (phone)    doc.text(`Tel: ${phone}`, left + 90, y);
+        }
+        addY(10);
+      }
+      drawHeader();
+
+      // Tabellhuvud
+      const col1W = 120;
+      const col2W = pageW - left - right - col1W;
+      const col1X = left;
+      const col2X = left + col1W;
+
+      doc.setFont("helvetica","bold");
+      doc.setFontSize(11);
+      doc.text("Benämning / Mått", col1X, y);
+      doc.text("Belopp", col2X + col2W, y, { align:"right" });
+      addY(6);
+      doc.setDrawColor(200);
+      doc.line(left, y, pageW - right, y);
+      addY(6);
+      doc.setFont("helvetica","normal");
+
+      // Rader
+      lines.forEach((l) => {
+        const radText = [
+          `${artikel}`,
+          `${l.antal} st — ${l.hmm} × ${l.bmm} mm per styck`,
+          `Area/st ${fmt(l.areaPer)} m² (total ${fmt(l.areaTot)} m²), á ${fmt(l.pris)} kr/m²${l.min>0?` • min ${fmt(l.min)} kr`:``}`
+        ].join("\n");
+
+        const wrapped = doc.splitTextToSize(radText, col1W);
+        const rowH = Math.max(8, wrapped.length * 5);
+
+        if (needPage(rowH + 10)) newPage();
+
+        doc.setFontSize(10);
+        doc.text(wrapped, col1X, y);
+        doc.setFont("helvetica","bold");
+        doc.text(`${fmt(l.exkl)} kr`, col2X + col2W, y, { align:"right" });
+        doc.setFont("helvetica","normal");
+
+        addY(rowH + 4);
+        doc.setDrawColor(235);
+        doc.line(left, y, pageW - right, y);
+        addY(4);
+      });
+
+      // Summeringar
+      const sumBlock = [
+        ["Summa exkl. moms", fmt(sumExkl) + " kr", true],
+        [`Moms ${momsSats*100|0}%`, fmt(momsBelopp) + " kr", false],
+        ["Att betala", fmt(sumInkl) + ` kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+      ];
+
+      sumBlock.forEach(([label, value, bold]) => {
+        if (needPage(12)) newPage();
+        doc.setFontSize(11);
+        doc.setFont("helvetica", bold ? "bold" : "normal");
+        doc.text(label, col1X, y);
+        doc.text(value, col2X + col2W, y, { align:"right" });
+        addY(7);
+        doc.setDrawColor(220);
+        doc.line(left, y, pageW - right, y);
+        addY(5);
+      });
+
+      // Sidfot (vår egen)
+      const footerY = pageH - 12;
+      doc.setFont("helvetica","normal");
+      doc.setFontSize(9);
+      doc.text(`www.reklamgiganten.com ${APP_VERSION}`, left, footerY);
+      doc.text("Priskalkylatorn är skapad av ReklamGiganten AB", pageW - right, footerY, { align: "right" });
+
+      // Spara
+      const safeName = (customer || "offert").replace(/[^\w\- åäöÅÄÖ]/g,"_");
+      doc.save(`Offert_${safeName}.pdf`);
+    };
+  </script>
+
+  <!-- Service worker: uppdateringsknapp -->
   <script>
     (function () {
       if (!("serviceWorker" in navigator)) return;
-
       let regRef = null;
 
       function showUpdateBar() {
