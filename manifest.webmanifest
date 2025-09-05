@@ -8,6 +8,7 @@
   "start_url": "https://jimmiandersson89-max.github.io/Priskalkylator/index.html",
   "scope": "https://jimmiandersson89-max.github.io/Priskalkylator/",
   "display": "standalone",
+  "orientation": "portrait",
   "background_color": "#ffffff",
   "theme_color": "#000000",
 
@@ -15,7 +16,8 @@
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     },
     {
       "src": "icon-512-maskable.png",
@@ -26,7 +28,8 @@
     {
       "src": "apple-touch-icon.png",
       "sizes": "180x180",
-      "type": "image/png"
+      "type": "image/png",
+      "purpose": "any"
     }
   ],
 
@@ -40,6 +43,16 @@
   ],
 
   "categories": ["business", "utilities"],
-  "iarc_rating_id": "pending",
-  "prefer_related_applications": false
+  "iarc_rating_id": "E",
+  "prefer_related_applications": false,
+
+  "launch_handler": {
+    "client_mode": "focus-existing"
+  },
+
+  "scope_extensions": [
+    {
+      "origin": "https://jimmiandersson89-max.github.io"
+    }
+  ]
 }
