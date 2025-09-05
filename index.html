@@ -85,9 +85,17 @@
     #offer th.right,#offer td.right{ text-align:right }
     #offer .total{ font-weight:700; font-size:16px }
     #offer .muted{ color:#666; font-size:12px }
+    /* "Offert från" blocket */
+    #offer .from-label{ font-size:12px; color:#666; margin-bottom:4px }
     #offer .company{ font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px }
     #offer .headgrid{ display:flex; justify-content:space-between; gap:16px; font-size:12px }
-    #offer .footer-note{ margin-top:18px; font-size:11px; color:#444; text-align:center }
+    /* toppnotis under datum + bottenrad med vänster/höger */
+    #offer .valid-note{ margin-top:4px; color:#666; font-size:12px; }
+    #offer .offer-bottom{ display:flex; justify-content:space-between; align-items:flex-end; margin-top:16px; }
+    #offer .offer-bottom .left{ font-size:12px; color:#444; }
+    #offer .offer-bottom .right{ text-align:right; }
+    #offer .offer-bottom .right .madeby{ font-size:12px; color:#444; margin-bottom:4px; }
+    #offer .footer-note{ display:none } /* gamla fotnoten döljs */
 
     @media print{
       body{ background:#fff; color:#000; padding:0 }
@@ -133,7 +141,7 @@
       </div>
     </div>
 
-    <!-- Pris/m² + ev. minimidebitering (gäller för varje tillagt mått, kan ändras per mått om du vill – se kod-kommentar) -->
+    <!-- Pris/m² + min -->
     <div class="grid2">
       <div>
         <label for="pris">Pris per m² (kr)</label>
@@ -165,7 +173,7 @@
         </div>
       </div>
       <button class="btn" id="addMeasure">+ Lägg till mått</button>
-      <div class="hint">Varje klick sparar det aktuella måttet i listan nedan. Du kan sedan lägga in nästa mått direkt.</div>
+      <div class="hint">Varje klick sparar måttet i listan nedan. Lägg till hur många du vill.</div>
     </div>
 
     <!-- Sparad lista över mått -->
@@ -196,16 +204,19 @@
 
   <!-- Offert (vid utskrift) -->
   <div id="offer" aria-hidden="true">
-    <div class="company" id="off-company">Företagsnamn</div>
     <div class="headgrid">
+      <!-- VÄNSTER: Offert från + företagsnamn -->
       <div>
-        <div><strong>Kund:</strong> <span id="off-kund"></span></div>
-        <div><strong>Telefon:</strong> <span id="off-tel"></span></div>
+        <div class="from-label">Offert från</div>
+        <div class="company" id="off-company">Företagsnamn</div>
       </div>
+      <!-- HÖGER: Datum + giltighet -->
       <div style="text-align:right">
         <div><strong>Datum:</strong> <span id="offer-date"></span></div>
+        <div class="valid-note">Offerten är giltig i 30 dagar</div>
       </div>
     </div>
+
     <h2 style="margin-top:12px;">Offert</h2>
     <table>
       <thead>
@@ -219,10 +230,21 @@
         <tr class="total"><td>Att betala</td><td id="inkl" class="right"></td></tr>
       </tfoot>
     </table>
-    <div class="footer-note">app skapad av Reklamgiganten AB</div>
+
+    <!-- Ny bottenrad med vänster/höger innehåll -->
+    <div class="offer-bottom">
+      <div class="left">www.reklamgiganten.com <span id="app-version"></span></div>
+      <div class="right">
+        <div class="madeby">Priskalkylatorn är skapad av ReklamGiganten</div>
+        <div><strong>Datum:</strong> <span id="offer-date-bottom"></span></div>
+      </div>
+    </div>
   </div>
 
   <script>
+    // Håll detta i synk med sw.js VERSION (t.ex. V18, V19)
+    const APP_VERSION = "V18";
+
     const $ = id => document.getElementById(id);
 
     // Element
@@ -253,7 +275,7 @@
 
     const fmt = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
 
-    // Lagring av alla tillagda mått
+    // Lagring av tillagda mått
     let lines = []; // {hmm,bmm,antal,pris,min, areaPer, areaTot, exkl}
     let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0;
 
@@ -304,7 +326,7 @@
     }
 
     // Lägg till mått
-    addMeasureBtn.addEventListener("click", () => {
+    $("addMeasure").addEventListener("click", () => {
       const hmm = parseFloat(hojdEl.value);
       const bmm = parseFloat(breddEl.value);
       const antal = Math.max(1, parseInt(antalEl.value||"1",10));
@@ -318,15 +340,15 @@
 
       const r = calcLine(hmm,bmm,antal,pris,min);
       lines.push({ hmm, bmm, antal, pris, min, ...r });
-      // Nollställ bara måttfälten för snabb nästa inmatning
+      // Nollställ måttfälten
       hojdEl.value = ""; breddEl.value = ""; antalEl.value = "1";
       hojdEl.focus();
 
       renderListAndTotals();
     });
 
-    // Ta bort en rad i listan
-    measuresBody.addEventListener("click", (e) => {
+    // Ta bort rad
+    $("measuresBody").addEventListener("click", (e) => {
       const btn = e.target.closest(".remove"); if (!btn) return;
       const i = parseInt(btn.dataset.i,10);
       if (!isFinite(i)) return;
@@ -334,7 +356,7 @@
       renderListAndTotals();
     });
 
-    // Om moms ändras – räkna om totals
+    // Moms ändras
     momsEl.addEventListener("change", renderListAndTotals);
 
     // Dela
@@ -349,15 +371,16 @@
         alert("Text kopierad!");
       }
     }
-    shareBtn.onclick = sharePrice;
+    $("share").onclick = sharePrice;
 
     // PDF / utskrift
-    pdfBtn.onclick = () => {
+    $("pdf").onclick = () => {
       if (lines.length === 0) return;
 
-      $("offer-date").textContent = new Date().toLocaleDateString("sv-SE");
-      $("off-kund").textContent = (kundEl.value || "-");
-      $("off-tel").textContent  = (telEl.value || "-");
+      const today = new Date().toLocaleDateString("sv-SE");
+      $("offer-date").textContent = today;
+      $("offer-date-bottom").textContent = today;
+
       $("off-company").textContent = (avsEl.value || "Företagsnamn");
 
       const ben = artikelEl.value ? artikelEl.value : "Artikel";
@@ -373,7 +396,6 @@
         </tr>
       `).join("");
 
-      // Totals
       const momsSats = parseFloat(momsEl.value||"0");
       const exkl = lines.reduce((s,l)=>s+l.exkl,0);
       const moms = exkl * momsSats;
@@ -384,9 +406,12 @@
 
       window.print();
     };
+
+    // Sätt versionsnummer i offerten
+    $("app-version").textContent = APP_VERSION;
   </script>
 
-  <!-- SW-uppdateringsknapp (samma som tidigare) -->
+  <!-- SW-uppdateringsknapp (oförändrad) -->
   <script>
     (function () {
       if (!("serviceWorker" in navigator)) return;
