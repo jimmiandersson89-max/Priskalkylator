@@ -14,7 +14,8 @@
   <style>
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
-      --text:#ffffff; --muted:#b7c0cf; --btn:#16a34a; --btn-hover:#139043;
+      --text:#ffffff; --muted:#b7c0cf; --btn:#16a34a; --btn-hover:#139043; --row:#0b0d12;
+      --danger:#9b1c1c;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -24,27 +25,55 @@
       display:flex; justify-content:center; align-items:flex-start; padding:28px 16px;
     }
     .wrap{
-      width:100%; max-width:720px; margin:auto; background:var(--card);
+      width:100%; max-width:820px; margin:auto; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
     .logo{ display:block; margin:4px auto 12px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:8px 0 18px; text-align:center; font-size:30px }
-    label{ display:block; font-size:12px; color:var(--muted); margin:14px 0 6px }
+    h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
+
+    label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
     input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
-      padding:14px 12px; font-size:16px; background:#fff; color:#000;
-      outline:none; box-shadow:inset 0 1px 0 rgba(0,0,0,.06);
+      padding:12px; font-size:16px; background:#fff; color:#000; outline:none;
+      box-shadow:inset 0 1px 0 rgba(0,0,0,.06);
     }
     input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
+
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
     @media (min-width:720px){
       .grid2{ grid-template-columns:1fr 1fr }
       .grid3{ grid-template-columns:2fr 1fr 1fr }
     }
+
+    .row{
+      background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
+    }
+
+    .compact-list{
+      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+    }
+    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px; }
+    .compact-list th, .compact-list td{ padding:10px 8px; border-bottom:1px solid #2a2f3c; }
+    .compact-list th{ text-align:left; color:var(--muted); font-weight:600; }
+    .compact-list tr:last-child td{ border-bottom:none }
+    .compact-list .act{ text-align:right }
+    .tag{
+      display:inline-block; background:#11151d; border:1px solid #2a2f3c; color:#e5e7eb;
+      padding:4px 8px; border-radius:999px; font-size:12px; margin-right:6px;
+    }
+    .remove{
+      background:var(--danger); color:#fff; border:none; border-radius:10px; padding:6px 10px; cursor:pointer;
+    }
+    .remove:hover{ filter:brightness(1.1) }
+
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:#0b0d12; border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
-    .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
+    .btn{
+      margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px;
+      color:#fff; cursor:pointer; background:var(--btn)
+    }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
@@ -52,7 +81,8 @@
     #offer{ display:none }
     #offer h2{ margin:0 0 8px; font-size:22px }
     #offer table{ width:100%; border-collapse:collapse; margin-top:12px }
-    #offer th,#offer td{ text-align:left; padding:8px 6px; border-bottom:1px solid #ddd; font-size:14px }
+    #offer th,#offer td{ text-align:left; padding:8px 6px; border-bottom:1px solid #ddd; font-size:14px; vertical-align:top }
+    #offer th.right,#offer td.right{ text-align:right }
     #offer .total{ font-weight:700; font-size:16px }
     #offer .muted{ color:#666; font-size:12px }
     #offer .company{ font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px }
@@ -88,37 +118,11 @@
       </div>
     </div>
 
-    <!-- Artikel / pris / antal -->
-    <div class="grid3">
+    <!-- Artikel (gemensam) + moms -->
+    <div class="grid2" style="margin-top:6px">
       <div>
-        <label for="artikel">Artikel/Benämning</label>
+        <label for="artikel">Artikel/Benämning (gemensam rubrik för måtten)</label>
         <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Vinyl, Solfilm">
-      </div>
-      <div>
-        <label for="pris">Pris per m² (kr)</label>
-        <input id="pris" type="number" inputmode="decimal" value="699" min="0" step="0.01">
-      </div>
-      <div>
-        <label for="antal">Antal (st)</label>
-        <input id="antal" type="number" inputmode="numeric" value="1" min="1" step="1">
-      </div>
-    </div>
-
-    <!-- Mått + min + moms -->
-    <div class="grid2">
-      <div>
-        <label for="hojd">Höjd (mm)</label>
-        <input id="hojd" type="number" inputmode="decimal" placeholder="Höjd (mm)" min="1">
-      </div>
-      <div>
-        <label for="bredd">Bredd (mm)</label>
-        <input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1">
-      </div>
-    </div>
-    <div class="grid2">
-      <div>
-        <label for="minpris">Minimidebitering (kr)</label>
-        <input id="minpris" type="number" inputmode="decimal" value="0" min="0" step="1">
       </div>
       <div>
         <label for="moms">Moms</label>
@@ -129,16 +133,68 @@
       </div>
     </div>
 
-    <div class="hint">1000 mm = 1 meter. Antal multiplicerar både area och pris.</div>
-    <label>Beräknat pris</label>
-    <div id="result" class="out">Fyll i mått för att se priset.</div>
+    <!-- Pris/m² + ev. minimidebitering (gäller för varje tillagt mått, kan ändras per mått om du vill – se kod-kommentar) -->
+    <div class="grid2">
+      <div>
+        <label for="pris">Pris per m² (kr)</label>
+        <input id="pris" type="number" inputmode="decimal" value="699" min="0" step="0.01">
+      </div>
+      <div>
+        <label for="minpris">Minimidebitering (kr, valfritt)</label>
+        <input id="minpris" type="number" inputmode="decimal" value="0" min="0" step="1">
+      </div>
+    </div>
+
+    <div class="hint">Tips: Skriv “Frost/Print/Printlaminat/Vinyl/Vinyl flerfärg/Solfilm” i Artikel så fylls priset i automatiskt.</div>
+
+    <!-- Ett mått i taget -->
+    <div class="row">
+      <h2>Lägg till mått</h2>
+      <div class="grid3">
+        <div>
+          <label for="hojd">Höjd (mm)</label>
+          <input id="hojd" type="number" inputmode="decimal" placeholder="Höjd (mm)" min="1">
+        </div>
+        <div>
+          <label for="bredd">Bredd (mm)</label>
+          <input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1">
+        </div>
+        <div>
+          <label for="antal">Antal (st)</label>
+          <input id="antal" type="number" inputmode="numeric" value="1" min="1" step="1">
+        </div>
+      </div>
+      <button class="btn" id="addMeasure">+ Lägg till mått</button>
+      <div class="hint">Varje klick sparar det aktuella måttet i listan nedan. Du kan sedan lägga in nästa mått direkt.</div>
+    </div>
+
+    <!-- Sparad lista över mått -->
+    <div class="compact-list" id="listWrap" style="display:none">
+      <table id="measuresTable">
+        <thead>
+          <tr>
+            <th>Mått (mm)</th>
+            <th>Antal</th>
+            <th>Area/st</th>
+            <th>Pris/m²</th>
+            <th>Exkl (rad)</th>
+            <th class="act">Åtgärd</th>
+          </tr>
+        </thead>
+        <tbody id="measuresBody"></tbody>
+      </table>
+    </div>
+
+    <!-- Resultat -->
+    <label style="margin-top:14px">Beräknat pris (alla tillagda mått)</label>
+    <div id="result" class="out">Lägg till ett mått.</div>
     <div id="details" class="hint"></div>
 
     <button class="btn" id="share">Dela priset</button>
     <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
   </div>
 
-  <!-- Offert (visas bara vid utskrift/PDF) -->
+  <!-- Offert (vid utskrift) -->
   <div id="offer" aria-hidden="true">
     <div class="company" id="off-company">Företagsnamn</div>
     <div class="headgrid">
@@ -152,12 +208,15 @@
     </div>
     <h2 style="margin-top:12px;">Offert</h2>
     <table>
+      <thead>
+        <tr><th>Benämning / Mått</th><th class="right">Belopp</th></tr>
+      </thead>
       <tbody id="offer-rows"></tbody>
       <tfoot>
         <tr><td colspan="2" style="border:none;"></td></tr>
-        <tr class="total"><td>Summa exkl. moms</td><td id="exkl"></td></tr>
-        <tr><td>Moms 25%</td><td id="momsrad"></td></tr>
-        <tr class="total"><td>Att betala</td><td id="inkl"></td></tr>
+        <tr class="total"><td>Summa exkl. moms</td><td id="exkl" class="right"></td></tr>
+        <tr><td>Moms 25%</td><td id="momsrad" class="right"></td></tr>
+        <tr class="total"><td>Att betala</td><td id="inkl" class="right"></td></tr>
       </tfoot>
     </table>
     <div class="footer-note">app skapad av Reklamgiganten AB</div>
@@ -165,127 +224,169 @@
 
   <script>
     const $ = id => document.getElementById(id);
-    const prisEl = $("pris"), hEl = $("hojd"), bEl = $("bredd");
-    const minEl = $("minpris"), momsEl = $("moms"), antalEl = $("antal");
-    const res = $("result"), det = $("details"), shareBtn = $("share"), pdfBtn = $("pdf");
-    const kundEl = $("kundnamn"), telEl = $("telefon"), artEl = $("artikel"), avsEl = $("avsandare");
 
-    // Prislista – matchar om nyckelordet ingår i texten (skiftlägesokänsligt)
+    // Element
+    const avsEl = $("avsandare"), kundEl = $("kundnamn"), telEl = $("telefon");
+    const artikelEl = $("artikel"), momsEl = $("moms");
+    const prisEl = $("pris"), minEl = $("minpris");
+    const hojdEl = $("hojd"), breddEl = $("bredd"), antalEl = $("antal");
+    const addMeasureBtn = $("addMeasure");
+    const listWrap = $("listWrap"), measuresBody = $("measuresBody");
+    const res = $("result"), det = $("details");
+    const shareBtn = $("share"), pdfBtn = $("pdf");
+
+    // Prislista auto
     const prislista = [
-      { nyckel: "vinyl flerfärg", pris: 799 }, // mer specifik först
+      { nyckel: "vinyl flerfärg", pris: 799 },
       { nyckel: "printlaminat",   pris: 799 },
       { nyckel: "solfilm",        pris: 899 },
       { nyckel: "frost",          pris: 699 },
       { nyckel: "vinyl",          pris: 699 },
       { nyckel: "print",          pris: 699 }
     ];
+    artikelEl.addEventListener("input", () => {
+      const t = artikelEl.value.trim().toLowerCase();
+      for (const rad of prislista) {
+        if (t.includes(rad.nyckel)) { prisEl.value = rad.pris; break; }
+      }
+    });
 
     const fmt = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-    let lastShareText = "";
 
-    function calc(){
-      const pris = parseFloat(prisEl.value);
-      const hmm = parseFloat(hEl.value);
-      const bmm = parseFloat(bEl.value);
-      const antal = Math.max(1, parseInt(antalEl.value||"1",10));
-      const minpris = parseFloat(minEl.value||"0");
-      const moms = parseFloat(momsEl.value||"0");
+    // Lagring av alla tillagda mått
+    let lines = []; // {hmm,bmm,antal,pris,min, areaPer, areaTot, exkl}
+    let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0;
 
-      if (!isFinite(pris) || !isFinite(hmm) || !isFinite(bmm) || pris<=0 || hmm<=0 || bmm<=0){
-        res.textContent = "Fyll i mått för att se priset.";
+    function calcLine(hmm,bmm,antal,pris,min){
+      const areaPer = (hmm/1000)*(bmm/1000);
+      const areaTot = areaPer*antal;
+      let exkl = areaTot*pris;
+      if (min>0 && exkl<min) exkl = min;
+      return { areaPer, areaTot, exkl };
+    }
+
+    function renderListAndTotals(){
+      measuresBody.innerHTML = "";
+      if (lines.length === 0) {
+        listWrap.style.display = "none";
+        res.textContent = "Lägg till ett mått.";
         det.textContent = "";
         lastShareText = "";
         return;
       }
+      listWrap.style.display = "block";
 
-      const areaPer = (hmm/1000)*(bmm/1000);
-      const areaTot = areaPer*antal;
-      let exkl = areaTot*pris;
-      if (minpris>0 && exkl<minpris) exkl = minpris;
+      let sumExkl = 0, sumArea = 0;
+      lines.forEach((l, idx) => {
+        sumExkl += l.exkl; sumArea += l.areaTot;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><span class="tag">${l.hmm}×${l.bmm} mm</span></td>
+          <td>${l.antal}</td>
+          <td>${fmt(l.areaPer)} m²</td>
+          <td>${fmt(l.pris)} kr/m²</td>
+          <td>${fmt(l.exkl)} kr</td>
+          <td class="act"><button class="remove" data-i="${idx}">Ta bort</button></td>
+        `;
+        measuresBody.appendChild(tr);
+      });
 
-      const momsBelopp = exkl*moms;
-      const inkl = exkl+momsBelopp;
+      const moms = parseFloat(momsEl.value||"0");
+      const momsBelopp = sumExkl * moms;
+      const inkl = sumExkl + momsBelopp;
 
-      res.textContent = `${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"}`;
-      det.textContent = `Antal: ${antal} st • Area/st: ${fmt(areaPer)} m² • Total area: ${fmt(areaTot)} m² • á-pris: ${fmt(pris)} kr/m² • Exkl: ${fmt(exkl)} kr`;
+      res.textContent = `${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"} för ${lines.length} mått`;
+      det.textContent = `Total area: ${fmt(sumArea)} m² • Summa exkl: ${fmt(sumExkl)} kr`;
 
-      lastShareText = `Offert: ${fmt(inkl)} kr ${moms>0?"(inkl. moms)":"(exkl. moms)"} — ${antal} st, ${hmm}×${bmm} mm, area/st ${fmt(areaPer)} m² (totalt ${fmt(areaTot)} m²), á ${fmt(pris)} kr/m².`;
+      lastExkl = sumExkl; lastMoms = momsBelopp; lastInkl = inkl;
+      lastShareText = `Offert: ${fmt(inkl)} kr ${moms>0 ? "(inkl. moms)": "(exkl. moms)"} — ${lines.length} mått.\n` +
+        lines.map((l,i)=>`${i+1}. ${l.hmm}×${l.bmm} mm • ${l.antal} st • ${fmt(l.areaTot)} m² • á ${fmt(l.pris)} kr/m² → exkl ${fmt(l.exkl)} kr`).join("\n");
     }
 
-    // Auto-pris från artikel (första match vinner)
-    artEl.addEventListener("input", () => {
-      const t = artEl.value.trim().toLowerCase();
-      for (const rad of prislista){
-        if (t.includes(rad.nyckel)){
-          prisEl.value = rad.pris;
-          break;
-        }
+    // Lägg till mått
+    addMeasureBtn.addEventListener("click", () => {
+      const hmm = parseFloat(hojdEl.value);
+      const bmm = parseFloat(breddEl.value);
+      const antal = Math.max(1, parseInt(antalEl.value||"1",10));
+      const pris = parseFloat(prisEl.value);
+      const min = parseFloat(minEl.value||"0");
+
+      if (!isFinite(hmm) || !isFinite(bmm) || !isFinite(pris) || hmm<=0 || bmm<=0 || pris<=0) {
+        alert("Fyll i giltiga Höjd, Bredd och Pris.");
+        return;
       }
-      calc();
+
+      const r = calcLine(hmm,bmm,antal,pris,min);
+      lines.push({ hmm, bmm, antal, pris, min, ...r });
+      // Nollställ bara måttfälten för snabb nästa inmatning
+      hojdEl.value = ""; breddEl.value = ""; antalEl.value = "1";
+      hojdEl.focus();
+
+      renderListAndTotals();
     });
 
-    // Räkna automatiskt när man skriver
-    [prisEl,hEl,bEl,minEl,momsEl,antalEl].forEach(el=>{
-      el.addEventListener("input",calc);
-      el.addEventListener("change",calc);
+    // Ta bort en rad i listan
+    measuresBody.addEventListener("click", (e) => {
+      const btn = e.target.closest(".remove"); if (!btn) return;
+      const i = parseInt(btn.dataset.i,10);
+      if (!isFinite(i)) return;
+      lines.splice(i,1);
+      renderListAndTotals();
     });
 
-    // Dela priset (fallback: mailto -> kopiera)
+    // Om moms ändras – räkna om totals
+    momsEl.addEventListener("change", renderListAndTotals);
+
+    // Dela
     async function sharePrice(){
       const text = lastShareText || res.textContent || "Pris från Priskalkylatorn";
       try{ if(navigator.share){ await navigator.share({title:"Offert",text, url:location.href}); return; } }catch(e){}
       try{ const mailto=`mailto:?subject=${encodeURIComponent("Offert")}&body=${encodeURIComponent(text+"\n\n"+location.href)}`; location.href=mailto; return; }catch(e){}
-      try{ await navigator.clipboard.writeText(text); alert("Text kopierad! Klistra in i valfri app."); }
-      catch{ const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.left="-9999px"; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); ta.remove(); alert("Text kopierad! Klistra in i valfri app."); }
+      try{ await navigator.clipboard.writeText(text); alert("Text kopierad!"); }
+      catch{
+        const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.left="-9999px";
+        document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); ta.remove();
+        alert("Text kopierad!");
+      }
     }
     shareBtn.onclick = sharePrice;
 
     // PDF / utskrift
     pdfBtn.onclick = () => {
-      const pris = parseFloat(prisEl.value);
-      const hmm = parseFloat(hEl.value);
-      const bmm = parseFloat(bEl.value);
-      const antal = Math.max(1, parseInt(antalEl.value||"1",10));
-      const minpris = parseFloat(minEl.value||"0");
-      const moms = parseFloat(momsEl.value||"0");
-      if (!isFinite(pris) || !isFinite(hmm) || !isFinite(bmm) || pris<=0 || hmm<=0 || bmm<=0) return;
-
-      const areaPer = (hmm/1000)*(bmm/1000);
-      const areaTot = areaPer*antal;
-      let exkl = areaTot*pris;
-      if (minpris>0 && exkl<minpris) exkl = minpris;
-      const momsBelopp = exkl*moms;
-      const inkl = exkl+momsBelopp;
+      if (lines.length === 0) return;
 
       $("offer-date").textContent = new Date().toLocaleDateString("sv-SE");
       $("off-kund").textContent = (kundEl.value || "-");
       $("off-tel").textContent  = (telEl.value || "-");
       $("off-company").textContent = (avsEl.value || "Företagsnamn");
 
-      const rows = $("offer-rows");
-      const ben = artEl.value ? artEl.value : "Artikel";
-      rows.innerHTML = `
-        <tr><th>Benämning</th><th>Belopp</th></tr>
+      const ben = artikelEl.value ? artikelEl.value : "Artikel";
+      const rowsEl = $("offer-rows");
+      rowsEl.innerHTML = lines.map(l => `
         <tr>
           <td>
-            ${ben}<br>
-            ${antal} st — ${hmm} × ${bmm} mm per styck (area/st ${fmt(areaPer)} m², total ${fmt(areaTot)} m²)<br>
-            á ${fmt(pris)} kr/m²${minpris>0?` • minimidebitering ${fmt(minpris)} kr`:``}
+            <strong>${ben}</strong><br>
+            ${l.antal} st — ${l.hmm} × ${l.bmm} mm per styck<br>
+            Area/st ${fmt(l.areaPer)} m² (total ${fmt(l.areaTot)} m²), á ${fmt(l.pris)} kr/m²${l.min>0?` • min ${fmt(l.min)} kr`:``}
           </td>
-          <td>${fmt(exkl)} kr</td>
+          <td class="right">${fmt(l.exkl)} kr</td>
         </tr>
-      `;
+      `).join("");
+
+      // Totals
+      const momsSats = parseFloat(momsEl.value||"0");
+      const exkl = lines.reduce((s,l)=>s+l.exkl,0);
+      const moms = exkl * momsSats;
+      const inkl = exkl + moms;
       $("exkl").textContent = `${fmt(exkl)} kr`;
-      $("momsrad").textContent = `${fmt(momsBelopp)} kr`;
-      $("inkl").textContent = `${fmt(inkl)} kr`;
+      $("momsrad").textContent = `${fmt(moms)} kr`;
+      $("inkl").textContent = `${fmt(inkl)} kr${momsSats>0?" (inkl. moms)":" (exkl. moms)"}`;
+
       window.print();
     };
-
-    // Init första visning
-    calc();
   </script>
 
-  <!-- Service worker-registrering med "Ny version – Uppdatera"-knapp -->
+  <!-- SW-uppdateringsknapp (samma som tidigare) -->
   <script>
     (function () {
       if (!("serviceWorker" in navigator)) return;
@@ -308,9 +409,7 @@
         `;
         document.body.appendChild(bar);
         document.getElementById("reloadApp").addEventListener("click", () => {
-          if (regRef && regRef.waiting) {
-            regRef.waiting.postMessage({ type: "SKIP_WAITING" });
-          }
+          if (regRef && regRef.waiting) { regRef.waiting.postMessage({ type: "SKIP_WAITING" }); }
         });
       }
 
@@ -318,27 +417,22 @@
         try {
           const reg = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
           regRef = reg;
-
           if (reg.waiting) showUpdateBar();
 
           reg.addEventListener("updatefound", () => {
             const nw = reg.installing;
             if (!nw) return;
             nw.addEventListener("statechange", () => {
-              if (nw.state === "installed" && navigator.serviceWorker.controller) {
-                showUpdateBar();
-              }
+              if (nw.state === "installed" && navigator.serviceWorker.controller) showUpdateBar();
             });
           });
 
-          reg.update(); // check direkt
+          reg.update();
           document.addEventListener("visibilitychange", () => {
             if (document.visibilityState === "visible") reg.update();
           });
-          setInterval(() => reg.update(), 30000); // check var 30:e sekund
-        } catch (e) {
-          console.error("SW registration failed", e);
-        }
+          setInterval(() => reg.update(), 30000);
+        } catch (e) {}
       });
 
       navigator.serviceWorker.addEventListener("controllerchange", () => {
