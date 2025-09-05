@@ -13,17 +13,16 @@
 
   <style>
     :root{
-      --bg:#0f1115;        /* mörk bakgrund (lite mörkare än kortet för “glow” */
-      --card:#1f2937;      /* kortets bakgrund */
-      --line:#2a2f3c;      /* tunna linjer */
-      --focus:#3b82f6;     /* fokusfärg */
-      --text:#ffffff;      /* primär text */
-      --muted:#b7c0cf;     /* svag text */
-      --btn:#16a34a;       /* grön knapp */
-      --btn-hover:#139043; /* grön knapp hover */
+      --bg:#0f1115;
+      --card:#1f2937;
+      --line:#2a2f3c;
+      --focus:#3b82f6;
+      --text:#ffffff;
+      --muted:#b7c0cf;
+      --btn:#16a34a;
+      --btn-hover:#139043;
     }
-
-    *{ box-sizing: border-box }
+    *{ box-sizing:border-box }
     html,body{ height:100% }
     body{
       margin:0; background:var(--bg); color:var(--text);
@@ -38,18 +37,15 @@
       padding:22px 18px 20px;
     }
 
-    /* LOGGA + rubrik som i bild 1 */
+    /* LOGGA + rubrik (som i din bild 1) */
     .logo{
       display:block; margin:4px auto 12px auto;
       width:220px; max-width:65%;
-      border-radius:12px; /* ser “kort-likt” ut som i bild 1 */
+      border-radius:12px;
     }
-    h1{
-      margin:8px 0 18px; text-align:center; letter-spacing:.2px;
-      font-size:30px;
-    }
+    h1{ margin:8px 0 18px; text-align:center; letter-spacing:.2px; font-size:30px }
 
-    /* STORA VITA FÄLT – som i bild 1 */
+    /* STORA VITA FÄLT */
     label{ display:block; font-size:12px; color:var(--muted); margin:14px 0 6px }
     input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
@@ -58,7 +54,6 @@
     }
     input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
-    /* fälten staplade (som bild 1). På bredare skärm 2-spalt där det är rimligt */
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
     @media (min-width:720px){
@@ -66,14 +61,12 @@
       .grid3{ grid-template-columns:2fr 1fr 1fr }
     }
 
-    /* resultatfältet */
     .out{
       margin-top:16px; border-radius:14px; padding:14px 12px;
       background:#0b0d12; border:1px dashed var(--line); min-height:24px;
     }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
 
-    /* knappar – bred grön primär, som i bild 1 */
     .btn{
       margin-top:12px; width:100%; border:none; border-radius:14px;
       padding:14px 16px; font-size:16px; color:#fff; cursor:pointer;
@@ -82,7 +75,7 @@
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
-    /* OFFERT – endast vid utskrift/PDF */
+    /* --- OFFERT (endast vid utskrift/PDF) --- */
     #offer{ display:none }
     #offer h2{ margin:0 0 8px; font-size:22px }
     #offer table{ width:100%; border-collapse:collapse; margin-top:12px }
@@ -91,23 +84,27 @@
     #offer .muted{ color:#666; font-size:12px }
     #offer .company{ font-size:16px; font-weight:bold; border-bottom:2px solid #000; padding-bottom:4px; margin-bottom:8px }
     #offer .headgrid{ display:flex; justify-content:space-between; gap:16px; font-size:12px }
+    #offer .footer-note{ margin-top:18px; font-size:11px; color:#444; text-align:center }
 
     @media print{
       body{ background:#fff; color:#000; padding:0 }
       .wrap,.hint{ display:none !important }
       #offer{ display:block !important; padding:18mm }
       @page{ size:A4; margin:12mm }
-      #companyInput{ border:none; font-size:18px; font-weight:bold; width:100% }
     }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- LOGGA (som bild 1). Bara i kalkylatorn, inte i offerten -->
+    <!-- LOGGA visas bara i kalkylatorn -->
     <img class="logo" src="./IMG_0028.jpeg" alt="Reklamgiganten" onerror="this.style.display='none'">
     <h1>Priskalkylator</h1>
 
-    <!-- Kunduppgifter (från bild 2) -->
+    <!-- NYTT: Företag (avsändare) -->
+    <label for="avsandare">Företag (avsändare)</label>
+    <input id="avsandare" type="text" placeholder="Ditt företagsnamn">
+
+    <!-- Kunduppgifter -->
     <div class="grid2">
       <div>
         <label for="kundnamn">Kundnamn</label>
@@ -119,11 +116,11 @@
       </div>
     </div>
 
-    <!-- Artikel / pris / antal (alla fält från bild 2) -->
+    <!-- Artikel / pris / antal -->
     <div class="grid3">
       <div>
         <label for="artikel">Artikel/Benämning</label>
-        <input id="artikel" type="text" placeholder="t.ex. Fönsterfrost, dekal, vepa">
+        <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Printlaminat, Vinyl, Vinyl flerfärg, Solfilm">
       </div>
       <div>
         <label for="pris">Pris per m² (kr)</label>
@@ -171,11 +168,9 @@
     <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
   </div>
 
-  <!-- OFFERT (visas vid utskrift/PDF) -->
+  <!-- OFFERT (visas bara vid utskrift/PDF) -->
   <div id="offer" aria-hidden="true">
-    <div class="company">
-      <input id="companyInput" type="text" placeholder="Företagsnamn" style="width:100%; font-size:18px; font-weight:bold;">
-    </div>
+    <div class="company" id="off-company">Företagsnamn</div>
 
     <div class="headgrid">
       <div>
@@ -197,7 +192,7 @@
         <tr class="total"><td>Att betala</td><td id="inkl"></td></tr>
       </tfoot>
     </table>
-    <div class="muted" style="margin-top:10px">Priser i SEK. Offerten giltig i 30 dagar.</div>
+    <div class="footer-note">app skapad av Reklamgiganten AB</div>
   </div>
 
   <script>
@@ -205,10 +200,19 @@
     const prisEl = $("pris"), hEl = $("hojd"), bEl = $("bredd");
     const minEl = $("minpris"), momsEl = $("moms"), antalEl = $("antal");
     const res = $("result"), det = $("details"), shareBtn = $("share"), pdfBtn = $("pdf");
-    const kundEl = $("kundnamn"), telEl = $("telefon"), artEl = $("artikel");
+    const kundEl = $("kundnamn"), telEl = $("telefon"), artEl = $("artikel"), avsEl = $("avsandare");
+
+    // Prislista – matchar om ordet ingår (skiftlägesokänsligt)
+    const prislista = [
+      { nyckel: "frost", pris: 699 },
+      { nyckel: "printlaminat", pris: 799 },
+      { nyckel: "vinyl flerfärg", pris: 799 },
+      { nyckel: "vinyl", pris: 699 },
+      { nyckel: "solfilm", pris: 899 },
+      { nyckel: "print", pris: 699 }
+    ];
 
     const fmt = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-
     let lastShareText = "";
 
     function calc(){
@@ -240,6 +244,19 @@
       lastShareText = `Offert: ${fmt(inkl)} kr ${moms>0?"(inkl. moms)":"(exkl. moms)"} — ${antal} st, ${hmm}×${bmm} mm, area/st ${fmt(areaPer)} m² (totalt ${fmt(areaTot)} m²), á ${fmt(pris)} kr/m².`;
     }
 
+    // Auto-pris från artikel
+    artEl.addEventListener("input", () => {
+      const t = artEl.value.trim().toLowerCase();
+      for (const rad of prislista){
+        if (!rad.nyckel) continue;
+        if (t.includes(rad.nyckel)){
+          prisEl.value = rad.pris;
+          break; // första match vinner
+        }
+      }
+      calc();
+    });
+
     [prisEl,hEl,bEl,minEl,momsEl,antalEl].forEach(el=>{
       el.addEventListener("input",calc);
       el.addEventListener("change",calc);
@@ -247,14 +264,14 @@
 
     async function sharePrice(){
       const text = lastShareText || res.textContent || "Pris från Priskalkylatorn";
-      try{ if(navigator.share){ await navigator.share({title:"Offert",text:urlWithText(text)}); return; } }catch(e){}
+      try{ if(navigator.share){ await navigator.share({title:"Offert",text, url:location.href}); return; } }catch(e){}
       try{ const mailto=`mailto:?subject=${encodeURIComponent("Offert")}&body=${encodeURIComponent(text+"\n\n"+location.href)}`; location.href=mailto; return; }catch(e){}
       try{ await navigator.clipboard.writeText(text); alert("Text kopierad! Klistra in i valfri app."); }
       catch{ const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.left="-9999px"; document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); ta.remove(); alert("Text kopierad! Klistra in i valfri app."); }
     }
-    const urlWithText = t => t; // (behövs inte just nu men lätt att bygga ut)
     shareBtn.onclick = sharePrice;
 
+    // PDF / utskrift
     pdfBtn.onclick = () => {
       const pris = parseFloat(prisEl.value);
       const hmm = parseFloat(hEl.value);
@@ -274,6 +291,7 @@
       $("offer-date").textContent = new Date().toLocaleDateString("sv-SE");
       $("off-kund").textContent = (kundEl.value || "-");
       $("off-tel").textContent  = (telEl.value || "-");
+      $("off-company").textContent = (avsEl.value || "Företagsnamn");
 
       const rows = $("offer-rows");
       const ben = artEl.value ? artEl.value : "Artikel";
@@ -298,7 +316,7 @@
     // init
     calc();
 
-    // PWA offline (om sw.js finns)
+    // PWA offline (om du har sw.js)
     if ("serviceWorker" in navigator){
       window.addEventListener("load", ()=>navigator.serviceWorker.register("./sw.js").catch(()=>{}));
     }
