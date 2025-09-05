@@ -1,23 +1,21 @@
 {
   "name": "Priskalkylator",
   "short_name": "Kalkylator",
-  "id": "/",
-  "description": "Priskalkylator för tryck & dekor från ReklamGiganten.",
-  "start_url": "/index.html",
-  "scope": "/",
+  "id": "se.reklamgiganten.priskalkylator",
+  "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
+  "lang": "sv-SE",
+  "dir": "ltr",
+  "start_url": "https://jimmiandersson89-max.github.io/Priskalkylator/index.html",
+  "scope": "https://jimmiandersson89-max.github.io/Priskalkylator/",
   "display": "standalone",
   "background_color": "#ffffff",
-  "theme_color": "#171923",
-  "orientation": "portrait",
-  "dir": "ltr",
-  "lang": "sv-SE",
+  "theme_color": "#000000",
 
   "icons": [
     {
       "src": "icon-512.png",
       "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     },
     {
       "src": "icon-512-maskable.png",
@@ -28,23 +26,20 @@
     {
       "src": "apple-touch-icon.png",
       "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
+      "type": "image/png"
     }
   ],
-
-  "launch_handler": {
-    "client_mode": "navigate-existing"
-  },
-
-  "prefer_related_applications": false,
 
   "screenshots": [
     {
       "src": "screenshot1.png",
       "sizes": "1280x720",
       "type": "image/png",
-      "label": "Startsida med kalkylator"
+      "label": "Kalkylatorns startsida"
     }
-  ]
+  ],
+
+  "categories": ["business", "utilities"],
+  "iarc_rating_id": "pending",
+  "prefer_related_applications": false
 }
