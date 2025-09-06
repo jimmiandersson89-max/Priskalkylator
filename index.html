@@ -32,12 +32,13 @@
     .logo{ display:block; margin:4px auto 12px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:8px 0 6px; text-align:center; font-size:30px }
     .badge{
-      display:inline-block; background:#11151d; border:1px solid #2a2f3c; color:#a7f3d0;
+      display:inline-block; background:#11151d; border:1px solid var(--line); color:#a7f3d0;
       padding:4px 10px; border-radius:999px; font-size:12px; margin-left:8px;
     }
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
 
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
+    input,select,button,datalist{ font-family:inherit; }
     input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
       padding:12px; font-size:16px; background:#fff; color:#000; outline:none;
@@ -114,19 +115,6 @@
 
     .drawer .muted{ color:#9aa3b2; font-size:12px }
 
-    /* Stycksaker tabell */
-    .items-head, .items-row{
-      display:grid; grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 0.7fr;
-      gap:0; align-items:center;
-    }
-    .items-head{ background:#11151d; color:#aeb6c7; font-weight:700; }
-    .items-cell{ padding:10px 8px; border-bottom:1px solid #2a2f3c; font-size:14px; }
-    .items-row:last-child .items-cell{ border-bottom:none }
-    .items-actions button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer; margin-left:6px; }
-    @media (max-width:640px){
-      .items-head, .items-row{ grid-template-columns: 1.6fr 0.8fr 0.8fr 1fr 0.7fr; }
-    }
-
     /* Print-läge för #offer */
     #offer{ display:none }
     #offer h2{ margin:0 0 8px; font-size:22px }
@@ -167,7 +155,8 @@
     <div class="grid2" style="margin-top:6px">
       <div>
         <label for="artikel">Artikel/Benämning (gemensam rubrik för måtten)</label>
-        <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Vinyl, Solfilm">
+        <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Vinyl, Solfilm" list="artikelOptions">
+        <datalist id="artikelOptions"></datalist>
       </div>
       <div>
         <label for="moms">Moms</label>
@@ -190,7 +179,7 @@
       </div>
     </div>
 
-    <div class="hint">Tips: Skriv “Frost/Print/Printlaminat/Vinyl/Vinyl flerfärg/Solfilm” i Artikel så fylls priset i automatiskt.</div>
+    <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
 
     <!-- Ett mått i taget -->
     <div class="row">
@@ -232,11 +221,12 @@
 
     <!-- Stycksaker -->
     <div class="row">
-      <h2>Stycksaker (tillägg)</h2>
+      <h2>Stycksaker</h2>
       <div class="grid3">
         <div>
           <label for="itemName">Benämning</label>
-          <input id="itemName" type="text" placeholder="t.ex. Skrapa, Monteringskit, Extra laminat">
+          <input id="itemName" type="text" placeholder="t.ex. Skrapa, Monteringskit, Extra laminat" list="itemOptions">
+          <datalist id="itemOptions"></datalist>
         </div>
         <div>
           <label for="itemPrice">Pris/st (kr)</label>
@@ -273,6 +263,7 @@
 
     <button class="btn" id="share">Dela priset</button>
     <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
+    <div id="versionLabel" class="hint" style="margin-top:8px;text-align:center">Version: <b id="versionText"></b></div>
   </div>
 
   <!-- Drawer (vänstermenyn) -->
@@ -280,7 +271,7 @@
   <aside class="drawer" id="drawer" aria-label="Förinställningar">
     <div class="hd"><b>Förinställningar</b><div class="muted">Välj eller spara egna</div></div>
     <div class="bd">
-      <!-- Preset inmatning -->
+      <!-- m²-preset inmatning -->
       <div class="grp">
         <label for="presetTitle" class="muted">Förinställd text (titel)</label>
         <input id="presetTitle" type="text" placeholder="t.ex. Fönsterfrost – butik">
@@ -306,13 +297,13 @@
         <button class="btn-mini" id="savePresetBtn" style="background:#0ea5e9">Spara preset</button>
       </div>
 
-      <!-- Sparade presets -->
+      <!-- Sparade m²-presets -->
       <div class="grp">
-        <div class="muted" style="margin:8px 0 6px">Sparade presets</div>
+        <div class="muted" style="margin:8px 0 6px">Sparade m²-presets</div>
         <div class="preset-list" id="presetList"></div>
       </div>
 
-      <!-- Stycksaks-PRESETS i drawer -->
+      <!-- Stycksaks-mallar i drawer -->
       <div class="grp" style="margin-top:18px;border-top:1px solid #1e2430;padding-top:14px">
         <div style="font-weight:700;margin-bottom:6px">Stycksaks-mallar</div>
         <div class="row2" style="margin-bottom:10px">
@@ -342,19 +333,20 @@
   <div id="offer" aria-hidden="true"></div>
 
   <script>
-    // Håll detta i synk med sw.js VERSION (t.ex. "v19")
-    const APP_VERSION = "V1Benjii";
+    /* ======= VERSION ======= */
+    const APP_VERSION = "V.Benjii";
+    document.getElementById("versionText").textContent = APP_VERSION;
 
     const $ = id => document.getElementById(id);
 
-    // Drawer
+    /* ======= Drawer ======= */
     const drawer = $("drawer"), drawerBackdrop = $("drawerBackdrop"), openDrawerBtn = $("openDrawer");
     const openDrawer = ()=>{ drawer.classList.add("open"); drawerBackdrop.classList.add("open"); };
     const closeDrawer = ()=>{ drawer.classList.remove("open"); drawerBackdrop.classList.remove("open"); };
     openDrawerBtn.addEventListener("click", openDrawer);
     drawerBackdrop.addEventListener("click", closeDrawer);
 
-    // Element
+    /* ======= Element ======= */
     const avsEl = $("avsandare"), kundEl = $("kundnamn"), telEl = $("telefon");
     const artikelEl = $("artikel"), momsEl = $("moms");
     const prisEl = $("pris"), minEl = $("minpris");
@@ -364,16 +356,17 @@
     const res = $("result"), det = $("details");
     const shareBtn = $("share"), pdfBtn = $("pdf");
     const activeBadge = $("activeBadge");
+    const artikelOptions = $("artikelOptions");
+    const itemOptions = $("itemOptions");
 
     // Stycksaker UI (huvud)
     const itemName = $("itemName"), itemPrice = $("itemPrice"), itemQty = $("itemQty"), addItemBtn = $("addItemBtn"),
           itemsList = $("itemsList"), itemsBox = $("itemsBox");
 
-    /* ========== Stycksaker (huvudlistan) ========== */
+    /* ======= Stycksaker (huvudlistan) ======= */
     const LS_ITEMS = "rg_items_v1";
     function getItems(){ try{ return JSON.parse(localStorage.getItem(LS_ITEMS)||"[]"); }catch{return[]} }
     function setItems(list){ localStorage.setItem(LS_ITEMS, JSON.stringify(list)); renderItems(); renderListAndTotals(); }
-
     function addItem(name, price, qty){
       const n = (name||"").trim();
       const p = Math.max(0, Math.round(Number(price||0)));
@@ -392,9 +385,7 @@
     function removeItem(idx){
       const L = getItems(); L.splice(idx,1); setItems(L);
     }
-    function itemsTotal(){
-      return getItems().reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
-    }
+    function itemsTotal(){ return getItems().reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0); }
     function renderItems(){
       const L = getItems();
       itemsList.innerHTML = "";
@@ -419,12 +410,12 @@
 
     addItemBtn.addEventListener("click", ()=> addItem(itemName.value, itemPrice.value, itemQty.value));
 
-    /* ========== m²-Presets (drawer) ========== */
+    /* ======= m²-Presets (drawer) ======= */
     const presetTitle = $("presetTitle"), presetPrice = $("presetPrice"), presetMin = $("presetMin"), presetInclVat = $("presetInclVat");
     const applyPresetBtn = $("applyPresetBtn"), savePresetBtn = $("savePresetBtn"), presetList = $("presetList");
     const LS_PRESETS = "rg_presets_v1_dark";
     function getPresets(){ try{return JSON.parse(localStorage.getItem(LS_PRESETS)||"[]")}catch{return[]} }
-    function setPresets(list){ localStorage.setItem(LS_PRESETS, JSON.stringify(list)); renderPresetList(); }
+    function setPresets(list){ localStorage.setItem(LS_PRESETS, JSON.stringify(list)); renderPresetList(); refreshArtikelDatalist(); }
     function renderPresetList(){
       const list = getPresets();
       presetList.innerHTML = "";
@@ -500,9 +491,8 @@
     })();
     renderPresetList();
 
-    /* ========== Autoifyll av Artikel (presets + fallback-nyckelord) ========== */
-    // Fasta nyckelord som fallback
-    const prislista = [
+    /* ======= Autoifyll av Artikel + fallback-nyckelord ======= */
+    const fallbackPrislista = [
       { nyckel: "vinyl flerfärg", pris: 799 },
       { nyckel: "printlaminat",   pris: 799 },
       { nyckel: "solfilm",        pris: 899 },
@@ -511,9 +501,9 @@
       { nyckel: "print",          pris: 699 }
     ];
     function rankMatch(inputLower, titleLower){
-      if (inputLower === titleLower) return 3; // exakt
-      if (titleLower.startsWith(inputLower) && inputLower.length>=2) return 2; // börjar med
-      if (titleLower.includes(inputLower) && inputLower.length>=3) return 1;   // innehåller
+      if (inputLower === titleLower) return 3;
+      if (titleLower.startsWith(inputLower) && inputLower.length>=2) return 2;
+      if (titleLower.includes(inputLower) && inputLower.length>=3) return 1;
       return 0;
     }
     function findBestPresetByTitle(input){
@@ -541,7 +531,7 @@
         return;
       }
       const t = val.trim().toLowerCase();
-      for (const rad of prislista) {
+      for (const rad of fallbackPrislista) {
         if (t.includes(rad.nyckel)) {
           prisEl.value = rad.pris;
           activeBadge.style.display = "inline-block";
@@ -553,7 +543,7 @@
       activeBadge.style.display = "none";
     });
 
-    /* ========== Stycksaks-PRESETS (mallar i drawer) ========== */
+    /* ======= Stycksaks-PRESETS (mallar i drawer) ======= */
     const LS_ITEM_PRESETS = "rg_item_presets_v1";
     const itemPresetName = $("itemPresetName");
     const itemPresetPrice = $("itemPresetPrice");
@@ -567,6 +557,7 @@
     function setItemPresets(list){
       localStorage.setItem(LS_ITEM_PRESETS, JSON.stringify(list));
       renderItemPresets();
+      refreshItemDatalist();
     }
     function renderItemPresets(){
       const list = getItemPresets();
@@ -587,7 +578,7 @@
             <div class="muted">${p.price} kr/st</div>
           </div>
           <div>
-            <button class="use" data-i="${idx}">Lägg till</button>
+            <button class="use" data-i="${idx}">Använd</button>
             <button class="del" data-i="${idx}">Ta bort</button>
           </div>
         `;
@@ -614,7 +605,6 @@
           const qtyStr = prompt(`Antal för "${list[idx].name}"?`, "1");
           const qty = Math.max(1, parseInt(qtyStr || "1", 10));
           addItem(list[idx].name, list[idx].price, qty);
-          // closeDrawer(); // avkommentera om du vill stänga menyn direkt
         }
         if (btn.classList.contains("del")){
           list.splice(idx, 1);
@@ -632,12 +622,61 @@
     })();
     renderItemPresets();
 
-    /* ========== Totals & render ========== */
+    /* ======= Autoifyll för STYCKSAKER (skriv namn -> fyll pris) + datalist ======= */
+    function findBestItemPresetByName(input){
+      const t = (input || "").trim().toLowerCase();
+      if (!t) return null;
+      const list = getItemPresets();
+      let best=null, score=0;
+      for(const p of list){
+        const n = String(p.name||"").toLowerCase();
+        let s=0;
+        if(t===n) s=3; else if(n.startsWith(t)&&t.length>=2) s=2; else if(n.includes(t)&&t.length>=3) s=1;
+        if(s>score){ score=s; best=p; if(s===3) break; }
+      }
+      return best;
+    }
+    if (itemName){
+      itemName.addEventListener("input", () => {
+        const p = findBestItemPresetByName(itemName.value);
+        if (p){
+          itemPrice.value = p.price;
+          if (!itemQty.value) itemQty.value = "1";
+        }
+      });
+    }
+
+    /* ======= Datalist uppdatering ======= */
+    function refreshArtikelDatalist(){
+      const list = getPresets();
+      artikelOptions.innerHTML = "";
+      list.forEach(p=>{
+        const opt = document.createElement("option");
+        opt.value = p.title || "";
+        artikelOptions.appendChild(opt);
+      });
+      fallbackPrislista.forEach(f=>{
+        const opt = document.createElement("option");
+        opt.value = f.nyckel;
+        artikelOptions.appendChild(opt);
+      });
+    }
+    function refreshItemDatalist(){
+      const list = getItemPresets();
+      itemOptions.innerHTML = "";
+      list.forEach(p=>{
+        const opt = document.createElement("option");
+        opt.value = p.name || "";
+        itemOptions.appendChild(opt);
+      });
+    }
+
+    /* ======= Totals & render ======= */
     const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
     const fmt0 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:0,maximumFractionDigits:0});
 
     let lines = []; // {hmm,bmm,antal,pris,min, areaPer, areaTot, exkl}
-    let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0, lastItems=0;
+    let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0;
 
     function calcLine(hmm,bmm,antal,pris,min){
       const areaPer = (hmm/1000)*(bmm/1000);
@@ -649,11 +688,7 @@
 
     function renderListAndTotals(){
       measuresBody.innerHTML = "";
-      if (lines.length === 0) {
-        listWrap.style.display = "none";
-      } else {
-        listWrap.style.display = "block";
-      }
+      listWrap.style.display = lines.length ? "block" : "none";
 
       let sumExkl = 0, sumArea = 0;
       lines.forEach((l, idx) => {
@@ -671,7 +706,6 @@
       });
 
       const itemsSum = itemsTotal();
-      lastItems = itemsSum;
 
       const moms = parseFloat(momsEl.value||"0");
       const sumExklTotal = sumExkl + itemsSum;
@@ -750,9 +784,11 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
     }
     shareBtn.onclick = sharePrice;
 
-    // Init stycksaker & första render
+    // Init lists/datalists
     renderItems();
     renderListAndTotals();
+    refreshArtikelDatalist();
+    refreshItemDatalist();
   </script>
 
   <!-- jsPDF (måste ligga före vår PDF-funktion) -->
@@ -844,6 +880,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
       addY(6);
       doc.setFont("helvetica","normal");
 
+      // Rader – mått
       lines.forEach((l) => {
         const radText = [
           `${artikel}`,
@@ -868,6 +905,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         addY(4);
       });
 
+      // Rader – stycksaker
       if(items.length){
         if (needPage(10)) newPage();
         doc.setFont("helvetica","bold");
@@ -888,6 +926,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         addY(4);
       }
 
+      // Summeringar
       const sumBlock = [
         ["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
         [`Moms ${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
@@ -906,6 +945,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         addY(5);
       });
 
+      // Sidfot
       const footerY = pageH - 12;
       doc.setFont("helvetica","normal");
       doc.setFontSize(9);
@@ -917,7 +957,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
     };
   </script>
 
-  <!-- Service worker: uppdateringsknapp -->
+  <!-- Service worker: uppdateringsknapp (oförändrad) -->
   <script>
     (function () {
       if (!("serviceWorker" in navigator)) return;
