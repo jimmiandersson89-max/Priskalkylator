@@ -1,6 +1,6 @@
 // ----- Priskalkylator service worker -----
 // Bumpa VERSION när du gjort större ändringar på HTML/CSS/JS/ikoner
-const VERSION = 'v26';
+const VERSION = 'v27';
 const CACHE_NAME = `rg-kalkylator-${VERSION}`;
 
 const CORE_ASSETS = [
