@@ -74,7 +74,7 @@
     .remove:hover{ filter:brightness(1.1) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:#0b0d12; border:1px dashed var(--line); min-height:24px }
-    .hint{ color:var(--muted); font-size:12px; margin-top:6px }
+    .hint{ color:#b7c0cf; font-size:12px; margin-top:6px }
     .btn{
       margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px;
       color:#fff; cursor:pointer; background:var(--btn)
@@ -112,7 +112,6 @@
     .preset-item:last-child{ border-bottom:none }
     .preset-item button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer }
 
-    /* Drawer – snabb stycksak */
     .drawer .muted{ color:#9aa3b2; font-size:12px }
 
     /* Stycksaker tabell */
@@ -313,29 +312,28 @@
         <div class="preset-list" id="presetList"></div>
       </div>
 
-      <!-- Snabb-inlägg: stycksaker i vänstermeny -->
+      <!-- Stycksaks-PRESETS i drawer -->
       <div class="grp" style="margin-top:18px;border-top:1px solid #1e2430;padding-top:14px">
-        <div style="font-weight:700;margin-bottom:6px">Stycksaker (snabb-inlägg)</div>
+        <div style="font-weight:700;margin-bottom:6px">Stycksaks-mallar</div>
         <div class="row2" style="margin-bottom:10px">
           <div>
-            <label for="drawerItemName" class="muted">Benämning</label>
-            <input id="drawerItemName" type="text" placeholder="t.ex. Skrapa">
+            <label for="itemPresetName" class="muted">Benämning</label>
+            <input id="itemPresetName" type="text" placeholder="t.ex. Skrapa">
           </div>
           <div>
-            <label for="drawerItemPrice" class="muted">Pris/st (kr)</label>
-            <input id="drawerItemPrice" type="number" min="0" step="1" placeholder="49">
+            <label for="itemPresetPrice" class="muted">Pris/st (kr)</label>
+            <input id="itemPresetPrice" type="number" min="0" step="1" placeholder="49">
           </div>
         </div>
-        <div class="row2">
-          <div>
-            <label for="drawerItemQty" class="muted">Antal</label>
-            <input id="drawerItemQty" type="number" min="1" step="1" value="1">
-          </div>
-          <div style="display:flex;align-items:flex-end;justify-content:flex-end">
-            <button class="btn-mini" id="drawerAddItemBtn">+ Lägg till stycksak</button>
+        <div class="row2" style="align-items:end">
+          <div class="muted">Sparas som mall (utan antal)</div>
+          <div style="display:flex;justify-content:flex-end;gap:8px">
+            <button class="btn-mini" id="saveItemPresetBtn" style="background:#0ea5e9">Spara mall</button>
           </div>
         </div>
-        <div class="muted">Lägger till i samma lista som på huvudsidan (sparas i denna enhet).</div>
+
+        <div class="muted" style="margin:10px 0 6px">Sparade mallar</div>
+        <div class="preset-list" id="itemPresetList"></div>
       </div>
     </div>
   </aside>
@@ -371,48 +369,7 @@
     const itemName = $("itemName"), itemPrice = $("itemPrice"), itemQty = $("itemQty"), addItemBtn = $("addItemBtn"),
           itemsList = $("itemsList"), itemsBox = $("itemsBox");
 
-    // Stycksaker UI (drawer)
-    const drawerItemName = $("drawerItemName");
-    const drawerItemPrice = $("drawerItemPrice");
-    const drawerItemQty = $("drawerItemQty");
-    const drawerAddItemBtn = $("drawerAddItemBtn");
-
-    // Preset UI
-    const presetTitle = $("presetTitle"), presetPrice = $("presetPrice"), presetMin = $("presetMin"), presetInclVat = $("presetInclVat");
-    const applyPresetBtn = $("applyPresetBtn"), savePresetBtn = $("savePresetBtn"), presetList = $("presetList");
-
-    // Prislista auto
-    const prislista = [
-      { nyckel: "vinyl flerfärg", pris: 799 },
-      { nyckel: "printlaminat",   pris: 799 },
-      { nyckel: "solfilm",        pris: 899 },
-      { nyckel: "frost",          pris: 699 },
-      { nyckel: "vinyl",          pris: 699 },
-      { nyckel: "print",          pris: 699 }
-    ];
-    artikelEl.addEventListener("input", () => {
-      const t = artikelEl.value.trim().toLowerCase();
-      for (const rad of prislista) {
-        if (t.includes(rad.nyckel)) { prisEl.value = rad.pris; break; }
-      }
-    });
-
-    const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-    const fmt0 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:0,maximumFractionDigits:0});
-
-    // Lagring av tillagda mått
-    let lines = []; // {hmm,bmm,antal,pris,min, areaPer, areaTot, exkl}
-    let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0, lastItems=0;
-
-    function calcLine(hmm,bmm,antal,pris,min){
-      const areaPer = (hmm/1000)*(bmm/1000);
-      const areaTot = areaPer*antal;
-      let exkl = areaTot*pris;
-      if (min>0 && exkl<min) exkl = min;
-      return { areaPer, areaTot, exkl };
-    }
-
-    // ===== Stycksaker =====
+    /* ========== Stycksaker (huvudlistan) ========== */
     const LS_ITEMS = "rg_items_v1";
     function getItems(){ try{ return JSON.parse(localStorage.getItem(LS_ITEMS)||"[]"); }catch{return[]} }
     function setItems(list){ localStorage.setItem(LS_ITEMS, JSON.stringify(list)); renderItems(); renderListAndTotals(); }
@@ -423,9 +380,7 @@
       const q = Math.max(1, Math.round(Number(qty||1)));
       if(!n) return alert("Ange benämning.");
       const L = getItems(); L.push({ name:n, price:p, qty:q }); setItems(L);
-      // nollställ ev. båda formulären
       if(itemName){ itemName.value=""; } if(itemPrice){ itemPrice.value=""; } if(itemQty){ itemQty.value="1"; }
-      if(drawerItemName){ drawerItemName.value=""; } if(drawerItemPrice){ drawerItemPrice.value=""; } if(drawerItemQty){ drawerItemQty.value="1"; }
     }
     function updateItem(idx, field, value){
       const L = getItems(); if(!L[idx]) return;
@@ -453,25 +408,20 @@
           <td class="items-cell"><input type="text" value="${it.name}" oninput="updateItem(${idx}, 'name', this.value)"></td>
           <td class="items-cell"><input type="number" min="0" step="1" value="${it.price}" oninput="updateItem(${idx}, 'price', this.value)"></td>
           <td class="items-cell"><input type="number" min="1" step="1" value="${it.qty}" oninput="updateItem(${idx}, 'qty', this.value)"></td>
-          <td class="items-cell"><b>${fmt0(sum)} kr</b></td>
+          <td class="items-cell"><b>${Number(sum).toLocaleString("sv-SE",{maximumFractionDigits:0})} kr</b></td>
           <td class="items-cell items-actions"><button onclick="removeItem(${idx})">Ta bort</button></td>
         `;
         itemsList.appendChild(tr);
       });
     }
-    // gör uppdateringsfunktioner globala för inline-oninput
     window.updateItem = updateItem;
     window.removeItem = removeItem;
 
     addItemBtn.addEventListener("click", ()=> addItem(itemName.value, itemPrice.value, itemQty.value));
-    // Lägg till stycksak direkt från drawer
-    if (drawerAddItemBtn) {
-      drawerAddItemBtn.addEventListener("click", () => {
-        addItem(drawerItemName.value, drawerItemPrice.value, drawerItemQty.value);
-      });
-    }
 
-    // ===== Presets (drawer) =====
+    /* ========== m²-Presets (drawer) ========== */
+    const presetTitle = $("presetTitle"), presetPrice = $("presetPrice"), presetMin = $("presetMin"), presetInclVat = $("presetInclVat");
+    const applyPresetBtn = $("applyPresetBtn"), savePresetBtn = $("savePresetBtn"), presetList = $("presetList");
     const LS_PRESETS = "rg_presets_v1_dark";
     function getPresets(){ try{return JSON.parse(localStorage.getItem(LS_PRESETS)||"[]")}catch{return[]} }
     function setPresets(list){ localStorage.setItem(LS_PRESETS, JSON.stringify(list)); renderPresetList(); }
@@ -539,7 +489,6 @@
       if(btn.classList.contains("use")){ loadPresetToDrawer(L[idx]); applyCurrentDrawerPreset(); }
       if(btn.classList.contains("del")){ L.splice(idx,1); setPresets(L); }
     });
-    // Seed defaultpresets första gången
     (function seedPresetsOnce(){
       if(localStorage.getItem(LS_PRESETS)) return;
       const defaults = [
@@ -550,6 +499,153 @@
       setPresets(defaults);
     })();
     renderPresetList();
+
+    /* ========== Autoifyll av Artikel (presets + fallback-nyckelord) ========== */
+    // Fasta nyckelord som fallback
+    const prislista = [
+      { nyckel: "vinyl flerfärg", pris: 799 },
+      { nyckel: "printlaminat",   pris: 799 },
+      { nyckel: "solfilm",        pris: 899 },
+      { nyckel: "frost",          pris: 699 },
+      { nyckel: "vinyl",          pris: 699 },
+      { nyckel: "print",          pris: 699 }
+    ];
+    function rankMatch(inputLower, titleLower){
+      if (inputLower === titleLower) return 3; // exakt
+      if (titleLower.startsWith(inputLower) && inputLower.length>=2) return 2; // börjar med
+      if (titleLower.includes(inputLower) && inputLower.length>=3) return 1;   // innehåller
+      return 0;
+    }
+    function findBestPresetByTitle(input){
+      const t = (input || "").trim().toLowerCase();
+      if (!t) return null;
+      const list = getPresets();
+      let best = null, bestScore = 0;
+      for (const p of list){
+        const titleLower = String(p.title||"").toLowerCase();
+        const score = rankMatch(t, titleLower);
+        if (score > bestScore){ bestScore = score; best = p; if (score === 3) break; }
+      }
+      return best;
+    }
+    artikelEl.addEventListener("input", () => {
+      const val = artikelEl.value;
+      const preset = findBestPresetByTitle(val);
+      if (preset){
+        prisEl.value = preset.price || 0;
+        minEl.value  = preset.min   || 0;
+        momsEl.value = preset.inclVat ? "0.25" : "0";
+        activeBadge.style.display = "inline-block";
+        activeBadge.textContent = preset.title || "Preset";
+        renderListAndTotals();
+        return;
+      }
+      const t = val.trim().toLowerCase();
+      for (const rad of prislista) {
+        if (t.includes(rad.nyckel)) {
+          prisEl.value = rad.pris;
+          activeBadge.style.display = "inline-block";
+          activeBadge.textContent = rad.nyckel;
+          renderListAndTotals();
+          return;
+        }
+      }
+      activeBadge.style.display = "none";
+    });
+
+    /* ========== Stycksaks-PRESETS (mallar i drawer) ========== */
+    const LS_ITEM_PRESETS = "rg_item_presets_v1";
+    const itemPresetName = $("itemPresetName");
+    const itemPresetPrice = $("itemPresetPrice");
+    const saveItemPresetBtn = $("saveItemPresetBtn");
+    const itemPresetList = $("itemPresetList");
+
+    function getItemPresets(){
+      try { return JSON.parse(localStorage.getItem(LS_ITEM_PRESETS) || "[]"); }
+      catch { return []; }
+    }
+    function setItemPresets(list){
+      localStorage.setItem(LS_ITEM_PRESETS, JSON.stringify(list));
+      renderItemPresets();
+    }
+    function renderItemPresets(){
+      const list = getItemPresets();
+      itemPresetList.innerHTML = "";
+      if(!list.length){
+        const empty = document.createElement("div");
+        empty.className = "preset-item";
+        empty.innerHTML = `<span class="muted">Inga mallar ännu</span>`;
+        itemPresetList.appendChild(empty);
+        return;
+      }
+      list.forEach((p, idx) => {
+        const row = document.createElement("div");
+        row.className = "preset-item";
+        row.innerHTML = `
+          <div>
+            <div><b>${p.name}</b></div>
+            <div class="muted">${p.price} kr/st</div>
+          </div>
+          <div>
+            <button class="use" data-i="${idx}">Lägg till</button>
+            <button class="del" data-i="${idx}">Ta bort</button>
+          </div>
+        `;
+        itemPresetList.appendChild(row);
+      });
+    }
+    function saveItemPreset(){
+      const name = (itemPresetName.value || "").trim();
+      const price = Math.max(0, Math.round(Number(itemPresetPrice.value || 0)));
+      if(!name){ alert("Ange benämning för mallen."); return; }
+      const list = getItemPresets();
+      list.unshift({ name, price });
+      setItemPresets(list);
+      itemPresetName.value = "";
+      itemPresetPrice.value = "";
+    }
+    if (saveItemPresetBtn){ saveItemPresetBtn.addEventListener("click", saveItemPreset); }
+    if (itemPresetList){
+      itemPresetList.addEventListener("click", (e) => {
+        const btn = e.target.closest("button"); if(!btn) return;
+        const idx = Number(btn.dataset.i);
+        const list = getItemPresets(); if(!list[idx]) return;
+        if (btn.classList.contains("use")){
+          const qtyStr = prompt(`Antal för "${list[idx].name}"?`, "1");
+          const qty = Math.max(1, parseInt(qtyStr || "1", 10));
+          addItem(list[idx].name, list[idx].price, qty);
+          // closeDrawer(); // avkommentera om du vill stänga menyn direkt
+        }
+        if (btn.classList.contains("del")){
+          list.splice(idx, 1);
+          setItemPresets(list);
+        }
+      });
+    }
+    (function seedItemPresetsOnce(){
+      if(localStorage.getItem(LS_ITEM_PRESETS)) return;
+      const defaults = [
+        { name:"Skrapa", price:49 },
+        { name:"Monteringskit", price:129 }
+      ];
+      setItemPresets(defaults);
+    })();
+    renderItemPresets();
+
+    /* ========== Totals & render ========== */
+    const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmt0 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:0,maximumFractionDigits:0});
+
+    let lines = []; // {hmm,bmm,antal,pris,min, areaPer, areaTot, exkl}
+    let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0, lastItems=0;
+
+    function calcLine(hmm,bmm,antal,pris,min){
+      const areaPer = (hmm/1000)*(bmm/1000);
+      const areaTot = areaPer*antal;
+      let exkl = areaTot*pris;
+      if (min>0 && exkl<min) exkl = min;
+      return { areaPer, areaTot, exkl };
+    }
 
     function renderListAndTotals(){
       measuresBody.innerHTML = "";
@@ -574,7 +670,6 @@
         measuresBody.appendChild(tr);
       });
 
-      // Stycksaker
       const itemsSum = itemsTotal();
       lastItems = itemsSum;
 
@@ -620,7 +715,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
 
       const r = calcLine(hmm,bmm,antal,pris,min);
       lines.push({ hmm, bmm, antal, pris, min, ...r });
-      // Nollställ måttfälten
       hojdEl.value = ""; breddEl.value = ""; antalEl.value = "1";
       hojdEl.focus();
 
@@ -656,10 +750,8 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
     }
     shareBtn.onclick = sharePrice;
 
-    // Init stycksaker
+    // Init stycksaker & första render
     renderItems();
-
-    // Första render
     renderListAndTotals();
   </script>
 
@@ -679,20 +771,17 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit: "mm", format: "a4" });
 
-      // Marginaler + mått
       const left = 15, right = 15, top = 18, bottom = 18;
       const pageW = doc.internal.pageSize.getWidth();
       const pageH = doc.internal.pageSize.getHeight();
       let y = top;
 
-      // Hjälpare
       const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-      const fmt0 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:0,maximumFractionDigits:0});
+      const fmt0 = n => Number(n).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const addY = mm => { y += mm; };
-      const needPage = (h=0) => (y + h > pageH - bottom - 14); // buffert
+      const needPage = (h=0) => (y + h > pageH - bottom - 14);
       const newPage = () => { doc.addPage(); y = top; drawHeader(); };
 
-      // Data från fälten
       const today = new Date().toLocaleDateString("sv-SE");
       const company = ($("avsandare").value || "Företagsnamn");
       const customer = $("kundnamn").value || "";
@@ -700,19 +789,16 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
       const artikel = $("artikel").value || "Artikel";
       const momsSats = parseFloat($("moms").value || "0");
 
-      // Summeringar (exkl)
       const sumExklMeasures = lines.reduce((s,l)=>s+l.exkl,0);
       const sumExklItems = items.reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
       const sumInkl = sumExkl + momsBelopp;
 
-      // Header
       function drawHeader(){
         doc.setFont("helvetica","bold");
         doc.setFontSize(18);
         doc.text("Offert", left, y);
-        // Höger: datum
         doc.setFontSize(11);
         doc.setFont("helvetica","normal");
         const rightX = pageW - right;
@@ -723,7 +809,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         doc.setTextColor(0);
         addY(10);
 
-        // Vänster: Offert från + företag
         doc.setFontSize(9);
         doc.setTextColor(90);
         doc.text("Offert från", left, y);
@@ -734,7 +819,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         doc.text(company, left, y);
         doc.setFont("helvetica","normal");
 
-        // Kundinfo
         if (customer || phone){
           addY(8);
           doc.setFontSize(10);
@@ -745,7 +829,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
       }
       drawHeader();
 
-      // Tabellhuvud
       const col1W = 120;
       const col2W = pageW - left - right - col1W;
       const col1X = left;
@@ -761,7 +844,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
       addY(6);
       doc.setFont("helvetica","normal");
 
-      // Rader – mått
       lines.forEach((l) => {
         const radText = [
           `${artikel}`,
@@ -786,7 +868,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         addY(4);
       });
 
-      // Rader – stycksaker
       if(items.length){
         if (needPage(10)) newPage();
         doc.setFont("helvetica","bold");
@@ -807,7 +888,6 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         addY(4);
       }
 
-      // Summeringar
       const sumBlock = [
         ["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
         [`Moms ${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
@@ -826,14 +906,12 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
         addY(5);
       });
 
-      // Sidfot
       const footerY = pageH - 12;
       doc.setFont("helvetica","normal");
       doc.setFontSize(9);
       doc.text(`www.reklamgiganten.com ${APP_VERSION}`, left, footerY);
       doc.text("Priskalkylatorn är skapad av ReklamGiganten AB", pageW - right, footerY, { align: "right" });
 
-      // Spara
       const safeName = ( ($("kundnamn").value || "offert").replace(/[^\w\- åäöÅÄÖ]/g,"_") );
       doc.save(`${safeName}.pdf`);
     };
