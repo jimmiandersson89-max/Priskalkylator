@@ -112,6 +112,9 @@
     .preset-item:last-child{ border-bottom:none }
     .preset-item button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer }
 
+    /* Drawer – snabb stycksak */
+    .drawer .muted{ color:#9aa3b2; font-size:12px }
+
     /* Stycksaker tabell */
     .items-head, .items-row{
       display:grid; grid-template-columns: 1.5fr 0.8fr 0.8fr 1fr 0.7fr;
@@ -123,6 +126,17 @@
     .items-actions button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer; margin-left:6px; }
     @media (max-width:640px){
       .items-head, .items-row{ grid-template-columns: 1.6fr 0.8fr 0.8fr 1fr 0.7fr; }
+    }
+
+    /* Print-läge för #offer */
+    #offer{ display:none }
+    #offer h2{ margin:0 0 8px; font-size:22px }
+    #offer .footer-note{ display:none }
+    @media print{
+      body{ background:#fff; color:#000; padding:0 }
+      .wrap,.hint{ display:none !important }
+      #offer{ display:block !important; padding:18mm }
+      @page{ size:A4; margin:12mm }
     }
   </style>
 </head>
@@ -262,27 +276,28 @@
     <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
   </div>
 
-  <!-- Drawer markup -->
+  <!-- Drawer (vänstermenyn) -->
   <div class="drawer-backdrop" id="drawerBackdrop"></div>
   <aside class="drawer" id="drawer" aria-label="Förinställningar">
-    <div class="hd"><b>Förinställningar</b><div class="hint">Välj eller spara egna</div></div>
+    <div class="hd"><b>Förinställningar</b><div class="muted">Välj eller spara egna</div></div>
     <div class="bd">
+      <!-- Preset inmatning -->
       <div class="grp">
-        <label for="presetTitle">Förinställd text (titel)</label>
+        <label for="presetTitle" class="muted">Förinställd text (titel)</label>
         <input id="presetTitle" type="text" placeholder="t.ex. Fönsterfrost – butik">
       </div>
       <div class="grp row2">
         <div>
-          <label for="presetPrice">Pris/m² (kr)</label>
+          <label for="presetPrice" class="muted">Pris/m² (kr)</label>
           <input id="presetPrice" type="number" min="0" step="1" placeholder="t.ex. 699">
         </div>
         <div>
-          <label for="presetMin">Minimidebitering (kr/rad)</label>
+          <label for="presetMin" class="muted">Minimidebitering (kr/rad)</label>
           <input id="presetMin" type="number" min="0" step="1" placeholder="t.ex. 0">
         </div>
       </div>
       <div class="grp">
-        <label class="row" style="display:flex;align-items:center;gap:10px;">
+        <label class="muted" style="display:flex;align-items:center;gap:10px;">
           <input id="presetInclVat" type="checkbox" checked />
           Inkludera 25% moms
         </label>
@@ -292,9 +307,35 @@
         <button class="btn-mini" id="savePresetBtn" style="background:#0ea5e9">Spara preset</button>
       </div>
 
+      <!-- Sparade presets -->
       <div class="grp">
-        <div class="hint" style="margin:8px 0 6px">Sparade presets</div>
+        <div class="muted" style="margin:8px 0 6px">Sparade presets</div>
         <div class="preset-list" id="presetList"></div>
+      </div>
+
+      <!-- Snabb-inlägg: stycksaker i vänstermeny -->
+      <div class="grp" style="margin-top:18px;border-top:1px solid #1e2430;padding-top:14px">
+        <div style="font-weight:700;margin-bottom:6px">Stycksaker (snabb-inlägg)</div>
+        <div class="row2" style="margin-bottom:10px">
+          <div>
+            <label for="drawerItemName" class="muted">Benämning</label>
+            <input id="drawerItemName" type="text" placeholder="t.ex. Skrapa">
+          </div>
+          <div>
+            <label for="drawerItemPrice" class="muted">Pris/st (kr)</label>
+            <input id="drawerItemPrice" type="number" min="0" step="1" placeholder="49">
+          </div>
+        </div>
+        <div class="row2">
+          <div>
+            <label for="drawerItemQty" class="muted">Antal</label>
+            <input id="drawerItemQty" type="number" min="1" step="1" value="1">
+          </div>
+          <div style="display:flex;align-items:flex-end;justify-content:flex-end">
+            <button class="btn-mini" id="drawerAddItemBtn">+ Lägg till stycksak</button>
+          </div>
+        </div>
+        <div class="muted">Lägger till i samma lista som på huvudsidan (sparas i denna enhet).</div>
       </div>
     </div>
   </aside>
@@ -326,9 +367,15 @@
     const shareBtn = $("share"), pdfBtn = $("pdf");
     const activeBadge = $("activeBadge");
 
-    // Stycksaker UI
+    // Stycksaker UI (huvud)
     const itemName = $("itemName"), itemPrice = $("itemPrice"), itemQty = $("itemQty"), addItemBtn = $("addItemBtn"),
           itemsList = $("itemsList"), itemsBox = $("itemsBox");
+
+    // Stycksaker UI (drawer)
+    const drawerItemName = $("drawerItemName");
+    const drawerItemPrice = $("drawerItemPrice");
+    const drawerItemQty = $("drawerItemQty");
+    const drawerAddItemBtn = $("drawerAddItemBtn");
 
     // Preset UI
     const presetTitle = $("presetTitle"), presetPrice = $("presetPrice"), presetMin = $("presetMin"), presetInclVat = $("presetInclVat");
@@ -369,13 +416,16 @@
     const LS_ITEMS = "rg_items_v1";
     function getItems(){ try{ return JSON.parse(localStorage.getItem(LS_ITEMS)||"[]"); }catch{return[]} }
     function setItems(list){ localStorage.setItem(LS_ITEMS, JSON.stringify(list)); renderItems(); renderListAndTotals(); }
+
     function addItem(name, price, qty){
       const n = (name||"").trim();
       const p = Math.max(0, Math.round(Number(price||0)));
       const q = Math.max(1, Math.round(Number(qty||1)));
       if(!n) return alert("Ange benämning.");
       const L = getItems(); L.push({ name:n, price:p, qty:q }); setItems(L);
-      itemName.value=""; itemPrice.value=""; itemQty.value="1";
+      // nollställ ev. båda formulären
+      if(itemName){ itemName.value=""; } if(itemPrice){ itemPrice.value=""; } if(itemQty){ itemQty.value="1"; }
+      if(drawerItemName){ drawerItemName.value=""; } if(drawerItemPrice){ drawerItemPrice.value=""; } if(drawerItemQty){ drawerItemQty.value="1"; }
     }
     function updateItem(idx, field, value){
       const L = getItems(); if(!L[idx]) return;
@@ -409,9 +459,17 @@
         itemsList.appendChild(tr);
       });
     }
+    // gör uppdateringsfunktioner globala för inline-oninput
     window.updateItem = updateItem;
     window.removeItem = removeItem;
+
     addItemBtn.addEventListener("click", ()=> addItem(itemName.value, itemPrice.value, itemQty.value));
+    // Lägg till stycksak direkt från drawer
+    if (drawerAddItemBtn) {
+      drawerAddItemBtn.addEventListener("click", () => {
+        addItem(drawerItemName.value, drawerItemPrice.value, drawerItemQty.value);
+      });
+    }
 
     // ===== Presets (drawer) =====
     const LS_PRESETS = "rg_presets_v1_dark";
@@ -423,7 +481,7 @@
       if(!list.length){
         const empty = document.createElement("div");
         empty.className = "preset-item";
-        empty.innerHTML = `<span class="hint">Inga sparade ännu</span>`;
+        empty.innerHTML = `<span class="muted">Inga sparade ännu</span>`;
         presetList.appendChild(empty);
         return;
       }
@@ -433,7 +491,7 @@
         row.innerHTML = `
           <div>
             <div><b>${p.title||"Anpassat"}</b></div>
-            <div class="hint">${(p.price||0)} kr/m² · min ${p.min||0} kr · ${p.inclVat ? "inkl. moms" : "exkl. moms"}</div>
+            <div class="muted">${(p.price||0)} kr/m² · min ${p.min||0} kr · ${p.inclVat ? "inkl. moms" : "exkl. moms"}</div>
           </div>
           <div>
             <button data-i="${idx}" class="use">Använd</button>
@@ -598,7 +656,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
     }
     shareBtn.onclick = sharePrice;
 
-    // Stycksaker init
+    // Init stycksaker
     renderItems();
 
     // Första render
@@ -608,7 +666,7 @@ ${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
   <!-- jsPDF (måste ligga före vår PDF-funktion) -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <!-- Skapa offert som PDF med jsPDF (inkluderar stycksaker) -->
+  <!-- Skapa offert som PDF (inkluderar stycksaker) -->
   <script>
     $("pdf").onclick = () => {
       const items = (function(){ try{return JSON.parse(localStorage.getItem("rg_items_v1")||"[]")}catch{return[]} })();
