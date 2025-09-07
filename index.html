@@ -45,10 +45,8 @@
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
-    /* ---- Lista/tabell (delad stil) ---- */
-    .compact-list{
-      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
-    }
+    /* Tabeller (gemensam stil) */
+    .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
     .compact-list th, .compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600 }
@@ -56,25 +54,16 @@
     .compact-list td:nth-child(2), .compact-list td:nth-child(3){ text-align:right }
     .compact-list .act{ text-align:right }
     .compact-list tr:hover td{ background:#121722 }
-
-    /* Sticky åtgärdskolumn (behaglig skugga) */
-    .compact-list th:last-child,
-    .compact-list td:last-child{
-      position:sticky; right:0; background:var(--row);
-      box-shadow:-6px 0 10px rgba(0,0,0,.12);
-      z-index:1;
+    .compact-list th:last-child, .compact-list td:last-child{
+      position:sticky; right:0; background:var(--row); box-shadow:-6px 0 10px rgba(0,0,0,.12); z-index:1;
     }
 
-    .remove{
-      background:var(--danger); color:#fff; border:none; border-radius:10px;
-      padding:8px 12px; cursor:pointer; font-size:14px; line-height:1;
-    }
+    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:14px; line-height:1 }
     .remove:hover{ filter:brightness(1.06) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
-    .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px;
-      color:#fff; cursor:pointer; background:var(--btn) }
+    .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
@@ -112,7 +101,6 @@
 </head>
 <body>
   <div class="wrap">
-    <!-- Menyknapp -->
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
     <!-- Fast logga i appen -->
@@ -182,26 +170,28 @@
         </div>
       </div>
 
-      <!-- LIVE-förhandsvisning för m²-raden -->
+      <!-- LIVE-förhandsvisning för m²-raden (utan "minimidebitering"-text) -->
       <div id="measurePreview" class="hint">Skriv mått så visas radens pris här…</div>
 
       <button class="btn" id="addMeasure" type="button">+ Lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
     </div>
 
-    <!-- MÅTTLISTA – matcher stycksaker-listans utseende -->
-    <div class="compact-list" id="listWrap" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th>Benämning</th>
-            <th>Antal</th>
-            <th>Summa</th>
-            <th class="act">Åtgärd</th>
-          </tr>
-        </thead>
-        <tbody id="measuresBody"></tbody>
-      </table>
+    <!-- Måttlistan i svart .row (samma look som stycksaker/tid) -->
+    <div class="row" id="measuresSection">
+      <div class="compact-list" id="listWrap" style="display:none">
+        <table>
+          <thead>
+            <tr>
+              <th>Benämning</th>
+              <th>Antal</th>
+              <th>Summa</th>
+              <th class="act">Åtgärd</th>
+            </tr>
+          </thead>
+          <tbody id="measuresBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Stycksaker + Tid -->
@@ -245,14 +235,13 @@
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
     <div class="hd">Förinställningar</div>
     <div class="bd">
-      <!-- Snabblänkar -->
       <div class="grp">
         <div class="row2">
           <a class="btn-mini" href="./index.html">Kalkylatorn</a>
         </div>
       </div>
 
-      <!-- PDF-logga (påverkar endast PDF) -->
+      <!-- PDF-logga (bara i PDF) -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
@@ -287,7 +276,6 @@
     </div>
   </aside>
 
-  <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
@@ -324,7 +312,7 @@
       else{ el.style.display="none"; }
     }
 
-    // Live-förhandsvisning
+    // Live-förhandsvisning (utan min-rad)
     function previewMeasureLine(){
       const h = parseFloat($("hojd").value);
       const b = parseFloat($("bredd").value);
@@ -341,9 +329,7 @@
       const exklUtanMin = area * price * qty;
       const exkl = Math.max(min || 0, exklUtanMin);
 
-      box.textContent =
-        `Rad: ${area.toFixed(2)} m²/st × ${price} kr/m² × ${qty} st = ${Math.round(exklUtanMin)} kr` +
-        (min && exkl>exklUtanMin ? ` (minimidebitering ${Math.round(min)} kr gäller → ${Math.round(exkl)} kr)` : "");
+      box.textContent = `Rad: ${area.toFixed(2)} m²/st × ${price} kr/m² × ${qty} st = ${Math.round(exkl)} kr`;
     }
 
     function render(){
@@ -387,7 +373,6 @@
       saveJSON(LS_ITEMS, items);
     }
 
-    // Datalist för artikel
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
@@ -464,7 +449,7 @@
       }
     });
 
-    // PDF (centrerad PDF-logga)
+    // PDF (ingen min-text)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -483,7 +468,8 @@
       const phone = $("telefon").value || "";
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // PDF-logga centrerad
+      // PDF-logga centrerad (om vald i drawer)
+      const logoDataURL = localStorage.getItem(LS_LOGO) || "";
       if(logoDataURL){
         try{
           const imgProps = doc.getImageProperties(logoDataURL);
@@ -496,7 +482,6 @@
         }catch(e){}
       }
 
-      // Header
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
       doc.setFontSize(11); doc.setFont("helvetica","normal");
       const rightX = pageW-right; doc.text(`${today}`, rightX, y, { align:"right" }); addY(6);
@@ -509,17 +494,15 @@
       if (customer || phone){ addY(8); doc.setFontSize(10); if(customer) doc.text(`${customer}`, left, y); if(phone) doc.text(`${phone}`, left+90, y); }
       addY(10);
 
-      // Kolumnrubriker
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
       doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
-      // Måttrader
       (window.measures||[]).forEach(l=>{
         const radText = [
           `${l.artikel || "Artikel"}`,
-          `${l.h} × ${l.b} mm • ${fmt2(l.area)} m²/st • á ${fmt2(l.price)} kr/m²` + (l.min>0 ? ` • min ${fmt0(l.min)} kr` : "")
+          `${l.h} × ${l.b} mm • ${fmt2(l.area)} m²/st • á ${fmt2(l.price)} kr/m²`
         ].join("\n");
         const wrapped = doc.splitTextToSize(radText, col1W); const rowH = Math.max(8, wrapped.length*5);
         if (y+rowH > pageH-bottom-14) { doc.addPage(); y=top; }
@@ -528,7 +511,6 @@
         doc.setFont("helvetica","normal"); y += rowH+4; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       });
 
-      // Stycksaker / Tid
       if(items.length){
         if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.text("Stycksaker & tid", col1X, y); y += 8; doc.setFont("helvetica","normal");
@@ -541,22 +523,19 @@
         y += 2; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       }
 
-      // Summor
       const sumExklMeasures = (window.measures||[]).reduce((s,l)=>s+l.exkl,0);
       const sumExklItems = items.reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
       const sumInkl = sumExkl + momsBelopp;
 
-      const sumBlock = [
-        ["Summa exkl. moms", `${fmt0(sumExkl)} kr`, true],
-        [`${Math.round(momsSats*100)}%`, `${fmt0(momsBelopp)} kr`, false],
-        ["Att betala", `${fmt0(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
-      ];
-      sumBlock.forEach(([label,value,bold])=>{
+      [["Summa exkl. moms", sumExkl, true],
+       [`${Math.round(momsSats*100)}%`, momsBelopp, false],
+       ["Att betala", sumInkl, true]
+      ].forEach(([label,val,bold])=>{
         if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
+        doc.text(label, col1X, y); doc.text(`${fmt0(val)} kr`, col2X+col2W, y, {align:"right"});
         y += 7; doc.setDrawColor(220); doc.line(left, y, pageW-right, y); y += 5;
       });
 
@@ -582,8 +561,7 @@
         const file = e.target.files?.[0]; if(!file) return;
         const reader = new FileReader();
         reader.onload = () => {
-          logoDataURL = reader.result;
-          localStorage.setItem(LS_LOGO, logoDataURL);
+          localStorage.setItem(LS_LOGO, reader.result);
           setLogoPreview();
           alert("PDF-logga sparad! (påverkar ej loggan i appen)");
         };
@@ -591,7 +569,7 @@
       });
       $("logoClear").addEventListener("click", ()=>{
         localStorage.removeItem(LS_LOGO);
-        logoDataURL=""; setLogoPreview();
+        setLogoPreview();
       });
 
       // Presets
