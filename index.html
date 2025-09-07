@@ -276,7 +276,7 @@
     const LS_PRESETS = "rg_presets_v1";
     const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
-    const LS_LOGO    = "rg_company_logo_dataurl";
+    const LS_LOGO    = "rg_company_logo_dataurl"; // PDF-logga
 
     const measures = [];
     let items = loadJSON(LS_ITEMS, []);
@@ -406,7 +406,7 @@
       if(p){ $("pris").value = p.pris; $("moms").value = p.moms; previewMeasureLine(); }
     });
 
-    // Reagera på momsbyte – uppdatera alla previews + totals
+    // Reagera på momsbyte – uppdatera previews + totals
     $("moms").addEventListener("change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
 
     // Lägg till mått
@@ -455,7 +455,7 @@
       render(); previewTimeLine();
     });
 
-    // Input-listeners för previews
+    // Input-listeners för live-priser
     ["hojd","bredd","antal","pris","artikel"].forEach(id=>{
       $(id).addEventListener("input", previewMeasureLine);
       $(id).addEventListener("change", previewMeasureLine);
@@ -479,7 +479,7 @@
       }
     });
 
-    // PDF (oförändrad jämfört med förra – totals tar redan hänsyn till moms)
+    // PDF (centrerad PDF-logga + Kunduppgifter med etiketter)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -489,73 +489,89 @@
       let y=top;
 
       const addY = mm => y+=mm;
-      const today = new Date().toLocaleDateString("sv-SE");
-      const company = ($("avsandare").value || "Företag");
-      const customer = $("kundnamn").value || "";
-      const phone = $("telefon").value || "";
+      const today    = new Date().toLocaleDateString("sv-SE");
+      const company  = ($("avsandare").value || "Företag").trim();
+      const customer = ($("kundnamn").value || "").trim();
+      const phone    = ($("telefon").value || "").trim();
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // PDF-logga centrerad (om laddad i drawer)
+      // PDF-logga centrerad (om vald i drawern)
       if(logoDataURL){
         try{
-          const imgProps = doc.getImageProperties(logoDataURL);
+          const p = doc.getImageProperties(logoDataURL);
           const maxW = 60, maxH = 22;
-          let w = maxW, h = maxW * (imgProps.height/imgProps.width);
-          if(h>maxH){ h = maxH; w = h * (imgProps.width/imgProps.height); }
+          let w = maxW, h = maxW * (p.height/p.width);
+          if(h>maxH){ h = maxH; w = h * (p.width/p.height); }
           const x = (pageW - w) / 2;
-          doc.addImage(logoDataURL, imgProps.fileType || "PNG", x, y-6, w, h);
+          doc.addImage(logoDataURL, p.fileType || "PNG", x, y-6, w, h);
           addY(20);
         }catch(e){}
       }
 
+      // Rubrik + datum
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
-      doc.setFontSize(11); doc.setFont("helvetica","normal");
-      const rightX = pageW-right; doc.text(`${today}`, rightX, y, { align:"right" }); addY(6);
-      doc.setTextColor(90); doc.text("Offerten är giltig i 30 dagar", rightX, y, { align:"right" });
-      doc.setTextColor(0); addY(10);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11);
+      const rightX = pageW-right; doc.text(today, rightX, y, { align:"right" });
+      addY(8);
 
+      // Vänster: Offert från (avsändare)
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
-      doc.setTextColor(0); addY(5); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y);
-      doc.setFont("helvetica","normal");
-      if (customer || phone){ addY(8); doc.setFontSize(10); if(customer) doc.text(`${customer}`, left, y); if(phone) doc.text(`${phone}`, left+90, y); }
-      addY(10);
+      doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y+5);
 
+      // Höger: Kunduppgifter (med etiketter)
+      doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
+      doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      doc.text(`Kundnamn: ${customer || "-"}`, rightX, y+6,  {align:"right"});
+      doc.text(`Telefon: ${phone || "-"}`,    rightX, y+12, {align:"right"});
+
+      y += 18;
+
+      // Kolumnrubriker
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
+      const fmt0p = n => Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
+      const fmt2p = n => Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
       doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
+      // Måttrader
       (window.measures||[]).forEach(l=>{
-        const radText = [`${l.artikel || "Artikel"}`, `${l.h} × ${l.b} mm • ${fmt2((l.h/1000)*(l.b/1000))} m²/st • á ${fmt2(l.price)} kr/m²`].join("\n");
-        const wrapped = doc.splitTextToSize(radText, col1W); const rowH = Math.max(8, wrapped.length*5);
+        const radText = [
+          `${l.artikel || "Artikel"}`,
+          `${l.h} × ${l.b} mm • ${fmt2p((l.h/1000)*(l.b/1000))} m²/st • á ${fmt2p(l.price)} kr/m²`
+        ].join("\n");
+        const wrapped = doc.splitTextToSize(radText, col1W);
+        const rowH = Math.max(8, wrapped.length*5);
         if (y+rowH > pageH-bottom-14) { doc.addPage(); y=top; }
         doc.setFontSize(10); doc.text(wrapped, col1X, y);
-        doc.setFont("helvetica","bold"); doc.text(`${fmt0(l.exkl)} kr`, col2X+col2W, y, {align:"right"});
+        doc.setFont("helvetica","bold"); doc.text(`${fmt0p(l.exkl)} kr`, col2X+col2W, y, {align:"right"});
         doc.setFont("helvetica","normal"); y += rowH+4; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       });
 
-      const items = JSON.parse(localStorage.getItem(LS_ITEMS) || "[]");
-      if(items.length){
+      // Stycksaker / Tid
+      const savedItems = JSON.parse(localStorage.getItem(LS_ITEMS) || "[]");
+      if(savedItems.length){
         if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.text("Stycksaker & tid", col1X, y); y += 8; doc.setFont("helvetica","normal");
-        items.forEach(it=>{
+        savedItems.forEach(it=>{
           if (y+8 > pageH-bottom) { doc.addPage(); y=top; }
           doc.text(`${it.qty} × ${it.name}`, col1X, y);
-          doc.setFont("helvetica","bold"); doc.text(`${fmt0(it.price*it.qty)} kr`, col2X+col2W, y, {align:"right"});
+          doc.setFont("helvetica","bold"); doc.text(`${fmt0p(it.price*it.qty)} kr`, col2X+col2W, y, {align:"right"});
           doc.setFont("helvetica","normal"); y += 6;
         });
         y += 2; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       }
 
+      // Summor
       const sumExklMeasures = (window.measures||[]).reduce((s,l)=>s+l.exkl,0);
-      const sumExklItems = (items||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
+      const sumExklItems = (savedItems||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
       const sumInkl = sumExkl + momsBelopp;
 
-      [["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
-       [`${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
-       ["Att betala", `${fmt0(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+      [["Summa exkl. moms", fmt0p(sumExkl) + " kr", true],
+       [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp) + " kr", false],
+       ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
       ].forEach(([label,value,bold])=>{
         if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
@@ -570,8 +586,12 @@
     // Drawer
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
-      function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
-      function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true"); document.body.style.overflow=""; }
+      function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
+        drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false");
+        document.body.style.overflow="hidden"; }
+      function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open");
+        drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true");
+        document.body.style.overflow=""; }
       btn.addEventListener("click", e=>{ e.stopPropagation(); open(); });
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
@@ -580,10 +600,18 @@
       $("logoFile").addEventListener("change", (e)=>{
         const file = e.target.files?.[0]; if(!file) return;
         const reader = new FileReader();
-        reader.onload = () => { logoDataURL = reader.result; localStorage.setItem(LS_LOGO, logoDataURL); setLogoPreview(); alert("PDF-logga sparad! (påverkar ej loggan i appen)"); };
+        reader.onload = () => {
+          logoDataURL = reader.result;
+          localStorage.setItem(LS_LOGO, logoDataURL);
+          setLogoPreview();
+          alert("PDF-logga sparad! (påverkar ej loggan i appen)");
+        };
         reader.readAsDataURL(file);
       });
-      $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
+      $("logoClear").addEventListener("click", ()=>{
+        localStorage.removeItem(LS_LOGO);
+        logoDataURL=""; setLogoPreview();
+      });
 
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
