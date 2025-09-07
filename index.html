@@ -45,20 +45,19 @@
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
-    /* ---- Lista/tabell ---- */
+    /* ---- Lista/tabell (delad stil) ---- */
     .compact-list{
-      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden; position:relative;
+      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
     }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
     .compact-list th, .compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600 }
-    .compact-list td:nth-child(2),
-    .compact-list td:nth-child(3),
-    .compact-list td:nth-child(4),
-    .compact-list td:nth-child(5){ text-align:right }
     .compact-list tr:last-child td{ border-bottom:none }
+    .compact-list td:nth-child(2), .compact-list td:nth-child(3){ text-align:right }
+    .compact-list .act{ text-align:right }
+    .compact-list tr:hover td{ background:#121722 }
 
-    /* Sticky åtgärdskolumn till höger – funkar även när vi döljer kolumner */
+    /* Sticky åtgärdskolumn (behaglig skugga) */
     .compact-list th:last-child,
     .compact-list td:last-child{
       position:sticky; right:0; background:var(--row);
@@ -71,15 +70,6 @@
       padding:8px 12px; cursor:pointer; font-size:14px; line-height:1;
     }
     .remove:hover{ filter:brightness(1.06) }
-
-    /* --- MOBIL: visa allt utan horisontell scroll --- */
-    /* Dölj de minst viktiga kolumnerna på små skärmar */
-    @media (max-width: 480px){
-      .hide-xs{ display:none }                 /* används på th/td vi vill gömma */
-      .compact-list th, .compact-list td{ padding:10px 8px } /* lite tightare */
-      .compact-list table{ min-width:auto }    /* lås ej bredd */
-      .compact-list::after{ display:none }     /* ingen fade behövs */
-    }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
@@ -125,7 +115,7 @@
     <!-- Menyknapp -->
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
-    <!-- FAST LOGGA I APPEN (påverkas inte av drawern) -->
+    <!-- Fast logga i appen -->
     <img class="logo" id="companyLogo" src="./Icon-512.png" alt="Logotyp" />
 
     <h1>Offert på språng</h1>
@@ -199,16 +189,14 @@
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
     </div>
 
-    <!-- Lista över mått -->
+    <!-- MÅTTLISTA – matcher stycksaker-listans utseende -->
     <div class="compact-list" id="listWrap" style="display:none">
       <table>
         <thead>
           <tr>
-            <th>Artikel / Mått</th>
+            <th>Benämning</th>
             <th>Antal</th>
-            <th class="hide-xs">Area/st</th>
-            <th class="hide-xs">Pris/m²</th>
-            <th>Exkl (rad)</th>
+            <th>Summa</th>
             <th class="act">Åtgärd</th>
           </tr>
         </thead>
@@ -234,7 +222,7 @@
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
-          <thead><tr><th>Benämning</th><th class="hide-xs">Pris/st</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
+          <thead><tr><th>Benämning</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
           <tbody id="itemsList"></tbody>
         </table>
       </div>
@@ -336,6 +324,7 @@
       else{ el.style.display="none"; }
     }
 
+    // Live-förhandsvisning
     function previewMeasureLine(){
       const h = parseFloat($("hojd").value);
       const b = parseFloat($("bredd").value);
@@ -358,7 +347,7 @@
     }
 
     function render(){
-      // Måttlista
+      // Måttlista (Benämning | Antal | Summa | Åtgärd)
       const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
       measures.forEach((m,i)=>{
         total += m.exkl;
@@ -366,8 +355,6 @@
         tr.innerHTML = `
           <td style="white-space:normal"><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
           <td>${m.qty}</td>
-          <td class="hide-xs">${m.area.toFixed(2)} m²</td>
-          <td class="hide-xs">${m.price} kr</td>
           <td>${m.exkl.toFixed(0)} kr</td>
           <td class="act"><button class="remove" data-i="${i}" aria-label="Ta bort rad">×</button></td>`;
         body.appendChild(tr);
@@ -381,7 +368,6 @@
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:normal">${it.name}</td>
-          <td class="hide-xs">${it.price} kr</td>
           <td>${it.qty}</td>
           <td>${(it.price*it.qty).toFixed(0)} kr</td>
           <td class="act"><button class="remove" data-item="${i}" aria-label="Ta bort stycksak">×</button></td>`;
@@ -401,6 +387,7 @@
       saveJSON(LS_ITEMS, items);
     }
 
+    // Datalist för artikel
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
@@ -413,6 +400,7 @@
       if(p){ $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms; previewMeasureLine(); }
     });
 
+    // Lägg till mått
     $("addMeasure").addEventListener("click", ()=>{
       const artikel = $("artikel").value.trim();
       const h = parseFloat($("hojd").value);
@@ -466,6 +454,7 @@
     });
     previewMeasureLine();
 
+    // Dela
     $("share").addEventListener("click", ()=>{
       const text = `${$("result").textContent} (${$("details").textContent})`;
       if(navigator.share){
@@ -523,15 +512,14 @@
       // Kolumnrubriker
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
-      doc.text("Benämning / Mått", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
+      doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
       // Måttrader
       (window.measures||[]).forEach(l=>{
         const radText = [
           `${l.artikel || "Artikel"}`,
-          `${l.qty} st — ${l.h} × ${l.b} mm per styck`,
-          `${fmt2(l.area)} m², á ${fmt2(l.price)} kr/m²${l.min>0 ? " • min " + fmt0(l.min) + " kr" : ""}`
+          `${l.h} × ${l.b} mm • ${fmt2(l.area)} m²/st • á ${fmt2(l.price)} kr/m²` + (l.min>0 ? ` • min ${fmt0(l.min)} kr` : "")
         ].join("\n");
         const wrapped = doc.splitTextToSize(radText, col1W); const rowH = Math.max(8, wrapped.length*5);
         if (y+rowH > pageH-bottom-14) { doc.addPage(); y=top; }
@@ -546,7 +534,7 @@
         doc.setFont("helvetica","bold"); doc.text("Stycksaker & tid", col1X, y); y += 8; doc.setFont("helvetica","normal");
         items.forEach(it=>{
           if (y+8 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.text(`${it.qty} × ${it.name} á ${fmt0(it.price)} kr`, col1X, y);
+          doc.text(`${it.qty} × ${it.name}`, col1X, y);
           doc.setFont("helvetica","bold"); doc.text(`${fmt0(it.price*it.qty)} kr`, col2X+col2W, y, {align:"right"});
           doc.setFont("helvetica","normal"); y += 6;
         });
@@ -606,7 +594,7 @@
         logoDataURL=""; setLogoPreview();
       });
 
-      // Presets (render + handlers)
+      // Presets
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
