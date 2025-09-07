@@ -5,17 +5,11 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Priskalkylator</title>
 
-  <!-- PWA / ikoner -->
-  <link rel="manifest" href="manifest.webmanifest">
-  <link rel="apple-touch-icon" href="apple-touch-icon.png">
-  <link rel="icon" sizes="512x512" href="icon-512.png">
-  <meta name="theme-color" content="#171923">
-
   <style>
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
       --text:#ffffff; --muted:#b7c0cf; --btn:#16a34a; --btn-hover:#139043; --row:#0b0d12;
-      --danger:#9b1c1c; --accent:#22d3ee;
+      --danger:#9b1c1c;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -26,23 +20,18 @@
     }
     .wrap{
       position:relative;
-      width:100%; max-width:820px; margin:auto; background:var(--card);
+      width:100%; max-width:920px; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
-    .logo{ display:block; margin:4px auto 12px; width:220px; max-width:65%; border-radius:12px }
-    h1{ margin:8px 0 6px; text-align:center; font-size:30px }
-    .badge{
-      display:inline-block; background:#11151d; border:1px solid var(--line); color:#a7f3d0;
-      padding:4px 10px; border-radius:999px; font-size:12px; margin-left:8px;
+    .logo{
+      display:block; margin:50px auto 12px; width:220px; max-width:65%; border-radius:12px;
     }
+    h1{ margin:8px 0 6px; text-align:center; font-size:30px }
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
-
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
-    input,select,button,datalist{ font-family:inherit; }
     input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
       padding:12px; font-size:16px; background:#fff; color:#000; outline:none;
-      box-shadow:inset 0 1px 0 rgba(0,0,0,.06);
     }
     input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
@@ -50,44 +39,49 @@
     .grid3{ display:grid; gap:12px }
     @media (min-width:720px){
       .grid2{ grid-template-columns:1fr 1fr }
-      .grid3{ grid-template-columns:2fr 1fr 1fr }
+      .grid3{ grid-template-columns:1fr 1fr 1fr }
     }
 
     .row{
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
+    /* ==== TABELLEN – förbättrad för mobil ==== */
     .compact-list{
-      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+      margin-top:10px; border:1px solid var(--line); border-radius:14px;
+      overflow-x:auto; /* <— gör att man kan scrolla i stående om det behövs */
     }
-    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px; }
+    .compact-list table{
+      width:100%; border-collapse:collapse; font-size:14px;
+      min-width: 560px; /* <— så inget trycks ihop för mycket på smal mobil */
+    }
     .compact-list th, .compact-list td{ padding:10px 8px; border-bottom:1px solid #2a2f3c; }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600; }
     .compact-list tr:last-child td{ border-bottom:none }
-    .compact-list .act{ text-align:right }
-    .tag{
-      display:inline-block; background:#11151d; border:1px solid #2a2f3c; color:#e5e7eb;
-      padding:4px 8px; border-radius:999px; font-size:12px; margin-right:6px;
+    .compact-list .act{ text-align:right; white-space:nowrap }
+    .compact-list .num{ text-align:right; white-space:nowrap } /* <— pris mm radbryts ej */
+
+    /* Lite tightare på riktigt små skärmar */
+    @media (max-width:420px){
+      .compact-list table{ font-size:13px; min-width:520px; }
+      .compact-list th, .compact-list td{ padding:8px 6px; }
     }
-    .remove{
-      background:var(--danger); color:#fff; border:none; border-radius:10px; padding:6px 10px; cursor:pointer;
-    }
+
+    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:6px 10px; cursor:pointer; }
     .remove:hover{ filter:brightness(1.1) }
 
-    .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:#0b0d12; border:1px dashed var(--line); min-height:24px }
-    .hint{ color:#b7c0cf; font-size:12px; margin-top:6px }
-    .btn{
-      margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px;
-      color:#fff; cursor:pointer; background:var(--btn)
-    }
+    .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
+    .hint{ color:var(--muted); font-size:12px; margin-top:6px }
+    .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px;
+      color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
-    /* Drawer (vänstermeny) */
+    /* Drawer */
     .hamburger{
       position:absolute; left:14px; top:14px; width:42px; height:42px; border-radius:12px;
       border:1px solid var(--line); background:#11151d; color:#fff; cursor:pointer;
-      display:grid; place-items:center; font-size:20px;
+      display:grid; place-items:center; font-size:20px; z-index: 1000;
     }
     .drawer-backdrop{
       position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998;
@@ -100,11 +94,12 @@
     }
     .drawer.open{ transform:translateX(0) }
     .drawer-backdrop.open{ opacity:1; pointer-events:auto }
-    .drawer .hd{ padding:14px; border-bottom:1px solid #1e2430; }
-    .drawer .hd b{ font-size:16px }
-    .drawer .bd{ padding:14px; overflow:auto }
+    .drawer .hd{ padding:14px; border-bottom:1px solid #1e2430; font-size:16px; font-weight:700 }
+    .drawer .bd{
+      padding:14px; overflow-y:auto; max-height:calc(100vh - 50px);
+    }
     .drawer .grp{ margin-bottom:14px }
-    .drawer .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    .drawer .row2{ display:grid; grid-template-columns:1fr; gap:10px }
     .drawer .btn-mini{
       padding:10px 12px; border:none; border-radius:10px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700
     }
@@ -112,102 +107,52 @@
     .preset-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid #1e2430 }
     .preset-item:last-child{ border-bottom:none }
     .preset-item button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer }
-
     .drawer .muted{ color:#9aa3b2; font-size:12px }
 
-    /* Print-läge för #offer */
-    #offer{ display:none }
-    #offer h2{ margin:0 0 8px; font-size:22px }
-    #offer .footer-note{ display:none }
-    @media print{
-      body{ background:#fff; color:#000; padding:0 }
-      .wrap,.hint{ display:none !important }
-      #offer{ display:block !important; padding:18mm }
-      @page{ size:A4; margin:12mm }
-    }
+    #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
   </style>
 </head>
 <body>
   <div class="wrap">
-    <!-- Menyknapp -->
-    <button class="hamburger" id="openDrawer" aria-label="Öppna meny">☰</button>
+    <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
+    <img class="logo" src="/assets/images/IMG_0059-1757208666308.jpeg" alt="Logotyp" onerror="this.style.display='none'" />
+    <h1>Priskalkylator</h1>
 
-    <img class="logo" src="./IMG_0028.jpeg" alt="Reklamgiganten" onerror="this.style.display='none'">
-    <h1>Priskalkylator <span id="activeBadge" class="badge" style="display:none"></span></h1>
-
-    <!-- Avsändar-företag -->
-    <label for="avsandare">Företag (avsändare)</label>
-    <input id="avsandare" type="text" placeholder="Ditt företagsnamn">
+    <!-- Avsändare + Moms -->
+    <div class="grid2">
+      <div><label for="avsandare">Företag (avsändare)</label><input id="avsandare" type="text" placeholder="Ditt företagsnamn" /></div>
+      <div><label for="moms">Moms</label><select id="moms"><option value="0">Exkl. moms</option><option value="0.25" selected>Inkl. 25%</option></select></div>
+    </div>
 
     <!-- Kunduppgifter -->
     <div class="grid2">
-      <div>
-        <label for="kundnamn">Kundnamn</label>
-        <input id="kundnamn" type="text" placeholder="Kundens namn">
-      </div>
-      <div>
-        <label for="telefon">Telefon</label>
-        <input id="telefon" type="tel" placeholder="070-123 45 67">
-      </div>
+      <div><label for="kundnamn">Kundnamn</label><input id="kundnamn" type="text" /></div>
+      <div><label for="telefon">Telefon</label><input id="telefon" type="tel" /></div>
     </div>
 
-    <!-- Artikel (gemensam) + moms -->
-    <div class="grid2" style="margin-top:6px">
-      <div>
-        <label for="artikel">Artikel/Benämning (gemensam rubrik för måtten)</label>
-        <input id="artikel" type="text" placeholder="t.ex. Frost, Print, Vinyl, Solfilm" list="artikelOptions">
-        <datalist id="artikelOptions"></datalist>
-      </div>
-      <div>
-        <label for="moms">Moms</label>
-        <select id="moms">
-          <option value="0">Exkl. moms</option>
-          <option value="0.25" selected>Inkl. 25% moms</option>
-        </select>
-      </div>
-    </div>
-
-    <!-- Pris/m² + min -->
-    <div class="grid2">
-      <div>
-        <label for="pris">Pris per m² (kr)</label>
-        <input id="pris" type="number" inputmode="decimal" value="699" min="0" step="0.01">
-      </div>
-      <div>
-        <label for="minpris">Minimidebitering (kr, valfritt – per rad)</label>
-        <input id="minpris" type="number" inputmode="decimal" value="0" min="0" step="1">
-      </div>
-    </div>
-
-    <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
-
-    <!-- Ett mått i taget -->
+    <!-- Mått & pris -->
     <div class="row">
       <h2>Lägg till mått</h2>
       <div class="grid3">
-        <div>
-          <label for="hojd">Höjd (mm)</label>
-          <input id="hojd" type="number" inputmode="decimal" placeholder="Höjd (mm)" min="1">
-        </div>
-        <div>
-          <label for="bredd">Bredd (mm)</label>
-          <input id="bredd" type="number" inputmode="decimal" placeholder="Bredd (mm)" min="1">
-        </div>
-        <div>
-          <label for="antal">Antal (st)</label>
-          <input id="antal" type="number" inputmode="numeric" value="1" min="1" step="1">
-        </div>
+        <div><label for="artikel">Artikel</label><input id="artikel" type="text" list="artikelOptions" /><datalist id="artikelOptions"></datalist></div>
+        <div><label for="pris">Pris per m² (kr)</label><input id="pris" type="number" value="699" /></div>
+        <div><label for="minpris">Minimidebitering</label><input id="minpris" type="number" value="0" /></div>
       </div>
-      <button class="btn" id="addMeasure">+ Lägg till mått</button>
-      <div class="hint">Varje klick sparar måttet i listan nedan. Lägg till hur många du vill.</div>
+      <div class="grid3">
+        <div><label for="hojd">Höjd (mm)</label><input id="hojd" type="number" /></div>
+        <div><label for="bredd">Bredd (mm)</label><input id="bredd" type="number" /></div>
+        <div><label for="antal">Antal</label><input id="antal" type="number" value="1" /></div>
+      </div>
+      <button class="btn" id="addMeasure" type="button">+ Lägg till mått</button>
+      <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
     </div>
 
-    <!-- Sparad lista över mått -->
+    <!-- Lista över mått -->
     <div class="compact-list" id="listWrap" style="display:none">
-      <table id="measuresTable">
+      <table>
         <thead>
           <tr>
-            <th>Mått (mm)</th>
+            <th>Artikel / Mått</th>
             <th>Antal</th>
             <th>Area/st</th>
             <th>Pris/m²</th>
@@ -223,37 +168,20 @@
     <div class="row">
       <h2>Stycksaker</h2>
       <div class="grid3">
-        <div>
-          <label for="itemName">Benämning</label>
-          <input id="itemName" type="text" placeholder="t.ex. Skrapa, Monteringskit, Extra laminat" list="itemOptions">
-          <datalist id="itemOptions"></datalist>
-        </div>
-        <div>
-          <label for="itemPrice">Pris/st (kr)</label>
-          <input id="itemPrice" type="number" min="0" step="1" placeholder="t.ex. 49">
-        </div>
-        <div>
-          <label for="itemQty">Antal</label>
-          <input id="itemQty" type="number" min="1" step="1" value="1">
-        </div>
+        <div><label for="itemName">Benämning</label><input id="itemName" type="text" list="itemOptions" placeholder="t.ex. Skrapa" /></div>
+        <div><label for="itemPrice">Pris/st (kr)</label><input id="itemPrice" type="number" min="0" step="1" /></div>
+        <div><label for="itemQty">Antal</label><input id="itemQty" type="number" min="1" step="1" value="1" /></div>
       </div>
-      <button class="btn" id="addItemBtn">+ Lägg till stycksak</button>
+      <button class="btn" id="addItemBtn" type="button">+ Lägg till stycksak</button>
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
-          <thead class="items-head">
-            <tr>
-              <th>Benämning</th>
-              <th>Pris/st</th>
-              <th>Antal</th>
-              <th>Summa</th>
-              <th class="act">Åtgärd</th>
-            </tr>
-          </thead>
+          <thead><tr><th>Benämning</th><th>Pris/st</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
           <tbody id="itemsList"></tbody>
         </table>
       </div>
       <div class="hint" id="itemsHint">Stycksaker sparas i denna enhet (localStorage).</div>
+      <datalist id="itemOptions"></datalist>
     </div>
 
     <!-- Resultat -->
@@ -261,751 +189,372 @@
     <div id="result" class="out">Lägg till ett mått.</div>
     <div id="details" class="hint"></div>
 
-    <button class="btn" id="share">Dela priset</button>
-    <button class="btn secondary" id="pdf">Skapa offert (PDF)</button>
-    <div id="versionLabel" class="hint" style="margin-top:8px;text-align:center">Version: <b id="versionText"></b></div>
+    <button class="btn" id="share" type="button">Dela priset</button>
+    <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
+    <div id="versionLabel">V.Benjii</div>
   </div>
 
-  <!-- Drawer (vänstermenyn) -->
-  <div class="drawer-backdrop" id="drawerBackdrop"></div>
-  <aside class="drawer" id="drawer" aria-label="Förinställningar">
-    <div class="hd"><b>Förinställningar</b><div class="muted">Välj eller spara egna</div></div>
+  <!-- Drawer -->
+  <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
+  <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
+    <div class="hd">Förinställningar</div>
     <div class="bd">
-      <!-- m²-preset inmatning -->
       <div class="grp">
-        <label for="presetTitle" class="muted">Förinställd text (titel)</label>
-        <input id="presetTitle" type="text" placeholder="t.ex. Fönsterfrost – butik">
-      </div>
-      <div class="grp row2">
-        <div>
-          <label for="presetPrice" class="muted">Pris/m² (kr)</label>
-          <input id="presetPrice" type="number" min="0" step="1" placeholder="t.ex. 699">
+        <div class="row2">
+          <a class="btn-mini" href="/">Kalkylatorn</a>
         </div>
-        <div>
-          <label for="presetMin" class="muted">Minimidebitering (kr/rad)</label>
-          <input id="presetMin" type="number" min="0" step="1" placeholder="t.ex. 0">
-        </div>
-      </div>
-      <div class="grp">
-        <label class="muted" style="display:flex;align-items:center;gap:10px;">
-          <input id="presetInclVat" type="checkbox" checked />
-          Inkludera 25% moms
-        </label>
-      </div>
-      <div class="grp row2">
-        <button class="btn-mini" id="applyPresetBtn">Använd nu</button>
-        <button class="btn-mini" id="savePresetBtn" style="background:#0ea5e9">Spara preset</button>
       </div>
 
-      <!-- Sparade m²-presets -->
       <div class="grp">
-        <div class="muted" style="margin:8px 0 6px">Sparade m²-presets</div>
+        <div style="margin-bottom:8px"><b>Välj eller spara egna</b></div>
+        <label>Förinställd text (titel)</label>
+        <input id="presetTitle" type="text" placeholder="t.ex. Frost, Print, Vinyl" />
+        <div class="row2" style="margin-top:8px">
+          <div><label>Pris/m² (kr)</label><input id="presetPrice" type="number" min="0" step="1" /></div>
+          <div><label>Minimidebitering (kr/rad)</label><input id="presetMin" type="number" min="0" step="1" /></div>
+        </div>
+        <label style="margin-top:8px"><input id="presetVat" type="checkbox" checked /> Inkludera 25% moms</label>
+        <div class="row2" style="margin-top:10px">
+          <button class="btn-mini" id="presetUseNow" type="button">Använd nu</button>
+          <button class="btn-mini" id="presetSave" type="button">Spara preset</button>
+        </div>
+        <div class="muted" style="margin-top:8px">Sparas i din webbläsare (localStorage).</div>
+      </div>
+
+      <div class="grp">
+        <div style="margin-bottom:8px"><b>Sparade m²-presets</b></div>
         <div class="preset-list" id="presetList"></div>
       </div>
 
-      <!-- Stycksaks-mallar i drawer -->
-      <div class="grp" style="margin-top:18px;border-top:1px solid #1e2430;padding-top:14px">
-        <div style="font-weight:700;margin-bottom:6px">Stycksaks-mallar</div>
-        <div class="row2" style="margin-bottom:10px">
-          <div>
-            <label for="itemPresetName" class="muted">Benämning</label>
-            <input id="itemPresetName" type="text" placeholder="t.ex. Skrapa">
-          </div>
-          <div>
-            <label for="itemPresetPrice" class="muted">Pris/st (kr)</label>
-            <input id="itemPresetPrice" type="number" min="0" step="1" placeholder="49">
-          </div>
+      <div class="grp">
+        <div style="margin-bottom:8px"><b>Stycksaks-mallar</b></div>
+        <label>Benämning</label>
+        <input id="tplName" type="text" placeholder="t.ex. Skrapa, Monteringskit" />
+        <label>Pris/st (kr)</label>
+        <input id="tplPrice" type="number" min="0" step="1" placeholder="t.ex. 49" />
+        <div class="row2" style="margin-top:10px">
+          <button class="btn-mini" id="tplSave" type="button">Spara mall</button>
+          <span class="muted" style="display:grid;align-items:center">Sparas utan antal</span>
         </div>
-        <div class="row2" style="align-items:end">
-          <div class="muted">Sparas som mall (utan antal)</div>
-          <div style="display:flex;justify-content:flex-end;gap:8px">
-            <button class="btn-mini" id="saveItemPresetBtn" style="background:#0ea5e9">Spara mall</button>
-          </div>
-        </div>
-
-        <div class="muted" style="margin:10px 0 6px">Sparade mallar</div>
-        <div class="preset-list" id="itemPresetList"></div>
+        <div class="preset-list" id="tplList" style="margin-top:10px"></div>
       </div>
     </div>
   </aside>
 
-  <!-- (behövs bara om någon ändå använder webbläsarens utskrift) -->
-  <div id="offer" aria-hidden="true"></div>
-
-  <script>
-    /* ======= VERSION ======= */
-    const APP_VERSION = "V.Benjii";
-    document.getElementById("versionText").textContent = APP_VERSION;
-
-    const $ = id => document.getElementById(id);
-
-    /* ======= Drawer ======= */
-    const drawer = $("drawer"), drawerBackdrop = $("drawerBackdrop"), openDrawerBtn = $("openDrawer");
-    const openDrawer = ()=>{ drawer.classList.add("open"); drawerBackdrop.classList.add("open"); };
-    const closeDrawer = ()=>{ drawer.classList.remove("open"); drawerBackdrop.classList.remove("open"); };
-    openDrawerBtn.addEventListener("click", openDrawer);
-    drawerBackdrop.addEventListener("click", closeDrawer);
-
-    /* ======= Element ======= */
-    const avsEl = $("avsandare"), kundEl = $("kundnamn"), telEl = $("telefon");
-    const artikelEl = $("artikel"), momsEl = $("moms");
-    const prisEl = $("pris"), minEl = $("minpris");
-    const hojdEl = $("hojd"), breddEl = $("bredd"), antalEl = $("antal");
-    const addMeasureBtn = $("addMeasure");
-    const listWrap = $("listWrap"), measuresBody = $("measuresBody");
-    const res = $("result"), det = $("details");
-    const shareBtn = $("share"), pdfBtn = $("pdf");
-    const activeBadge = $("activeBadge");
-    const artikelOptions = $("artikelOptions");
-    const itemOptions = $("itemOptions");
-
-    // Stycksaker UI (huvud)
-    const itemName = $("itemName"), itemPrice = $("itemPrice"), itemQty = $("itemQty"), addItemBtn = $("addItemBtn"),
-          itemsList = $("itemsList"), itemsBox = $("itemsBox");
-
-    /* ======= Stycksaker (huvudlistan) ======= */
-    const LS_ITEMS = "rg_items_v1";
-    function getItems(){ try{ return JSON.parse(localStorage.getItem(LS_ITEMS)||"[]"); }catch{return[]} }
-    function setItems(list){ localStorage.setItem(LS_ITEMS, JSON.stringify(list)); renderItems(); renderListAndTotals(); }
-    function addItem(name, price, qty){
-      const n = (name||"").trim();
-      const p = Math.max(0, Math.round(Number(price||0)));
-      const q = Math.max(1, Math.round(Number(qty||1)));
-      if(!n) return alert("Ange benämning.");
-      const L = getItems(); L.push({ name:n, price:p, qty:q }); setItems(L);
-      if(itemName){ itemName.value=""; } if(itemPrice){ itemPrice.value=""; } if(itemQty){ itemQty.value="1"; }
-    }
-    function updateItem(idx, field, value){
-      const L = getItems(); if(!L[idx]) return;
-      if(field==="name") L[idx].name = String(value).trim();
-      if(field==="price") L[idx].price = Math.max(0, Math.round(Number(value||0)));
-      if(field==="qty") L[idx].qty = Math.max(1, Math.round(Number(value||1)));
-      setItems(L);
-    }
-    function removeItem(idx){
-      const L = getItems(); L.splice(idx,1); setItems(L);
-    }
-    function itemsTotal(){ return getItems().reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0); }
-    function renderItems(){
-      const L = getItems();
-      itemsList.innerHTML = "";
-      itemsBox.style.display = L.length ? "block" : "none";
-      if(!L.length) return;
-      L.forEach((it, idx)=>{
-        const tr = document.createElement("tr");
-        const sum = (Number(it.price||0)*Number(it.qty||0));
-        tr.className = "items-row";
-        tr.innerHTML = `
-          <td class="items-cell"><input type="text" value="${it.name}" oninput="updateItem(${idx}, 'name', this.value)"></td>
-          <td class="items-cell"><input type="number" min="0" step="1" value="${it.price}" oninput="updateItem(${idx}, 'price', this.value)"></td>
-          <td class="items-cell"><input type="number" min="1" step="1" value="${it.qty}" oninput="updateItem(${idx}, 'qty', this.value)"></td>
-          <td class="items-cell"><b>${Number(sum).toLocaleString("sv-SE",{maximumFractionDigits:0})} kr</b></td>
-          <td class="items-cell items-actions"><button onclick="removeItem(${idx})">Ta bort</button></td>
-        `;
-        itemsList.appendChild(tr);
-      });
-    }
-    window.updateItem = updateItem;
-    window.removeItem = removeItem;
-
-    addItemBtn.addEventListener("click", ()=> addItem(itemName.value, itemPrice.value, itemQty.value));
-
-    /* ======= m²-Presets (drawer) ======= */
-    const presetTitle = $("presetTitle"), presetPrice = $("presetPrice"), presetMin = $("presetMin"), presetInclVat = $("presetInclVat");
-    const applyPresetBtn = $("applyPresetBtn"), savePresetBtn = $("savePresetBtn"), presetList = $("presetList");
-    const LS_PRESETS = "rg_presets_v1_dark";
-    function getPresets(){ try{return JSON.parse(localStorage.getItem(LS_PRESETS)||"[]")}catch{return[]} }
-    function setPresets(list){ localStorage.setItem(LS_PRESETS, JSON.stringify(list)); renderPresetList(); refreshArtikelDatalist(); }
-    function renderPresetList(){
-      const list = getPresets();
-      presetList.innerHTML = "";
-      if(!list.length){
-        const empty = document.createElement("div");
-        empty.className = "preset-item";
-        empty.innerHTML = `<span class="muted">Inga sparade ännu</span>`;
-        presetList.appendChild(empty);
-        return;
-      }
-      list.forEach((p,idx)=>{
-        const row = document.createElement("div");
-        row.className = "preset-item";
-        row.innerHTML = `
-          <div>
-            <div><b>${p.title||"Anpassat"}</b></div>
-            <div class="muted">${(p.price||0)} kr/m² · min ${p.min||0} kr · ${p.inclVat ? "inkl. moms" : "exkl. moms"}</div>
-          </div>
-          <div>
-            <button data-i="${idx}" class="use">Använd</button>
-            <button data-i="${idx}" class="del">Ta bort</button>
-          </div>
-        `;
-        presetList.appendChild(row);
-      });
-    }
-    function loadPresetToDrawer(p){
-      presetTitle.value = p.title || "";
-      presetPrice.value = p.price || 0;
-      presetMin.value = p.min || 0;
-      presetInclVat.checked = !!p.inclVat;
-    }
-    function readDrawerPreset(){
-      return {
-        title: (presetTitle.value||"").trim() || "Anpassat",
-        price: Math.max(0, Math.round(Number(presetPrice.value||0))),
-        min: Math.max(0, Math.round(Number(presetMin.value||0))),
-        inclVat: !!presetInclVat.checked
-      };
-    }
-    function applyCurrentDrawerPreset(){
-      const p = readDrawerPreset();
-      artikelEl.value = p.title;
-      prisEl.value = p.price;
-      minEl.value = p.min;
-      momsEl.value = p.inclVat ? "0.25" : "0";
-      activeBadge.style.display = "inline-block";
-      activeBadge.textContent = p.title;
-      closeDrawer();
-      renderListAndTotals();
-    }
-    applyPresetBtn.addEventListener("click", applyCurrentDrawerPreset);
-    savePresetBtn.addEventListener("click", ()=>{
-      const p = readDrawerPreset();
-      const L = getPresets(); L.unshift(p); setPresets(L);
-      loadPresetToDrawer(p);
-      applyCurrentDrawerPreset();
-    });
-    presetList.addEventListener("click", (e)=>{
-      const btn = e.target.closest("button"); if(!btn) return;
-      const idx = Number(btn.dataset.i); const L = getPresets(); if(!L[idx]) return;
-      if(btn.classList.contains("use")){ loadPresetToDrawer(L[idx]); applyCurrentDrawerPreset(); }
-      if(btn.classList.contains("del")){ L.splice(idx,1); setPresets(L); }
-    });
-    (function seedPresetsOnce(){
-      if(localStorage.getItem(LS_PRESETS)) return;
-      const defaults = [
-        { title:"Frost butik", price:699, min:0, inclVat:true },
-        { title:"Printlaminat", price:799, min:0, inclVat:true },
-        { title:"Solfilm Pro", price:899, min:0, inclVat:true }
-      ];
-      setPresets(defaults);
-    })();
-    renderPresetList();
-
-    /* ======= Autoifyll av Artikel + fallback-nyckelord ======= */
-    const fallbackPrislista = [
-      { nyckel: "vinyl flerfärg", pris: 799 },
-      { nyckel: "printlaminat",   pris: 799 },
-      { nyckel: "solfilm",        pris: 899 },
-      { nyckel: "frost",          pris: 699 },
-      { nyckel: "vinyl",          pris: 699 },
-      { nyckel: "print",          pris: 699 }
-    ];
-    function rankMatch(inputLower, titleLower){
-      if (inputLower === titleLower) return 3;
-      if (titleLower.startsWith(inputLower) && inputLower.length>=2) return 2;
-      if (titleLower.includes(inputLower) && inputLower.length>=3) return 1;
-      return 0;
-    }
-    function findBestPresetByTitle(input){
-      const t = (input || "").trim().toLowerCase();
-      if (!t) return null;
-      const list = getPresets();
-      let best = null, bestScore = 0;
-      for (const p of list){
-        const titleLower = String(p.title||"").toLowerCase();
-        const score = rankMatch(t, titleLower);
-        if (score > bestScore){ bestScore = score; best = p; if (score === 3) break; }
-      }
-      return best;
-    }
-    artikelEl.addEventListener("input", () => {
-      const val = artikelEl.value;
-      const preset = findBestPresetByTitle(val);
-      if (preset){
-        prisEl.value = preset.price || 0;
-        minEl.value  = preset.min   || 0;
-        momsEl.value = preset.inclVat ? "0.25" : "0";
-        activeBadge.style.display = "inline-block";
-        activeBadge.textContent = preset.title || "Preset";
-        renderListAndTotals();
-        return;
-      }
-      const t = val.trim().toLowerCase();
-      for (const rad of fallbackPrislista) {
-        if (t.includes(rad.nyckel)) {
-          prisEl.value = rad.pris;
-          activeBadge.style.display = "inline-block";
-          activeBadge.textContent = rad.nyckel;
-          renderListAndTotals();
-          return;
-        }
-      }
-      activeBadge.style.display = "none";
-    });
-
-    /* ======= Stycksaks-PRESETS (mallar i drawer) ======= */
-    const LS_ITEM_PRESETS = "rg_item_presets_v1";
-    const itemPresetName = $("itemPresetName");
-    const itemPresetPrice = $("itemPresetPrice");
-    const saveItemPresetBtn = $("saveItemPresetBtn");
-    const itemPresetList = $("itemPresetList");
-
-    function getItemPresets(){
-      try { return JSON.parse(localStorage.getItem(LS_ITEM_PRESETS) || "[]"); }
-      catch { return []; }
-    }
-    function setItemPresets(list){
-      localStorage.setItem(LS_ITEM_PRESETS, JSON.stringify(list));
-      renderItemPresets();
-      refreshItemDatalist();
-    }
-    function renderItemPresets(){
-      const list = getItemPresets();
-      itemPresetList.innerHTML = "";
-      if(!list.length){
-        const empty = document.createElement("div");
-        empty.className = "preset-item";
-        empty.innerHTML = `<span class="muted">Inga mallar ännu</span>`;
-        itemPresetList.appendChild(empty);
-        return;
-      }
-      list.forEach((p, idx) => {
-        const row = document.createElement("div");
-        row.className = "preset-item";
-        row.innerHTML = `
-          <div>
-            <div><b>${p.name}</b></div>
-            <div class="muted">${p.price} kr/st</div>
-          </div>
-          <div>
-            <button class="use" data-i="${idx}">Använd</button>
-            <button class="del" data-i="${idx}">Ta bort</button>
-          </div>
-        `;
-        itemPresetList.appendChild(row);
-      });
-    }
-    function saveItemPreset(){
-      const name = (itemPresetName.value || "").trim();
-      const price = Math.max(0, Math.round(Number(itemPresetPrice.value || 0)));
-      if(!name){ alert("Ange benämning för mallen."); return; }
-      const list = getItemPresets();
-      list.unshift({ name, price });
-      setItemPresets(list);
-      itemPresetName.value = "";
-      itemPresetPrice.value = "";
-    }
-    if (saveItemPresetBtn){ saveItemPresetBtn.addEventListener("click", saveItemPreset); }
-    if (itemPresetList){
-      itemPresetList.addEventListener("click", (e) => {
-        const btn = e.target.closest("button"); if(!btn) return;
-        const idx = Number(btn.dataset.i);
-        const list = getItemPresets(); if(!list[idx]) return;
-        if (btn.classList.contains("use")){
-          const qtyStr = prompt(`Antal för "${list[idx].name}"?`, "1");
-          const qty = Math.max(1, parseInt(qtyStr || "1", 10));
-          addItem(list[idx].name, list[idx].price, qty);
-        }
-        if (btn.classList.contains("del")){
-          list.splice(idx, 1);
-          setItemPresets(list);
-        }
-      });
-    }
-    (function seedItemPresetsOnce(){
-      if(localStorage.getItem(LS_ITEM_PRESETS)) return;
-      const defaults = [
-        { name:"Skrapa", price:49 },
-        { name:"Monteringskit", price:129 }
-      ];
-      setItemPresets(defaults);
-    })();
-    renderItemPresets();
-
-    /* ======= Autoifyll för STYCKSAKER (skriv namn -> fyll pris) + datalist ======= */
-    function findBestItemPresetByName(input){
-      const t = (input || "").trim().toLowerCase();
-      if (!t) return null;
-      const list = getItemPresets();
-      let best=null, score=0;
-      for(const p of list){
-        const n = String(p.name||"").toLowerCase();
-        let s=0;
-        if(t===n) s=3; else if(n.startsWith(t)&&t.length>=2) s=2; else if(n.includes(t)&&t.length>=3) s=1;
-        if(s>score){ score=s; best=p; if(s===3) break; }
-      }
-      return best;
-    }
-    if (itemName){
-      itemName.addEventListener("input", () => {
-        const p = findBestItemPresetByName(itemName.value);
-        if (p){
-          itemPrice.value = p.price;
-          if (!itemQty.value) itemQty.value = "1";
-        }
-      });
-    }
-
-    /* ======= Datalist uppdatering ======= */
-    function refreshArtikelDatalist(){
-      const list = getPresets();
-      artikelOptions.innerHTML = "";
-      list.forEach(p=>{
-        const opt = document.createElement("option");
-        opt.value = p.title || "";
-        artikelOptions.appendChild(opt);
-      });
-      fallbackPrislista.forEach(f=>{
-        const opt = document.createElement("option");
-        opt.value = f.nyckel;
-        artikelOptions.appendChild(opt);
-      });
-    }
-    function refreshItemDatalist(){
-      const list = getItemPresets();
-      itemOptions.innerHTML = "";
-      list.forEach(p=>{
-        const opt = document.createElement("option");
-        opt.value = p.name || "";
-        itemOptions.appendChild(opt);
-      });
-    }
-
-    /* ======= Totals & render ======= */
-    const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-    const fmt0 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:0,maximumFractionDigits:0});
-
-    let lines = []; // {hmm,bmm,antal,pris,min, areaPer, areaTot, exkl}
-    let lastShareText = "", lastExkl=0, lastMoms=0, lastInkl=0;
-
-    function calcLine(hmm,bmm,antal,pris,min){
-      const areaPer = (hmm/1000)*(bmm/1000);
-      const areaTot = areaPer*antal;
-      let exkl = areaTot*pris;
-      if (min>0 && exkl<min) exkl = min;
-      return { areaPer, areaTot, exkl };
-    }
-
-    function renderListAndTotals(){
-      measuresBody.innerHTML = "";
-      listWrap.style.display = lines.length ? "block" : "none";
-
-      let sumExkl = 0, sumArea = 0;
-      lines.forEach((l, idx) => {
-        sumExkl += l.exkl; sumArea += l.areaTot;
-        const tr = document.createElement("tr");
-        tr.innerHTML = `
-          <td><span class="tag">${l.hmm}×${l.bmm} mm</span></td>
-          <td>${l.antal}</td>
-          <td>${fmt2(l.areaPer)} m²</td>
-          <td>${fmt2(l.pris)} kr/m²</td>
-          <td>${fmt2(l.exkl)} kr</td>
-          <td class="act"><button class="remove" data-i="${idx}">Ta bort</button></td>
-        `;
-        measuresBody.appendChild(tr);
-      });
-
-      const itemsSum = itemsTotal();
-
-      const moms = parseFloat(momsEl.value||"0");
-      const sumExklTotal = sumExkl + itemsSum;
-      const momsBelopp = sumExklTotal * moms;
-      const inkl = sumExklTotal + momsBelopp;
-
-      if(lines.length === 0 && itemsSum === 0){
-        res.textContent = "Lägg till ett mått.";
-        det.textContent = "";
-        lastShareText = "";
-        lastExkl = 0; lastMoms = 0; lastInkl = 0;
-        return;
-      }
-
-      res.textContent = `${fmt0(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"}`;
-      det.textContent = `area: ${fmt2(sumArea)} m² • Summa exkl (mått): ${fmt0(sumExkl)} kr • Stycksaker: ${fmt0(itemsSum)} kr`;
-
-      lastExkl = sumExklTotal; lastMoms = momsBelopp; lastInkl = inkl;
-
-      const itemsLines = getItems().map((it,i)=> `${i+1}. ${it.name}: ${it.qty} × ${fmt0(it.price)} kr = ${fmt0(it.price*it.qty)} kr`).join("\n");
-      const measureLines = lines.map((l,i)=> `${i+1}. ${l.hmm}×${l.bmm} mm • ${l.antal} st • ${fmt2(l.areaTot)} m² • á ${fmt2(l.pris)} kr/m² → exkl ${fmt2(l.exkl)} kr`).join("\n");
-
-      lastShareText =
-`${fmt0(inkl)} kr ${moms>0 ? "(inkl. moms)" : "(exkl. moms)"} — ${lines.length} mått${getItems().length?` + ${getItems().length} stycksaker`:''}.
-${measureLines ? ("\n" + measureLines) : ""}
-${itemsLines ? ("\nStycksaker:\n" + itemsLines) : ""}`;
-    }
-
-    // Lägg till mått
-    addMeasureBtn.addEventListener("click", () => {
-      const hmm = parseFloat(hojdEl.value);
-      const bmm = parseFloat(breddEl.value);
-      const antal = Math.max(1, parseInt(antalEl.value||"1",10));
-      const pris = parseFloat(prisEl.value);
-      const min = parseFloat(minEl.value||"0");
-
-      if (!isFinite(hmm) || !isFinite(bmm) || !isFinite(pris) || hmm<=0 || bmm<=0 || pris<=0) {
-        alert("Fyll i giltiga Höjd, Bredd och Pris.");
-        return;
-      }
-
-      const r = calcLine(hmm,bmm,antal,pris,min);
-      lines.push({ hmm, bmm, antal, pris, min, ...r });
-      hojdEl.value = ""; breddEl.value = ""; antalEl.value = "1";
-      hojdEl.focus();
-
-      renderListAndTotals();
-    });
-
-    // Ta bort rad
-    measuresBody.addEventListener("click", (e) => {
-      const btn = e.target.closest(".remove"); if (!btn) return;
-      const i = parseInt(btn.dataset.i,10);
-      if (!isFinite(i)) return;
-      lines.splice(i,1);
-      renderListAndTotals();
-    });
-
-    // Moms ändras
-    momsEl.addEventListener("change", renderListAndTotals);
-
-    // Dela
-    async function sharePrice(){
-      const text = lastShareText || res.textContent || "Pris från Priskalkylatorn";
-      try{ if(navigator.share){ await navigator.share({title:"Offert",text, url:location.href}); return; } }catch(e){}
-      try{
-        const mailto = `mailto:?subject=${encodeURIComponent("Offert")}&body=${encodeURIComponent(text+"\n\n"+location.href)}`;
-        location.href = mailto; return;
-      }catch(e){}
-      try{ await navigator.clipboard.writeText(text); alert("Text kopierad!"); }
-      catch{
-        const ta=document.createElement("textarea"); ta.value=text; ta.style.position="fixed"; ta.style.left="-9999px";
-        document.body.appendChild(ta); ta.focus(); ta.select(); document.execCommand("copy"); ta.remove();
-        alert("Text kopierad!");
-      }
-    }
-    shareBtn.onclick = sharePrice;
-
-    // Init lists/datalists
-    renderItems();
-    renderListAndTotals();
-    refreshArtikelDatalist();
-    refreshItemDatalist();
-  </script>
-
-  <!-- jsPDF (måste ligga före vår PDF-funktion) -->
+  <!-- jsPDF -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <!-- Skapa offert som PDF (inkluderar stycksaker) -->
   <script>
-    $("pdf").onclick = () => {
-      const items = (function(){ try{return JSON.parse(localStorage.getItem("rg_items_v1")||"[]")}catch{return[]} })();
+    const $ = id => document.getElementById(id);
+    const LS_PRESETS = "rg_presets_v1";
+    const LS_ITEMS   = "rg_items_v1";
+    const LS_TPLS    = "rg_item_templates_v1";
 
-      if ((!lines || lines.length === 0) && items.length === 0) {
-        alert("Lägg till minst ett mått eller en stycksak först.");
-        return;
+    const measures = [];
+    let items = loadJSON(LS_ITEMS, []);
+    let presets = loadJSON(LS_PRESETS, [
+      { artikel:"Frost", pris:699, moms:0.25, min:0 },
+      { artikel:"Print", pris:699, moms:0.25, min:0 },
+      { artikel:"Printlaminat", pris:799, moms:0.25, min:0 },
+      { artikel:"Vinyl", pris:699, moms:0.25, min:0 },
+      { artikel:"Vinyl flerfärg", pris:799, moms:0.25, min:0 },
+      { artikel:"Solfilm", pris:899, moms:0.25, min:0 }
+    ]);
+    let itemTemplates = loadJSON(LS_TPLS, []);
+
+    function loadJSON(key, fallback){
+      try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
+      catch{ return fallback; }
+    }
+    function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+
+    function render(){
+      // Mått
+      const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
+      measures.forEach((m,i)=>{
+        total += m.exkl;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
+          <td class="num">${m.qty}</td>
+          <td>${m.area.toFixed(2)} m²</td>
+          <td class="num">${m.price} kr</td>
+          <td class="num">${m.exkl.toFixed(0)} kr</td>
+          <td class="act"><button class="remove" data-i="${i}">X</button></td>`;
+        body.appendChild(tr);
+      });
+      $("listWrap").style.display = measures.length ? "block" : "none";
+
+      // Stycksaker
+      const itemsList = $("itemsList"); itemsList.innerHTML = ""; let totalItems = 0;
+      items.forEach((it,i)=>{
+        totalItems += it.price*it.qty;
+        const tr = document.createElement("tr");
+        tr.innerHTML = `
+          <td>${it.name}</td>
+          <td class="num">${it.price} kr</td>
+          <td class="num">${it.qty}</td>
+          <td class="num">${(it.price*it.qty).toFixed(0)} kr</td>
+          <td class="act"><button class="remove" data-item="${i}">X</button></td>`;
+        itemsList.appendChild(tr);
+      });
+      $("itemsBox").style.display = items.length ? "block" : "none";
+      $("itemsHint").style.display = items.length ? "none" : "block";
+
+      // Summering
+      const moms = parseFloat($("moms").value || "0");
+      const sumExkl = total + totalItems;
+      const sumMoms = sumExkl * moms;
+      const sumInkl = sumExkl + sumMoms;
+      $("result").textContent = `${sumInkl.toFixed(0)} kr`;
+      $("details").textContent = `Exkl: ${sumExkl.toFixed(0)} kr • Moms: ${sumMoms.toFixed(0)} kr`;
+
+      saveJSON(LS_ITEMS, items);
+    }
+
+    function refreshArtikelDatalist(){
+      const dl = $("artikelOptions"); dl.innerHTML = "";
+      presets.forEach(p=>{
+        const opt = document.createElement("option");
+        opt.value = p.artikel;
+        dl.appendChild(opt);
+      });
+    }
+    $("artikel").addEventListener("change", ()=>{
+      const name = $("artikel").value.trim();
+      const p = presets.find(x => x.artikel.toLowerCase() === name.toLowerCase());
+      if(p){
+        $("pris").value = p.pris;
+        $("minpris").value = p.min;
+        $("moms").value = p.moms;
       }
+    });
 
+    // Lägg till mått
+    $("addMeasure").addEventListener("click", ()=>{
+      const artikel = $("artikel").value.trim();
+      const h = parseFloat($("hojd").value);
+      const b = parseFloat($("bredd").value);
+      const qty = parseInt($("antal").value);
+      const price = parseFloat($("pris").value);
+      const min = parseFloat($("minpris").value || "0");
+      if(!h||!b||!qty||!price) return;
+      const area = (h/1000)*(b/1000);
+      let exkl = area*price*qty;
+      if(min && exkl < min) exkl = min;
+      measures.push({ artikel, h, b, qty, area, price, exkl });
+      render();
+    });
+    $("measuresBody").addEventListener("click", (e)=>{
+      const i = e.target?.dataset?.i;
+      if(i!=null){ measures.splice(Number(i),1); render(); }
+    });
+
+    // Stycksaker
+    $("addItemBtn").addEventListener("click", ()=>{
+      const name = $("itemName").value.trim();
+      const price = parseFloat($("itemPrice").value);
+      const qty = parseInt($("itemQty").value);
+      if(!name||!price||!qty) return;
+      items.push({ name, price, qty });
+      $("itemName").value = ""; $("itemPrice").value = ""; $("itemQty").value = "1";
+      render();
+    });
+    $("itemsList").addEventListener("click", (e)=>{
+      const i = e.target?.dataset?.item;
+      if(i!=null){ items.splice(Number(i),1); render(); }
+    });
+
+    // Autofyll pris medan du skriver benämningen
+    function fillPriceFromTemplate() {
+      const name = $("itemName").value.trim().toLowerCase();
+      if(!name) return;
+      const tpl = itemTemplates.find(t => t.name.toLowerCase() === name);
+      if(tpl) { $("itemPrice").value = tpl.price; }
+    }
+    $("itemName").addEventListener("input", fillPriceFromTemplate);
+    $("itemName").addEventListener("keydown", (e)=>{ if(e.key === "Enter") fillPriceFromTemplate(); });
+
+    // Share
+    $("share").addEventListener("click", ()=>{
+      if(navigator.share){
+        navigator.share({ title:"Offert", text:$("result").textContent }).catch(()=>{});
+      } else alert("Dela stöds inte på denna enhet.");
+    });
+
+    // PDF (utan footer)
+    $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit: "mm", format: "a4" });
-
-      const left = 15, right = 15, top = 18, bottom = 18;
-      const pageW = doc.internal.pageSize.getWidth();
-      const pageH = doc.internal.pageSize.getHeight();
-      let y = top;
-
-      const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-      const fmt0 = n => Number(n).toLocaleString("sv-SE",{maximumFractionDigits:0});
-      const addY = mm => { y += mm; };
-      const needPage = (h=0) => (y + h > pageH - bottom - 14);
-      const newPage = () => { doc.addPage(); y = top; drawHeader(); };
+      const doc = new jsPDF({ unit:"mm", format:"a4" });
+      doc.setFont("helvetica","bold"); doc.setFontSize(18);
+      doc.text("Offert",20,20);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11);
 
       const today = new Date().toLocaleDateString("sv-SE");
-      const company = ($("avsandare").value || "Företagsnamn");
+      const company = ($("avsandare").value || "Företag");
       const customer = $("kundnamn").value || "";
       const phone = $("telefon").value || "";
-      const artikel = $("artikel").value || "Artikel";
-      const momsSats = parseFloat($("moms").value || "0");
+      doc.text(today, 190, 20, {align:"right"});
 
-      const sumExklMeasures = lines.reduce((s,l)=>s+l.exkl,0);
-      const sumExklItems = items.reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
-      const sumExkl = sumExklMeasures + sumExklItems;
-      const momsBelopp = sumExkl * momsSats;
-      const sumInkl = sumExkl + momsBelopp;
+      let y = 30;
+      doc.text(company, 20, y); y+=6;
+      if(customer || phone){ doc.text(`${customer}${phone? " • "+phone:""}`,20,y); y+=8; }
 
-      function drawHeader(){
-        doc.setFont("helvetica","bold");
-        doc.setFontSize(18);
-        doc.text("Offert", left, y);
-        doc.setFontSize(11);
-        doc.setFont("helvetica","normal");
-        const rightX = pageW - right;
-        doc.text(`${today}`, rightX, y, { align: "right" });
-        addY(6);
-        doc.setTextColor(90);
-        doc.text("Offerten är giltig i 30 dagar", rightX, y, { align: "right" });
-        doc.setTextColor(0);
-        addY(10);
-
-        doc.setFontSize(9);
-        doc.setTextColor(90);
-        doc.text("Offert från", left, y);
-        doc.setTextColor(0);
-        addY(5);
-        doc.setFont("helvetica","bold");
-        doc.setFontSize(12);
-        doc.text(company, left, y);
-        doc.setFont("helvetica","normal");
-
-        if (customer || phone){
-          addY(8);
-          doc.setFontSize(10);
-          if (customer) doc.text(`${customer}`, left, y);
-          if (phone)    doc.text(`${phone}`, left + 90, y);
-        }
-        addY(10);
-      }
-      drawHeader();
-
-      const col1W = 120;
-      const col2W = pageW - left - right - col1W;
-      const col1X = left;
-      const col2X = left + col1W;
-
-      doc.setFont("helvetica","bold");
-      doc.setFontSize(11);
-      doc.text("Benämning / Mått", col1X, y);
-      doc.text("Belopp", col2X + col2W, y, { align:"right" });
-      addY(6);
-      doc.setDrawColor(200);
-      doc.line(left, y, pageW - right, y);
-      addY(6);
-      doc.setFont("helvetica","normal");
-
-      // Rader – mått
-      lines.forEach((l) => {
-        const radText = [
-          `${artikel}`,
-          `${l.antal} st — ${l.hmm} × ${l.bmm} mm per styck`,
-          `st ${fmt2(l.areaPer)} m² (total ${fmt2(l.areaTot)} m²), á ${fmt2(l.pris)} kr/m²${l.min>0 ? ` • min ${fmt0(l.min)} kr` : ""}`
-        ].join("\n");
-
-        const wrapped = doc.splitTextToSize(radText, col1W);
-        const rowH = Math.max(8, wrapped.length * 5);
-
-        if (needPage(rowH + 10)) newPage();
-
-        doc.setFontSize(10);
-        doc.text(wrapped, col1X, y);
-        doc.setFont("helvetica","bold");
-        doc.text(`${fmt0(l.exkl)} kr`, col2X + col2W, y, { align:"right" });
-        doc.setFont("helvetica","normal");
-
-        addY(rowH + 4);
-        doc.setDrawColor(235);
-        doc.line(left, y, pageW - right, y);
-        addY(4);
+      // Mått
+      measures.forEach(m=>{
+        doc.text(`${m.qty} st — ${m.artikel || "-"} — ${m.h}×${m.b} mm • á ${m.price} kr/m² • ${m.area.toFixed(2)} m²/st`,20,y);
+        doc.text(`${m.exkl.toFixed(0)} kr`,190,y,{align:"right"});
+        y+=7;
       });
 
-      // Rader – stycksaker
+      // Stycksaker
       if(items.length){
-        if (needPage(10)) newPage();
-        doc.setFont("helvetica","bold");
-        doc.text("Stycksaker", col1X, y); addY(8);
-        doc.setFont("helvetica","normal");
+        y+=3; doc.setFont("helvetica","bold"); doc.text("Stycksaker",20,y); y+=7; doc.setFont("helvetica","normal");
         items.forEach(it=>{
-          const rowText = `${it.name} — ${it.qty} × ${fmt0(it.price)} kr`;
-          if (needPage(10)) newPage();
-          doc.text(rowText, col1X, y);
-          doc.setFont("helvetica","bold");
-          doc.text(`${fmt0(it.price*it.qty)} kr`, col2X + col2W, y, { align:"right" });
-          doc.setFont("helvetica","normal");
-          addY(6);
+          doc.text(`${it.qty}× ${it.name} á ${it.price} kr`,20,y);
+          doc.text(`${(it.price*it.qty).toFixed(0)} kr`,190,y,{align:"right"});
+          y+=7;
         });
-        addY(2);
-        doc.setDrawColor(235);
-        doc.line(left, y, pageW - right, y);
-        addY(4);
       }
 
-      // Summeringar
-      const sumBlock = [
-        ["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
-        [`Moms ${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
-        ["Att betala", `${fmt0(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
-      ];
-
-      sumBlock.forEach(([label, value, bold]) => {
-        if (needPage(12)) newPage();
-        doc.setFontSize(11);
-        doc.setFont("helvetica", bold ? "bold" : "normal");
-        doc.text(label, col1X, y);
-        doc.text(value, col2X + col2W, y, { align:"right" });
-        addY(7);
-        doc.setDrawColor(220);
-        doc.line(left, y, pageW - right, y);
-        addY(5);
-      });
-
-      // Sidfot
-      const footerY = pageH - 12;
+      // Summa
+      y+=5; doc.setDrawColor(180); doc.line(20,y,190,y); y+=8;
+      doc.setFont("helvetica","bold");
+      doc.text(`Att betala: ${$("result").textContent}`,20,y); y+=7;
       doc.setFont("helvetica","normal");
-      doc.setFontSize(9);
-      doc.text(`www.reklamgiganten.com ${APP_VERSION}`, left, footerY);
-      doc.text("Priskalkylatorn är skapad av ReklamGiganten AB", pageW - right, footerY, { align: "right" });
+      doc.text($("details").textContent,20,y);
 
-      const safeName = ( ($("kundnamn").value || "offert").replace(/[^\w\- åäöÅÄÖ]/g,"_") );
-      doc.save(`${safeName}.pdf`);
-    };
-  </script>
+      // Ingen footer
+      doc.save("offert.pdf");
+    });
 
-  <!-- Service worker: uppdateringsknapp (oförändrad) -->
-  <script>
-    (function () {
-      if (!("serviceWorker" in navigator)) return;
-      let regRef = null;
-
-      function showUpdateBar() {
-        if (document.getElementById("reloadApp")) return;
-        const bar = document.createElement("div");
-        bar.id = "updateBar";
-        bar.style.cssText = `
-          position:fixed;left:12px;right:12px;bottom:12px;z-index:9999;
-          background:#0b0d12;color:#fff;border:1px solid #2a2f3c;border-radius:12px;
-          padding:10px 12px;font:14px/1.3 -apple-system,system-ui;box-shadow:0 6px 20px rgba(0,0,0,.3);`;
-        bar.innerHTML = `Ny version tillgänglig
-          <button id="reloadApp" style="float:right;background:#16a34a;border:none;color:#fff;
-            padding:8px 12px;border-radius:8px;margin-left:10px;cursor:pointer;">Uppdatera</button>`;
-        document.body.appendChild(bar);
-        document.getElementById("reloadApp").addEventListener("click", () => {
-          if (regRef && regRef.waiting) { regRef.waiting.postMessage({ type: "SKIP_WAITING" }); }
-        });
+    // Drawer
+    (function(){
+      const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
+      function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
+        drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false");
+        document.body.style.overflow="hidden";
       }
+      function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open");
+        drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true");
+        document.body.style.overflow="";
+      }
+      btn.addEventListener("click", e=>{ e.stopPropagation(); open(); });
+      backdrop.addEventListener("click", close);
+      document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
-      window.addEventListener("load", async () => {
-        try {
-          const reg = await navigator.serviceWorker.register("./sw.js", { scope: "./" });
-          regRef = reg;
-          if (reg.waiting) showUpdateBar();
+      function renderPresetList(){
+        const list = $("presetList"); list.innerHTML = "";
+        presets.forEach((p,idx)=>{
+          const row = document.createElement("div");
+          row.className = "preset-item";
+          row.innerHTML = `
+            <span>${p.artikel} — ${p.pris} kr/m²${p.min?`, min ${p.min} kr`:""} ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span>
+            <span>
+              <button data-use="${idx}">Använd</button>
+              <button data-del="${idx}">Ta bort</button>
+            </span>`;
+          list.appendChild(row);
+        });
+        refreshArtikelDatalist();
+      }
+      renderPresetList();
 
-          reg.addEventListener("updatefound", () => {
-            const nw = reg.installing;
-            if (!nw) return;
-            nw.addEventListener("statechange", () => {
-              if (nw.state === "installed" && navigator.serviceWorker.controller) showUpdateBar();
-            });
-          });
-
-          reg.update();
-          document.addEventListener("visibilitychange", () => {
-            if (document.visibilityState === "visible") reg.update();
-          });
-          setInterval(() => reg.update(), 30000);
-        } catch (e) {}
+      $("presetUseNow").addEventListener("click", ()=>{
+        const artikel = $("presetTitle").value.trim();
+        const pris    = parseFloat($("presetPrice").value);
+        const min     = parseFloat($("presetMin").value || "0");
+        const moms    = $("presetVat").checked ? 0.25 : 0;
+        if(!artikel || !pris) return;
+        $("artikel").value = artikel;
+        $("pris").value = pris;
+        $("minpris").value = min;
+        $("moms").value = moms;
       });
 
-      navigator.serviceWorker.addEventListener("controllerchange", () => {
-        window.location.reload();
+      $("presetSave").addEventListener("click", ()=>{
+        const artikel = $("presetTitle").value.trim();
+        const pris    = parseFloat($("presetPrice").value);
+        const min     = parseFloat($("presetMin").value || "0");
+        const moms    = $("presetVat").checked ? 0.25 : 0;
+        if(!artikel || !pris) return;
+        const existing = presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
+        if(existing){ existing.pris=pris; existing.min=min; existing.moms=moms; }
+        else{ presets.push({artikel, pris, min, moms}); }
+        saveJSON(LS_PRESETS, presets);
+        renderPresetList();
+        $("presetTitle").value=""; $("presetPrice").value=""; $("presetMin").value="";
+      });
+
+      $("presetList").addEventListener("click", (e)=>{
+        const use = e.target.getAttribute("data-use");
+        const del = e.target.getAttribute("data-del");
+        if(use!=null){
+          const p = presets[Number(use)];
+          $("artikel").value = p.artikel;
+          $("pris").value = p.pris;
+          $("minpris").value = p.min;
+          $("moms").value = p.moms;
+          close();
+        } else if(del!=null){
+          presets.splice(Number(del),1);
+          saveJSON(LS_PRESETS, presets);
+          renderPresetList();
+        }
+      });
+
+      function renderTpls(){
+        const box = $("tplList"); box.innerHTML = "";
+        itemTemplates.forEach((t,i)=>{
+          const row = document.createElement("div");
+          row.className = "preset-item";
+          row.innerHTML = `
+            <span>${t.name} — ${t.price} kr/st</span>
+            <span>
+              <button data-add="${i}">Lägg till</button>
+              <button data-del="${i}">Ta bort</button>
+            </span>`;
+          box.appendChild(row);
+        });
+        const itemDL = $("itemOptions"); itemDL.innerHTML = "";
+        itemTemplates.forEach(t=>{
+          const opt = document.createElement("option");
+          opt.value = t.name;
+          itemDL.appendChild(opt);
+        });
+      }
+      renderTpls();
+
+      $("tplSave").addEventListener("click", ()=>{
+        const name = $("tplName").value.trim();
+        const price = parseFloat($("tplPrice").value);
+        if(!name || !price) return;
+        const existing = itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
+        if(existing){ existing.price = price; }
+        else{ itemTemplates.push({ name, price }); }
+        saveJSON(LS_TPLS, itemTemplates);
+        renderTpls();
+        $("tplName").value=""; $("tplPrice").value="";
+      });
+
+      $("tplList").addEventListener("click", (e)=>{
+        const add = e.target.getAttribute("data-add");
+        const del = e.target.getAttribute("data-del");
+        if(add!=null){
+          const t = itemTemplates[Number(add)];
+          const qty = Number(prompt(`Antal för ${t.name}?`, "1")||"0");
+          if(qty>0){ items.push({ name:t.name, price:t.price, qty }); render(); }
+        }else if(del!=null){
+          itemTemplates.splice(Number(del),1);
+          saveJSON(LS_TPLS, itemTemplates);
+          renderTpls();
+        }
       });
     })();
+
+    // Init
+    render();
+    refreshArtikelDatalist();
   </script>
 </body>
 </html>
