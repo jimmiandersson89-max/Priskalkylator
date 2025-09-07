@@ -1,57 +1,46 @@
 {
-  "name": "Priskalkylator",
-  "short_name": "Kalkylator",
+  "name": "M2 Priskalkylator",
+  "short_name": "M2 Kalkylator",
   "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
   "id": "se.reklamgiganten.priskalkylator",
-  "start_url": "index.html",
-  "scope": "./",
+
+  "start_url": "/Priskalkylator/?source=pwa",
+  "scope": "/Priskalkylator/",
   "display": "standalone",
   "orientation": "portrait",
-  "background_color": "#ffffff",
-  "theme_color": "#1a1a1a",
+
+  "background_color": "#0f1115",
+  "theme_color": "#0f1115",
+
   "icons": [
-    {
-      "src": "apple-touch-icon.png",
-      "sizes": "180x180",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "any"
-    },
-    {
-      "src": "icon-512-maskable.png",
-      "sizes": "512x512",
-      "type": "image/png",
-      "purpose": "maskable"
-    }
+    { "src": "icon-192.png",          "sizes": "192x192",  "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512.png",          "sizes": "512x512",  "type": "image/png", "purpose": "any maskable" },
+    { "src": "icon-512-maskable.png", "sizes": "512x512",  "type": "image/png", "purpose": "maskable" },
+    { "src": "icon-1024.png",         "sizes": "1024x1024","type": "image/png"  },
+    { "src": "apple-touch-icon.png",  "sizes": "180x180",  "type": "image/png"  }
   ],
+
   "screenshots": [
-    {
-      "src": "screenshot1.png",
-      "sizes": "1280x720",
-      "type": "image/png"
-    }
+    { "src": "screenshot1.png", "sizes": "1280x720", "type": "image/png" }
   ],
+
   "shortcuts": [
     {
       "name": "Ny offert",
       "short_name": "Ny offert",
       "description": "Starta en ny offert",
-      "url": "index.html?reset=true",
+      "url": "/Priskalkylator/?reset=true",
       "icons": [{ "src": "icon-512.png", "sizes": "512x512" }]
     },
     {
       "name": "Skapa PDF",
       "short_name": "Skapa PDF",
       "description": "Gå direkt till PDF-knappen",
-      "url": "index.html#pdf",
+      "url": "/Priskalkylator/#pdf",
       "icons": [{ "src": "icon-512.png", "sizes": "512x512" }]
     }
   ],
+
   "related_applications": [],
   "prefer_related_applications": false,
   "lang": "sv",
