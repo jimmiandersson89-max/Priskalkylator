@@ -4,6 +4,7 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Priskalkylator</title>
+  <meta name="theme-color" content="#0f1115" />
 
   <style>
     :root{
@@ -362,7 +363,7 @@
       const area = (h/1000)*(b/1000);
       let exkl = area*price*qty;
       if(min && exkl < min) exkl = min;
-      measures.push({ artikel, h, b, qty, area, price, exkl });
+      measures.push({ artikel, h, b, qty, area, price, exkl, min });
       render();
     });
     $("measuresBody").addEventListener("click", (e)=>{
@@ -395,14 +396,56 @@
     $("itemName").addEventListener("input", fillPriceFromTemplate);
     $("itemName").addEventListener("keydown", (e)=>{ if(e.key === "Enter") fillPriceFromTemplate(); });
 
-    // Share
-    $("share").addEventListener("click", ()=>{
-      if(navigator.share){
-        navigator.share({ title:"Offert", text:$("result").textContent }).catch(()=>{});
-      } else alert("Dela stöds inte på denna enhet.");
+    // === DELA PRISET – robust med fallback (urklipp) ===
+    async function shareOrCopy(text) {
+      if (navigator.share) {
+        try {
+          await navigator.share({ title: "Offert", text });
+          return true;
+        } catch (err) {
+          // avbrutet eller blockerat → fortsätt
+        }
+      }
+      try {
+        if (navigator.clipboard && navigator.clipboard.writeText) {
+          await navigator.clipboard.writeText(text);
+          alert("Text kopierad till urklipp.");
+          return true;
+        }
+      } catch (_) {}
+      try {
+        const ta = document.createElement("textarea");
+        ta.value = text;
+        ta.style.position = "fixed"; ta.style.left = "-9999px";
+        document.body.appendChild(ta);
+        ta.select(); ta.setSelectionRange(0, ta.value.length);
+        const ok = document.execCommand("copy");
+        document.body.removeChild(ta);
+        if (ok) { alert("Text kopierad till urklipp."); return true; }
+      } catch(_) {}
+      prompt("Kopiera texten:", text);
+      return false;
+    }
+
+    $("share").addEventListener("click", async () => {
+      const total = $("result").textContent.trim();
+      const details = $("details").textContent.trim();
+      const company = ($("avsandare").value || "Företag").trim();
+      const customer = ($("kundnamn").value || "").trim();
+      const phone = ($("telefon").value || "").trim();
+
+      const lines = [];
+      lines.push(`Offert från ${company}`);
+      if (customer) lines.push(`Kund: ${customer}`);
+      if (phone)    lines.push(`Telefon: ${phone}`);
+      lines.push(`Summa: ${total}`);
+      if (details)  lines.push(details);
+
+      const text = lines.join("\n");
+      await shareOrCopy(text);
     });
 
-    // ===== PDF – med alla uppgifter + "Offerten är giltig i 30 dagar" =====
+    // ===== PDF – kontaktblock + "Offerten är giltig i 30 dagar" =====
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -432,25 +475,30 @@
       function drawHeader(){
         doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
         doc.setFont("helvetica","normal"); doc.setFontSize(11);
-      doc.text(`${today}`, pageW-right, y, { align:"right" }); addY(6);
+        doc.text(`${today}`, pageW-right, y, { align:"right" }); addY(6);
         doc.setTextColor(90); doc.text("Offerten är giltig i 30 dagar", pageW-right, y, { align:"right" });
         doc.setTextColor(0); addY(10);
 
-        doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
-        doc.setTextColor(0); addY(5); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y);
-        doc.setFont("helvetica","normal");
-        if (customer || phone){ addY(8); doc.setFontSize(10);
-          if(customer) doc.text(`${customer}`, left, y);
-          if(phone)    doc.text(`${phone}`, left+90, y);
-        }
-        addY(10);
+        // Kontaktblock
+        const midX = pageW/2;
+        doc.setFontSize(9); doc.setTextColor(90);
+        doc.text("Avsändare", left, y);
+        doc.text("Kunduppgifter", midX, y);
+        doc.setTextColor(0); addY(5);
+
+        doc.setFont("helvetica","bold"); doc.setFontSize(12);
+        doc.text(company, left, y);
+        doc.setFont("helvetica","normal"); doc.setFontSize(11);
+        if(customer) doc.text(customer, midX, y);
+        if(phone)    doc.text(`Telefon: ${phone}`, midX, y+6);
+        addY(14);
       }
       drawHeader();
 
       // Kolumner
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
 
-      // Tabellen: Benämning/Mått + Belopp
+      // Tabellen
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
       doc.text("Benämning / Mått", col1X, y);
       doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
@@ -502,7 +550,7 @@
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer
+    // Drawer öppna/stäng
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
@@ -592,7 +640,6 @@
             </span>`;
           box.appendChild(row);
         });
-        // datalist till formuläret
         const itemDL = $("itemOptions"); itemDL.innerHTML = "";
         itemTemplates.forEach(t=>{
           const opt = document.createElement("option");
