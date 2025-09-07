@@ -11,7 +11,7 @@
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
       --text:#ffffff; --muted:#b7c0cf; --btn:#16a34a; --btn-hover:#139043; --row:#0b0d12;
-      --danger:#9b1c1c;
+      --danger:#b91c1c;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -21,8 +21,7 @@
       display:flex; justify-content:center; align-items:flex-start; padding:28px 16px;
     }
     .wrap{
-      position:relative;
-      width:100%; max-width:920px; background:var(--card);
+      position:relative; width:100%; max-width:920px; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
     .logo{ display:block; margin:50px auto 12px; width:220px; max-width:65%; border-radius:12px }
@@ -48,26 +47,44 @@
 
     /* ---- Lista/tabell ---- */
     .compact-list{
-      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
-      overflow-x:auto;                 /* mobil: tillåt horisontell scroll */
-      -webkit-overflow-scrolling:touch;
+      margin-top:10px; border:1px solid var(--line); border-radius:14px;
+      overflow:hidden; position:relative;
     }
-    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px; min-width:700px } /* så man kan skrolla till Åtgärd */
-    .compact-list th, .compact-list td{ padding:10px 8px; border-bottom:1px solid #2a2f3c }
+    .compact-list::after{ /* mjuk fade på högerkanten över scrollområdet */
+      content:""; position:absolute; top:0; right:0; width:22px; height:100%;
+      background:linear-gradient(to left, var(--card) 55%, rgba(31,41,55,0));
+      pointer-events:none;
+    }
+    .compact-list > div{
+      overflow-x:auto; -webkit-overflow-scrolling:touch;
+    }
+    .compact-list table{
+      width:100%; min-width:620px; border-collapse:collapse; font-size:14px;
+    }
+    .compact-list th, .compact-list td{
+      padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap;
+    }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600 }
+    .compact-list td:nth-child(2),
+    .compact-list td:nth-child(3),
+    .compact-list td:nth-child(4),
+    .compact-list td:nth-child(5){ text-align:right }
     .compact-list tr:last-child td{ border-bottom:none }
-    .compact-list .act{ text-align:right }
+    .compact-list tr:hover td{ background:#121722 }
 
-    /* Sticky åtgärdskolumn till höger */
+    /* Sticky åtgärdskolumn till höger – subtil skugga */
     .compact-list th:last-child,
     .compact-list td:last-child{
       position:sticky; right:0; background:var(--row);
-      box-shadow:-8px 0 10px rgba(0,0,0,.15);
+      box-shadow:-6px 0 10px rgba(0,0,0,.12);
       z-index:1;
     }
 
-    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:14px }
-    .remove:hover{ filter:brightness(1.1) }
+    .remove{
+      background:var(--danger); color:#fff; border:none; border-radius:10px;
+      padding:8px 12px; cursor:pointer; font-size:14px; line-height:1;
+    }
+    .remove:hover{ filter:brightness(1.06) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
@@ -189,19 +206,21 @@
 
     <!-- Lista över mått -->
     <div class="compact-list" id="listWrap" style="display:none">
-      <table>
-        <thead>
-          <tr>
-            <th>Artikel / Mått</th>
-            <th>Antal</th>
-            <th>Area/st</th>
-            <th>Pris/m²</th>
-            <th>Exkl (rad)</th>
-            <th class="act">Åtgärd</th>
-          </tr>
-        </thead>
-        <tbody id="measuresBody"></tbody>
-      </table>
+      <div>
+        <table>
+          <thead>
+            <tr>
+              <th>Artikel / Mått</th>
+              <th>Antal</th>
+              <th>Area/st</th>
+              <th>Pris/m²</th>
+              <th>Exkl (rad)</th>
+              <th class="act">Åtgärd</th>
+            </tr>
+          </thead>
+          <tbody id="measuresBody"></tbody>
+        </table>
+      </div>
     </div>
 
     <!-- Stycksaker + Tid -->
@@ -221,10 +240,12 @@
       </div>
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
-        <table>
-          <thead><tr><th>Benämning</th><th>Pris/st</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
-          <tbody id="itemsList"></tbody>
-        </table>
+        <div>
+          <table>
+            <thead><tr><th>Benämning</th><th>Pris/st</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
+            <tbody id="itemsList"></tbody>
+          </table>
+        </div>
       </div>
       <div class="hint" id="itemsHint">Stycksaker & tid sparas i denna enhet (localStorage).</div>
       <datalist id="itemOptions"></datalist>
@@ -355,12 +376,12 @@
         total += m.exkl;
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
+          <td style="white-space:normal"><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
           <td>${m.qty}</td>
           <td>${m.area.toFixed(2)} m²</td>
           <td>${m.price} kr</td>
           <td>${m.exkl.toFixed(0)} kr</td>
-          <td class="act"><button class="remove" data-i="${i}">X</button></td>`;
+          <td class="act"><button class="remove" data-i="${i}" aria-label="Ta bort rad">×</button></td>`;
         body.appendChild(tr);
       });
       $("listWrap").style.display = measures.length ? "block" : "none";
@@ -371,11 +392,11 @@
         totalItems += it.price*it.qty;
         const tr = document.createElement("tr");
         tr.innerHTML = `
-          <td>${it.name}</td>
+          <td style="white-space:normal">${it.name}</td>
           <td>${it.price} kr</td>
           <td>${it.qty}</td>
           <td>${(it.price*it.qty).toFixed(0)} kr</td>
-          <td class="act"><button class="remove" data-item="${i}">X</button></td>`;
+          <td class="act"><button class="remove" data-item="${i}" aria-label="Ta bort stycksak">×</button></td>`;
         itemsList.appendChild(tr);
       });
       $("itemsBox").style.display = items.length ? "block" : "none";
@@ -422,7 +443,7 @@
       previewMeasureLine();
     });
 
-    // Ta bort måttrad
+    // Ta bort rader
     document.addEventListener("click", (e)=>{
       const t = e.target;
       if(!(t instanceof HTMLElement)) return;
