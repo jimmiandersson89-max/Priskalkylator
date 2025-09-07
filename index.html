@@ -45,13 +45,28 @@
     .row{
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
-    .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
-    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
+
+    /* ---- Lista/tabell ---- */
+    .compact-list{
+      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden;
+      overflow-x:auto;                 /* mobil: tillåt horisontell scroll */
+      -webkit-overflow-scrolling:touch;
+    }
+    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px; min-width:700px } /* så man kan skrolla till Åtgärd */
     .compact-list th, .compact-list td{ padding:10px 8px; border-bottom:1px solid #2a2f3c }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600 }
     .compact-list tr:last-child td{ border-bottom:none }
     .compact-list .act{ text-align:right }
-    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:6px 10px; cursor:pointer }
+
+    /* Sticky åtgärdskolumn till höger */
+    .compact-list th:last-child,
+    .compact-list td:last-child{
+      position:sticky; right:0; background:var(--row);
+      box-shadow:-8px 0 10px rgba(0,0,0,.15);
+      z-index:1;
+    }
+
+    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:14px }
     .remove:hover{ filter:brightness(1.1) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
@@ -406,9 +421,15 @@
       render();
       previewMeasureLine();
     });
-    $("measuresBody").addEventListener("click", (e)=>{
-      const i = e.target?.dataset?.i;
+
+    // Ta bort måttrad
+    document.addEventListener("click", (e)=>{
+      const t = e.target;
+      if(!(t instanceof HTMLElement)) return;
+      const i = t.getAttribute("data-i");
+      const itemIdx = t.getAttribute("data-item");
       if(i!=null){ measures.splice(Number(i),1); render(); }
+      if(itemIdx!=null){ items.splice(Number(itemIdx),1); render(); }
     });
 
     // Stycksaker
@@ -420,10 +441,6 @@
       items.push({ name, price, qty });
       $("itemName").value = ""; $("itemPrice").value = ""; $("itemQty").value = "1";
       render();
-    });
-    $("itemsList").addEventListener("click", (e)=>{
-      const i = e.target?.dataset?.item;
-      if(i!=null){ items.splice(Number(i),1); render(); }
     });
 
     // Tid
@@ -598,7 +615,22 @@
             </span>`;
           list.appendChild(row);
         });
-        refreshArtikelDatalist();
+        // click handlers
+        list.addEventListener("click", (e)=>{
+          const t = e.target;
+          if(!(t instanceof HTMLElement)) return;
+          const use = t.getAttribute("data-use");
+          const del = t.getAttribute("data-del");
+          if(use!=null){
+            const p = presets[Number(use)];
+            $("artikel").value = p.artikel; $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms;
+            previewMeasureLine(); close();
+          } else if(del!=null){
+            presets.splice(Number(del),1);
+            localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
+            renderPresetList();
+          }
+        }, { once:true });
       }
       renderPresetList();
 
@@ -624,24 +656,6 @@
         localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
         renderPresetList();
         $("presetTitle").value=""; $("presetPrice").value=""; $("presetMin").value="";
-      });
-
-      const presetList = document.getElementById("presetList");
-      presetList?.addEventListener("click", (e)=>{
-        const t = e.target;
-        if(!(t instanceof HTMLElement)) return;
-        const use = t.getAttribute("data-use");
-        const del = t.getAttribute("data-del");
-        if(use!=null){
-          const p = presets[Number(use)];
-          $("artikel").value = p.artikel; $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms;
-          previewMeasureLine();
-          close();
-        } else if(del!=null){
-          presets.splice(Number(del),1);
-          localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
-          renderPresetList();
-        }
       });
     })();
 
