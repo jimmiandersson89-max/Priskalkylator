@@ -1,11 +1,11 @@
 {
-  "name": "M2 Priskalkylator",
-  "short_name": "M2 Kalkylator",
+  "name": "Offert på språng",
+  "short_name": "Offert",
   "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
   "id": "se.reklamgiganten.priskalkylator",
 
-  "start_url": "/Priskalkylator/?source=pwa",
-  "scope": "/Priskalkylator/",
+  "start_url": "./index.html?source=pwa",
+  "scope": "./",
   "display": "standalone",
   "orientation": "portrait",
 
@@ -13,11 +13,11 @@
   "theme_color": "#0f1115",
 
   "icons": [
-    { "src": "icon-192.png",          "sizes": "192x192",  "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512.png",          "sizes": "512x512",  "type": "image/png", "purpose": "any maskable" },
-    { "src": "icon-512-maskable.png", "sizes": "512x512",  "type": "image/png", "purpose": "maskable" },
-    { "src": "icon-1024.png",         "sizes": "1024x1024","type": "image/png"  },
-    { "src": "apple-touch-icon.png",  "sizes": "180x180",  "type": "image/png"  }
+    { "src": "Icon-192.png",           "sizes": "192x192",   "type": "image/png" },
+    { "src": "Icon-512.png",           "sizes": "512x512",   "type": "image/png" },
+    { "src": "Icon-512-maskable.png",  "sizes": "512x512",   "type": "image/png", "purpose": "maskable" },
+    { "src": "Icon-1024.png",          "sizes": "1024x1024", "type": "image/png" },
+    { "src": "Apple-touch-icon.png",   "sizes": "180x180",   "type": "image/png" }
   ],
 
   "screenshots": [
@@ -29,15 +29,15 @@
       "name": "Ny offert",
       "short_name": "Ny offert",
       "description": "Starta en ny offert",
-      "url": "/Priskalkylator/?reset=true",
-      "icons": [{ "src": "icon-512.png", "sizes": "512x512" }]
+      "url": "./index.html?reset=true",
+      "icons": [{ "src": "Icon-512.png", "sizes": "512x512", "type": "image/png" }]
     },
     {
       "name": "Skapa PDF",
       "short_name": "Skapa PDF",
       "description": "Gå direkt till PDF-knappen",
-      "url": "/Priskalkylator/#pdf",
-      "icons": [{ "src": "icon-512.png", "sizes": "512x512" }]
+      "url": "./index.html#pdf",
+      "icons": [{ "src": "Icon-512.png", "sizes": "512x512", "type": "image/png" }]
     }
   ],
 
