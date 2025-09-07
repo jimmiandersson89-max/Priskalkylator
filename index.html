@@ -98,7 +98,7 @@
     <!-- Menyknapp -->
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
-    <!-- FAST LOGGA I APPEN (ändras aldrig av drawern) -->
+    <!-- FAST LOGGA I APPEN (påverkas inte av drawern) -->
     <img class="logo" id="companyLogo" src="./Icon-512.png" alt="Logotyp" />
 
     <h1>Offert på språng</h1>
@@ -165,6 +165,9 @@
         </div>
       </div>
 
+      <!-- LIVE-förhandsvisning för m²-raden -->
+      <div id="measurePreview" class="hint">Skriv mått så visas radens pris här…</div>
+
       <button class="btn" id="addMeasure" type="button">+ Lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
     </div>
@@ -230,12 +233,11 @@
       <!-- Snabblänkar -->
       <div class="grp">
         <div class="row2">
-          <!-- FIX: relativ länk så GitHub Pages inte ger 404 -->
           <a class="btn-mini" href="./index.html">Kalkylatorn</a>
         </div>
       </div>
 
-      <!-- Egen logga för PDF -->
+      <!-- PDF-logga (påverkar endast PDF) -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
@@ -291,7 +293,7 @@
     // ===== Helpers / state
     const $ = id => document.getElementById(id);
     const LS_PRESETS = "rg_presets_v1";
-    const LS_ITEMS   = "rg_items_v1";
+    the LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
     const LS_LOGO    = "rg_company_logo_dataurl"; // endast för PDF
 
@@ -318,6 +320,29 @@
       const el = $("logoPreview");
       if(logoDataURL){ el.src = logoDataURL; el.style.display="block"; }
       else{ el.style.display="none"; }
+    }
+
+    // Live-förhandsvisning av aktuell m²-rad
+    function previewMeasureLine(){
+      const h = parseFloat($("hojd").value);
+      const b = parseFloat($("bredd").value);
+      const qty = parseFloat($("antal").value || "1");
+      const price = parseFloat($("pris").value);
+      const min = parseFloat($("minpris").value || "0");
+      const box = $("measurePreview");
+
+      if(!h || !b || !price || !qty){
+        box.textContent = "Skriv mått så visas radens pris här…";
+        return;
+      }
+
+      const area = (h/1000)*(b/1000);                 // m² per styck
+      const exklUtanMin = area * price * qty;         // radbelopp utan min
+      const exkl = Math.max(min || 0, exklUtanMin);   // min-debitering om satt
+
+      box.textContent =
+        `Rad: ${area.toFixed(2)} m²/st × ${price} kr/m² × ${qty} st = ${Math.round(exklUtanMin)} kr` +
+        (min && exkl>exklUtanMin ? ` (minimidebitering ${Math.round(min)} kr gäller → ${Math.round(exkl)} kr)` : "");
     }
 
     function render(){
@@ -353,12 +378,12 @@
       $("itemsBox").style.display = items.length ? "block" : "none";
       $("itemsHint").style.display = items.length ? "none" : "block";
 
-      // Summering
+      // Summering (m² + stycksaker + tid)
       const moms = parseFloat($("moms").value || "0");
       const sumExkl = total + totalItems;
       const sumMoms = sumExkl * moms;
       const sumInkl = sumExkl + sumMoms;
-      $("result").textContent = `${sumInkl.toFixed(0)} kr`;
+      $("result").textContent  = `${sumInkl.toFixed(0)} kr`;
       $("details").textContent = `${sumExkl.toFixed(0)} kr • Moms: ${sumMoms.toFixed(0)} kr`;
 
       saveJSON(LS_ITEMS, items);
@@ -374,7 +399,7 @@
     $("artikel").addEventListener("change", ()=>{
       const name = $("artikel").value.trim();
       const p = presets.find(x => x.artikel.toLowerCase() === name.toLowerCase());
-      if(p){ $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms; }
+      if(p){ $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms; previewMeasureLine(); }
     });
 
     // Lägg till mått
@@ -391,6 +416,7 @@
       if(min && exkl < min) exkl = min;
       measures.push({ artikel, h, b, qty, area, price, exkl });
       render();
+      previewMeasureLine(); // uppdatera förhandsrutan
     });
     $("measuresBody").addEventListener("click", (e)=>{
       const i = e.target?.dataset?.i;
@@ -422,6 +448,13 @@
       render();
     });
 
+    // Live-preview triggers
+    ["hojd","bredd","antal","pris","minpris","artikel"].forEach(id=>{
+      $(id).addEventListener("input", previewMeasureLine);
+      $(id).addEventListener("change", previewMeasureLine);
+    });
+    previewMeasureLine();
+
     // Share
     $("share").addEventListener("click", ()=>{
       const text = `${$("result").textContent} (${$("details").textContent})`;
@@ -432,7 +465,7 @@
       }
     });
 
-    // PDF (logga centrerad högst upp – endast logoDataURL)
+    // PDF (centrerad PDF-logga; app-loggan påverkas inte)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -451,7 +484,7 @@
       const phone = $("telefon").value || "";
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // Centrerad PDF-logga (om användaren laddat upp en)
+      // PDF-logga i mitten (om uppladdad)
       if(logoDataURL){
         try{
           const imgProps = doc.getImageProperties(logoDataURL);
@@ -464,7 +497,7 @@
         }catch(e){}
       }
 
-      // Headertext
+      // Header
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
       doc.setFontSize(11); doc.setFont("helvetica","normal");
       const rightX = pageW-right; doc.text(`${today}`, rightX, y, { align:"right" }); addY(6);
@@ -533,7 +566,7 @@
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer (öppna/stäng + PDF-logga hantering)
+    // Drawer (öppna/stäng + PDF-logga)
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
@@ -546,7 +579,6 @@
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
-      // PDF-logga
       if(logoDataURL){ setLogoPreview(); }
       $("logoFile").addEventListener("change", (e)=>{
         const file = e.target.files?.[0]; if(!file) return;
@@ -564,7 +596,7 @@
         logoDataURL=""; setLogoPreview();
       });
 
-      // Presets render/CRUD
+      // Presets-render/CRUD
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
@@ -589,6 +621,7 @@
         const moms    = $("presetVat").checked ? 0.25 : 0;
         if(!artikel || !pris) return;
         $("artikel").value = artikel; $("pris").value = pris; $("minpris").value = min; $("moms").value = moms;
+        previewMeasureLine();
       });
 
       $("presetSave").addEventListener("click", ()=>{
@@ -611,6 +644,7 @@
         if(use!=null){
           const p = presets[Number(use)];
           $("artikel").value = p.artikel; $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms;
+          previewMeasureLine();
           close();
         } else if(del!=null){
           presets.splice(Number(del),1);
@@ -619,10 +653,10 @@
         }
       });
 
-      // Item-templates
+      // Item-templates (frivilligt)
       function renderTpls(){
         const box = $("tplList"); box.innerHTML = "";
-        itemTemplates.forEach((t,i)=>{
+        (window.itemTemplates||[]).forEach((t,i)=>{
           const row = document.createElement("div");
           row.className = "preset-item";
           row.innerHTML = `
@@ -633,42 +667,11 @@
             </span>`;
           box.appendChild(row);
         });
-        const itemDL = $("itemOptions"); itemDL.innerHTML = "";
-        itemTemplates.forEach(t=>{
-          const opt = document.createElement("option"); opt.value = t.name; itemDL.appendChild(opt);
-        });
       }
       renderTpls();
-
-      $("tplSave").addEventListener("click", ()=>{
-        const name = $("tplName").value.trim();
-        const price = parseFloat($("tplPrice").value);
-        if(!name || !price) return;
-        const existing = itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
-        if(existing){ existing.price = price; }
-        else{ itemTemplates.push({ name, price }); }
-        localStorage.setItem(LS_TPLS, JSON.stringify(itemTemplates));
-        renderTpls();
-        $("tplName").value=""; $("tplPrice").value="";
-      });
-
-      $("tplList").addEventListener("click", (e)=>{
-        const add = e.target.getAttribute("data-add");
-        const del = e.target.getAttribute("data-del");
-        if(add!=null){
-          const t = itemTemplates[Number(add)];
-          const qty = Number(prompt(`Antal för ${t.name}?`, "1")||"0");
-          if(qty>0){ items.push({ name:t.name, price:t.price, qty }); render(); }
-        }else if(del!=null){
-          itemTemplates.splice(Number(del),1);
-          localStorage.setItem(LS_TPLS, JSON.stringify(itemTemplates));
-          renderTpls();
-        }
-      });
     })();
 
     // Init
-    if(logoDataURL){ setLogoPreview(); }
     render();
     refreshArtikelDatalist();
   </script>
