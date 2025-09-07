@@ -3,8 +3,10 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
-  <title>M2 Priskalkylator</title>
+  <title>Offert på språng</title>
 
+  <link rel="manifest" href="./manifest.webmanifest">
+  <meta name="theme-color" content="#0f1115" />
   <style>
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
@@ -96,11 +98,10 @@
     <!-- Menyknapp -->
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
-    <!-- LOGGA (kan bytas i drawern) -->
-    <img class="logo" id="companyLogo" src="/assets/images/IMG_0059-1757208666308.jpeg"
-         alt="Logotyp" onerror="this.style.display='none'" />
+    <!-- FAST LOGGA I APPEN (ändras aldrig av drawern) -->
+    <img class="logo" id="companyLogo" src="./Icon-512.png" alt="Logotyp" />
 
-    <h1>M2 Priskalkylator</h1>
+    <h1>Offert på språng</h1>
 
     <!-- Avsändare + Moms -->
     <div class="grid2">
@@ -129,11 +130,10 @@
       </div>
     </div>
 
-    <!-- === Mått & pris i samma ram (TVÅ RADER) === -->
+    <!-- Mått & pris -->
     <div class="row">
       <h2>Lägg till mått</h2>
 
-      <!-- Rad 1: Artikel, Pris/m², Minimidebitering -->
       <div class="grid3">
         <div>
           <label for="artikel">Artikel/Benämning (styr pris via presets)</label>
@@ -150,7 +150,6 @@
         </div>
       </div>
 
-      <!-- Rad 2: Höjd, Bredd, Antal -->
       <div class="grid3">
         <div>
           <label for="hojd">Höjd (mm)</label>
@@ -197,7 +196,6 @@
       </div>
       <button class="btn" id="addItemBtn" type="button">+ Lägg till stycksak</button>
 
-      <!-- Tidrad -->
       <div class="grid3" style="margin-top:12px">
         <div><label for="hourRate">Timpeng (kr/h)</label><input id="hourRate" type="number" min="0" step="1" placeholder="t.ex. 650" /></div>
         <div><label for="hoursQty">Antal timmar</label><input id="hoursQty" type="number" min="0" step="0.25" placeholder="t.ex. 1.5" /></div>
@@ -232,13 +230,14 @@
       <!-- Snabblänkar -->
       <div class="grp">
         <div class="row2">
-          <a class="btn-mini" href="/">Kalkylatorn</a>
+          <!-- FIX: relativ länk så GitHub Pages inte ger 404 -->
+          <a class="btn-mini" href="./index.html">Kalkylatorn</a>
         </div>
       </div>
 
-      <!-- Egna loggan -->
+      <!-- Egen logga för PDF -->
       <div class="grp">
-        <div style="margin-bottom:8px"><b>Egen logga (visas i app & PDF)</b></div>
+        <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
         <img id="logoPreview" class="logoPreview" alt="Förhandsvisning" style="display:none" />
         <div class="row2" style="margin-top:8px">
@@ -289,11 +288,12 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
+    // ===== Helpers / state
     const $ = id => document.getElementById(id);
     const LS_PRESETS = "rg_presets_v1";
     const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
-    const LS_LOGO    = "rg_company_logo_dataurl";
+    const LS_LOGO    = "rg_company_logo_dataurl"; // endast för PDF
 
     const measures = [];
     let items = loadJSON(LS_ITEMS, []);            // {name, price, qty}
@@ -306,7 +306,7 @@
       { artikel:"Solfilm", pris:899, moms:0.25, min:0 }
     ]);
     let itemTemplates = loadJSON(LS_TPLS, []);
-    let logoDataURL = localStorage.getItem(LS_LOGO) || "";
+    let logoDataURL = localStorage.getItem(LS_LOGO) || ""; // används endast i PDF
 
     function loadJSON(key, fallback){
       try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -316,12 +316,8 @@
 
     function setLogoPreview(){
       const el = $("logoPreview");
-      if(logoDataURL){
-        el.src = logoDataURL; el.style.display="block";
-        $("companyLogo").src = logoDataURL; $("companyLogo").style.display="block";
-      }else{
-        el.style.display="none";
-      }
+      if(logoDataURL){ el.src = logoDataURL; el.style.display="block"; }
+      else{ el.style.display="none"; }
     }
 
     function render(){
@@ -372,19 +368,13 @@
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
-        const opt = document.createElement("option");
-        opt.value = p.artikel;
-        dl.appendChild(opt);
+        const opt = document.createElement("option"); opt.value = p.artikel; dl.appendChild(opt);
       });
     }
     $("artikel").addEventListener("change", ()=>{
       const name = $("artikel").value.trim();
       const p = presets.find(x => x.artikel.toLowerCase() === name.toLowerCase());
-      if(p){
-        $("pris").value = p.pris;
-        $("minpris").value = p.min;
-        $("moms").value = p.moms;
-      }
+      if(p){ $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms; }
     });
 
     // Lägg till mått
@@ -432,13 +422,6 @@
       render();
     });
 
-    // Autocomplete: stycksaks-mallar ⇒ fyll pris
-    $("itemName").addEventListener("input", ()=>{
-      const name = $("itemName").value.trim().toLowerCase();
-      const tpl = itemTemplates.find(t => t.name.toLowerCase() === name);
-      if(tpl){ $("itemPrice").value = tpl.price; }
-    });
-
     // Share
     $("share").addEventListener("click", ()=>{
       const text = `${$("result").textContent} (${$("details").textContent})`;
@@ -449,7 +432,7 @@
       }
     });
 
-    // PDF (med logga uppe till höger + giltighetstext)
+    // PDF (logga centrerad högst upp – endast logoDataURL)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -468,18 +451,21 @@
       const phone = $("telefon").value || "";
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // Header
-      doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
-      // logga uppe till höger (om finns)
+      // Centrerad PDF-logga (om användaren laddat upp en)
       if(logoDataURL){
         try{
           const imgProps = doc.getImageProperties(logoDataURL);
-          const maxW = 40, maxH = 18;
+          const maxW = 60, maxH = 22;
           let w = maxW, h = maxW * (imgProps.height/imgProps.width);
           if(h>maxH){ h = maxH; w = h * (imgProps.width/imgProps.height); }
-          doc.addImage(logoDataURL, imgProps.fileType || "PNG", pageW-right-w, y-6, w, h);
+          const x = (pageW - w) / 2;
+          doc.addImage(logoDataURL, imgProps.fileType || "PNG", x, y-6, w, h);
+          addY(20);
         }catch(e){}
       }
+
+      // Headertext
+      doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
       doc.setFontSize(11); doc.setFont("helvetica","normal");
       const rightX = pageW-right; doc.text(`${today}`, rightX, y, { align:"right" }); addY(6);
       doc.setTextColor(90); doc.text("Offerten är giltig i 30 dagar", rightX, y, { align:"right" });
@@ -543,27 +529,24 @@
         y += 7; doc.setDrawColor(220); doc.line(left, y, pageW-right, y); y += 5;
       });
 
-      // Spara
       const safeName = (($("kundnamn").value || "offert").replace(/[^\w\- åäöÅÄÖ]/g,"_"));
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer
+    // Drawer (öppna/stäng + PDF-logga hantering)
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
         drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false");
-        document.body.style.overflow="hidden";
-      }
+        document.body.style.overflow="hidden"; }
       function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open");
         drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true");
-        document.body.style.overflow="";
-      }
+        document.body.style.overflow=""; }
       btn.addEventListener("click", e=>{ e.stopPropagation(); open(); });
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
-      // LOGGA: ladda/preview/spara/ta bort
+      // PDF-logga
       if(logoDataURL){ setLogoPreview(); }
       $("logoFile").addEventListener("change", (e)=>{
         const file = e.target.files?.[0]; if(!file) return;
@@ -572,17 +555,16 @@
           logoDataURL = reader.result;
           localStorage.setItem(LS_LOGO, logoDataURL);
           setLogoPreview();
-          alert("Logga sparad! Den används även i PDF.");
+          alert("PDF-logga sparad! (påverkar ej loggan i appen)");
         };
         reader.readAsDataURL(file);
       });
       $("logoClear").addEventListener("click", ()=>{
         localStorage.removeItem(LS_LOGO);
         logoDataURL=""; setLogoPreview();
-        $("companyLogo").style.display="none";
       });
 
-      // Lagring & render av m²-presets
+      // Presets render/CRUD
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
@@ -606,10 +588,7 @@
         const min     = parseFloat($("presetMin").value || "0");
         const moms    = $("presetVat").checked ? 0.25 : 0;
         if(!artikel || !pris) return;
-        $("artikel").value = artikel;
-        $("pris").value = pris;
-        $("minpris").value = min;
-        $("moms").value = moms;
+        $("artikel").value = artikel; $("pris").value = pris; $("minpris").value = min; $("moms").value = moms;
       });
 
       $("presetSave").addEventListener("click", ()=>{
@@ -621,7 +600,7 @@
         const existing = presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
         if(existing){ existing.pris=pris; existing.min=min; existing.moms=moms; }
         else{ presets.push({artikel, pris, min, moms}); }
-        saveJSON(LS_PRESETS, presets);
+        localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
         renderPresetList();
         $("presetTitle").value=""; $("presetPrice").value=""; $("presetMin").value="";
       });
@@ -631,14 +610,11 @@
         const del = e.target.getAttribute("data-del");
         if(use!=null){
           const p = presets[Number(use)];
-          $("artikel").value = p.artikel;
-          $("pris").value = p.pris;
-          $("minpris").value = p.min;
-          $("moms").value = p.moms;
+          $("artikel").value = p.artikel; $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms;
           close();
         } else if(del!=null){
           presets.splice(Number(del),1);
-          saveJSON(LS_PRESETS, presets);
+          localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
           renderPresetList();
         }
       });
@@ -659,9 +635,7 @@
         });
         const itemDL = $("itemOptions"); itemDL.innerHTML = "";
         itemTemplates.forEach(t=>{
-          const opt = document.createElement("option");
-          opt.value = t.name;
-          itemDL.appendChild(opt);
+          const opt = document.createElement("option"); opt.value = t.name; itemDL.appendChild(opt);
         });
       }
       renderTpls();
@@ -673,7 +647,7 @@
         const existing = itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
         if(existing){ existing.price = price; }
         else{ itemTemplates.push({ name, price }); }
-        saveJSON(LS_TPLS, itemTemplates);
+        localStorage.setItem(LS_TPLS, JSON.stringify(itemTemplates));
         renderTpls();
         $("tplName").value=""; $("tplPrice").value="";
       });
@@ -687,7 +661,7 @@
           if(qty>0){ items.push({ name:t.name, price:t.price, qty }); render(); }
         }else if(del!=null){
           itemTemplates.splice(Number(del),1);
-          saveJSON(LS_TPLS, itemTemplates);
+          localStorage.setItem(LS_TPLS, JSON.stringify(itemTemplates));
           renderTpls();
         }
       });
