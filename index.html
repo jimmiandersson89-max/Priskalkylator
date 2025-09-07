@@ -269,20 +269,6 @@
         <div style="margin-bottom:8px"><b>Sparade m²-presets</b></div>
         <div class="preset-list" id="presetList"></div>
       </div>
-
-      <!-- Item-templates -->
-      <div class="grp">
-        <div style="margin-bottom:8px"><b>Stycksaks-mallar</b></div>
-        <label>Benämning</label>
-        <input id="tplName" type="text" placeholder="t.ex. Skrapa, Monteringskit" />
-        <label>Pris/st (kr)</label>
-        <input id="tplPrice" type="number" min="0" step="1" placeholder="t.ex. 49" />
-        <div class="row2" style="margin-top:10px">
-          <button class="btn-mini" id="tplSave" type="button">Spara mall</button>
-          <span class="muted" style="display:grid;align-items:center">Sparas utan antal</span>
-        </div>
-        <div class="preset-list" id="tplList" style="margin-top:10px"></div>
-      </div>
     </div>
   </aside>
 
@@ -290,10 +276,12 @@
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
+    "use strict";
+
     // ===== Helpers / state
     const $ = id => document.getElementById(id);
     const LS_PRESETS = "rg_presets_v1";
-    the LS_ITEMS   = "rg_items_v1";
+    const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
     const LS_LOGO    = "rg_company_logo_dataurl"; // endast för PDF
 
@@ -416,7 +404,7 @@
       if(min && exkl < min) exkl = min;
       measures.push({ artikel, h, b, qty, area, price, exkl });
       render();
-      previewMeasureLine(); // uppdatera förhandsrutan
+      previewMeasureLine();
     });
     $("measuresBody").addEventListener("click", (e)=>{
       const i = e.target?.dataset?.i;
@@ -596,7 +584,7 @@
         logoDataURL=""; setLogoPreview();
       });
 
-      // Presets-render/CRUD
+      // Presets
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
@@ -638,9 +626,12 @@
         $("presetTitle").value=""; $("presetPrice").value=""; $("presetMin").value="";
       });
 
-      $("presetList").addEventListener("click", (e)=>{
-        const use = e.target.getAttribute("data-use");
-        const del = e.target.getAttribute("data-del");
+      const presetList = document.getElementById("presetList");
+      presetList?.addEventListener("click", (e)=>{
+        const t = e.target;
+        if(!(t instanceof HTMLElement)) return;
+        const use = t.getAttribute("data-use");
+        const del = t.getAttribute("data-del");
         if(use!=null){
           const p = presets[Number(use)];
           $("artikel").value = p.artikel; $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms;
@@ -652,28 +643,12 @@
           renderPresetList();
         }
       });
-
-      // Item-templates (frivilligt)
-      function renderTpls(){
-        const box = $("tplList"); box.innerHTML = "";
-        (window.itemTemplates||[]).forEach((t,i)=>{
-          const row = document.createElement("div");
-          row.className = "preset-item";
-          row.innerHTML = `
-            <span>${t.name} — ${t.price} kr/st</span>
-            <span>
-              <button data-add="${i}">Lägg till</button>
-              <button data-del="${i}">Ta bort</button>
-            </span>`;
-          box.appendChild(row);
-        });
-      }
-      renderTpls();
     })();
 
     // Init
     render();
     refreshArtikelDatalist();
+    previewMeasureLine();
   </script>
 </body>
 </html>
