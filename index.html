@@ -46,34 +46,27 @@
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
-    /* ==== TABELLEN – förbättrad för mobil ==== */
+    /* TABELL – mobilvänlig */
     .compact-list{
-      margin-top:10px; border:1px solid var(--line); border-radius:14px;
-      overflow-x:auto; /* <— gör att man kan scrolla i stående om det behövs */
+      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow-x:auto;
     }
-    .compact-list table{
-      width:100%; border-collapse:collapse; font-size:14px;
-      min-width: 560px; /* <— så inget trycks ihop för mycket på smal mobil */
-    }
+    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px; min-width:560px }
     .compact-list th, .compact-list td{ padding:10px 8px; border-bottom:1px solid #2a2f3c; }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600; }
     .compact-list tr:last-child td{ border-bottom:none }
     .compact-list .act{ text-align:right; white-space:nowrap }
-    .compact-list .num{ text-align:right; white-space:nowrap } /* <— pris mm radbryts ej */
-
-    /* Lite tightare på riktigt små skärmar */
+    .compact-list .num{ text-align:right; white-space:nowrap }
     @media (max-width:420px){
-      .compact-list table{ font-size:13px; min-width:520px; }
-      .compact-list th, .compact-list td{ padding:8px 6px; }
+      .compact-list table{ font-size:13px; min-width:520px }
+      .compact-list th, .compact-list td{ padding:8px 6px }
     }
 
-    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:6px 10px; cursor:pointer; }
+    .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:6px 10px; cursor:pointer }
     .remove:hover{ filter:brightness(1.1) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
-    .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px;
-      color:#fff; cursor:pointer; background:var(--btn) }
+    .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
@@ -95,14 +88,10 @@
     .drawer.open{ transform:translateX(0) }
     .drawer-backdrop.open{ opacity:1; pointer-events:auto }
     .drawer .hd{ padding:14px; border-bottom:1px solid #1e2430; font-size:16px; font-weight:700 }
-    .drawer .bd{
-      padding:14px; overflow-y:auto; max-height:calc(100vh - 50px);
-    }
+    .drawer .bd{ padding:14px; overflow-y:auto; max-height:calc(100vh - 50px) }
     .drawer .grp{ margin-bottom:14px }
     .drawer .row2{ display:grid; grid-template-columns:1fr; gap:10px }
-    .drawer .btn-mini{
-      padding:10px 12px; border:none; border-radius:10px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700
-    }
+    .drawer .btn-mini{ padding:10px 12px; border:none; border-radius:10px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
     .preset-list{ border:1px solid #1e2430; border-radius:12px; overflow:hidden }
     .preset-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid #1e2430 }
     .preset-item:last-child{ border-bottom:none }
@@ -114,34 +103,63 @@
 </head>
 <body>
   <div class="wrap">
+    <!-- Menyknapp -->
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
-    <img class="logo" src="/assets/images/IMG_0059-1757208666308.jpeg" alt="Logotyp" onerror="this.style.display='none'" />
+
+    <!-- LOGGA (GitHub: fil i roten) -->
+    <img class="logo" src="IMG_0028.jpeg" alt="Logotyp" onerror="this.style.display='none'" />
+
     <h1>Priskalkylator</h1>
 
     <!-- Avsändare + Moms -->
     <div class="grid2">
-      <div><label for="avsandare">Företag (avsändare)</label><input id="avsandare" type="text" placeholder="Ditt företagsnamn" /></div>
-      <div><label for="moms">Moms</label><select id="moms"><option value="0">Exkl. moms</option><option value="0.25" selected>Inkl. 25%</option></select></div>
+      <div>
+        <label for="avsandare">Företag (avsändare)</label>
+        <input id="avsandare" type="text" placeholder="Ditt företagsnamn" />
+      </div>
+      <div>
+        <label for="moms">Moms</label>
+        <select id="moms">
+          <option value="0">Exkl. moms</option>
+          <option value="0.25" selected>Inkl. 25%</option>
+        </select>
+      </div>
     </div>
 
     <!-- Kunduppgifter -->
     <div class="grid2">
-      <div><label for="kundnamn">Kundnamn</label><input id="kundnamn" type="text" /></div>
-      <div><label for="telefon">Telefon</label><input id="telefon" type="tel" /></div>
+      <div>
+        <label for="kundnamn">Kundnamn</label>
+        <input id="kundnamn" type="text" />
+      </div>
+      <div>
+        <label for="telefon">Telefon</label>
+        <input id="telefon" type="tel" />
+      </div>
     </div>
 
     <!-- Mått & pris -->
     <div class="row">
       <h2>Lägg till mått</h2>
       <div class="grid3">
-        <div><label for="artikel">Artikel</label><input id="artikel" type="text" list="artikelOptions" /><datalist id="artikelOptions"></datalist></div>
-        <div><label for="pris">Pris per m² (kr)</label><input id="pris" type="number" value="699" /></div>
-        <div><label for="minpris">Minimidebitering</label><input id="minpris" type="number" value="0" /></div>
+        <div>
+          <label for="artikel">Artikel/Benämning (styr pris via presets)</label>
+          <input id="artikel" type="text" list="artikelOptions" placeholder="t.ex. Frost, Print, Vinyl" />
+          <datalist id="artikelOptions"></datalist>
+        </div>
+        <div>
+          <label for="pris">Pris per m² (kr)</label>
+          <input id="pris" type="number" value="699" min="0" step="1" />
+        </div>
+        <div>
+          <label for="minpris">Minimidebitering (kr/rad)</label>
+          <input id="minpris" type="number" value="0" min="0" step="1" />
+        </div>
       </div>
       <div class="grid3">
-        <div><label for="hojd">Höjd (mm)</label><input id="hojd" type="number" /></div>
-        <div><label for="bredd">Bredd (mm)</label><input id="bredd" type="number" /></div>
-        <div><label for="antal">Antal</label><input id="antal" type="number" value="1" /></div>
+        <div><label for="hojd">Höjd (mm)</label><input id="hojd" type="number" min="1" /></div>
+        <div><label for="bredd">Bredd (mm)</label><input id="bredd" type="number" min="1" /></div>
+        <div><label for="antal">Antal (st)</label><input id="antal" type="number" value="1" min="1" step="1" /></div>
       </div>
       <button class="btn" id="addMeasure" type="button">+ Lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
@@ -201,6 +219,7 @@
     <div class="bd">
       <div class="grp">
         <div class="row2">
+          <!-- Butiken borttagen; Start heter Kalkylatorn -->
           <a class="btn-mini" href="/">Kalkylatorn</a>
         </div>
       </div>
@@ -312,6 +331,7 @@
       saveJSON(LS_ITEMS, items);
     }
 
+    // Autocomplete: artikel ↔ presets
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
@@ -382,50 +402,104 @@
       } else alert("Dela stöds inte på denna enhet.");
     });
 
-    // PDF (utan footer)
+    // ===== PDF – med alla uppgifter + "Offerten är giltig i 30 dagar" =====
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
-      doc.setFont("helvetica","bold"); doc.setFontSize(18);
-      doc.text("Offert",20,20);
-      doc.setFont("helvetica","normal"); doc.setFontSize(11);
 
-      const today = new Date().toLocaleDateString("sv-SE");
+      const left=15,right=15,top=18,bottom=18;
+      const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
+      let y=top;
+
+      const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
+      const fmt0 = n => Number(n).toLocaleString("sv-SE",{maximumFractionDigits:0});
+      const addY = mm => y+=mm;
+      const needPage = (h=0) => (y+h > pageH-bottom-14);
+      const newPage = () => { doc.addPage(); y=top; drawHeader(); };
+
+      const today   = new Date().toLocaleDateString("sv-SE");
       const company = ($("avsandare").value || "Företag");
-      const customer = $("kundnamn").value || "";
-      const phone = $("telefon").value || "";
-      doc.text(today, 190, 20, {align:"right"});
+      const customer= $("kundnamn").value || "";
+      const phone   = $("telefon").value || "";
+      const momsSats= parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      let y = 30;
-      doc.text(company, 20, y); y+=6;
-      if(customer || phone){ doc.text(`${customer}${phone? " • "+phone:""}`,20,y); y+=8; }
+      const sumExklMeasures = (measures||[]).reduce((s,m)=>s+m.exkl,0);
+      const sumExklItems    = (items||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
+      const sumExkl         = sumExklMeasures + sumExklItems;
+      const momsBelopp      = sumExkl * momsSats;
+      const sumInkl         = sumExkl + momsBelopp;
 
-      // Mått
-      measures.forEach(m=>{
-        doc.text(`${m.qty} st — ${m.artikel || "-"} — ${m.h}×${m.b} mm • á ${m.price} kr/m² • ${m.area.toFixed(2)} m²/st`,20,y);
-        doc.text(`${m.exkl.toFixed(0)} kr`,190,y,{align:"right"});
-        y+=7;
+      function drawHeader(){
+        doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
+        doc.setFont("helvetica","normal"); doc.setFontSize(11);
+      doc.text(`${today}`, pageW-right, y, { align:"right" }); addY(6);
+        doc.setTextColor(90); doc.text("Offerten är giltig i 30 dagar", pageW-right, y, { align:"right" });
+        doc.setTextColor(0); addY(10);
+
+        doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
+        doc.setTextColor(0); addY(5); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y);
+        doc.setFont("helvetica","normal");
+        if (customer || phone){ addY(8); doc.setFontSize(10);
+          if(customer) doc.text(`${customer}`, left, y);
+          if(phone)    doc.text(`${phone}`, left+90, y);
+        }
+        addY(10);
+      }
+      drawHeader();
+
+      // Kolumner
+      const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
+
+      // Tabellen: Benämning/Mått + Belopp
+      doc.setFont("helvetica","bold"); doc.setFontSize(11);
+      doc.text("Benämning / Mått", col1X, y);
+      doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
+      doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6);
+      doc.setFont("helvetica","normal");
+
+      (measures||[]).forEach(m=>{
+        const radText = [
+          `${m.artikel || "Artikel"}`,
+          `${m.qty} st — ${m.h} × ${m.b} mm per styck`,
+          `st ${fmt2(m.area)} m²${m.qty>1?`, total ${fmt2(m.area*m.qty)} m²`:""}, á ${fmt2(m.price)} kr/m²${m.min>0?` • min ${fmt0(m.min)} kr`:""}`
+        ].join("\n");
+        const wrapped = doc.splitTextToSize(radText, col1W);
+        const rowH = Math.max(8, wrapped.length*5);
+        if (needPage(rowH+8)) newPage();
+        doc.setFontSize(10); doc.text(wrapped, col1X, y);
+        doc.setFont("helvetica","bold"); doc.text(`${fmt0(m.exkl)} kr`, col2X+col2W, y, {align:"right"});
+        doc.setFont("helvetica","normal");
+        addY(rowH+4); doc.setDrawColor(235); doc.line(left, y, pageW-right, y); addY(4);
       });
 
-      // Stycksaker
       if(items.length){
-        y+=3; doc.setFont("helvetica","bold"); doc.text("Stycksaker",20,y); y+=7; doc.setFont("helvetica","normal");
+        if (needPage(10)) newPage();
+        doc.setFont("helvetica","bold"); doc.text("Stycksaker", col1X, y); addY(8); doc.setFont("helvetica","normal");
         items.forEach(it=>{
-          doc.text(`${it.qty}× ${it.name} á ${it.price} kr`,20,y);
-          doc.text(`${(it.price*it.qty).toFixed(0)} kr`,190,y,{align:"right"});
-          y+=7;
+          const rowText = `${it.name} — ${it.qty} × ${fmt0(it.price)} kr`;
+          if (needPage(10)) newPage();
+          doc.text(rowText, col1X, y);
+          doc.setFont("helvetica","bold"); doc.text(`${fmt0(it.price*it.qty)} kr`, col2X+col2W, y, {align:"right"});
+          doc.setFont("helvetica","normal"); addY(6);
         });
+        addY(2); doc.setDrawColor(235); doc.line(left, y, pageW-right, y); addY(4);
       }
 
-      // Summa
-      y+=5; doc.setDrawColor(180); doc.line(20,y,190,y); y+=8;
-      doc.setFont("helvetica","bold");
-      doc.text(`Att betala: ${$("result").textContent}`,20,y); y+=7;
-      doc.setFont("helvetica","normal");
-      doc.text($("details").textContent,20,y);
+      // Summering
+      const sumBlock = [
+        ["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
+        [`Moms ${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
+        ["Att betala", `${fmt0(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+      ];
+      sumBlock.forEach(([label,value,bold])=>{
+        if (needPage(12)) newPage();
+        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
+        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
+        addY(7); doc.setDrawColor(220); doc.line(left, y, pageW-right, y); addY(5);
+      });
 
-      // Ingen footer
-      doc.save("offert.pdf");
+      const safeName = (($("kundnamn").value || "offert").replace(/[^\w\- åäöÅÄÖ]/g,"_"));
+      doc.save(`${safeName}.pdf`);
     });
 
     // Drawer
@@ -443,6 +517,7 @@
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
+      // Presets (m²)
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
@@ -503,6 +578,7 @@
         }
       });
 
+      // Stycksaks-mallar
       function renderTpls(){
         const box = $("tplList"); box.innerHTML = "";
         itemTemplates.forEach((t,i)=>{
@@ -516,6 +592,7 @@
             </span>`;
           box.appendChild(row);
         });
+        // datalist till formuläret
         const itemDL = $("itemOptions"); itemDL.innerHTML = "";
         itemTemplates.forEach(t=>{
           const opt = document.createElement("option");
