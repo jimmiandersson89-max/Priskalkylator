@@ -45,16 +45,16 @@
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
-    /* Tabeller (gemensam stil) */
+    /* Tabeller */
     .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
-    .compact-list th, .compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
+    .compact-list th,.compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600 }
     .compact-list tr:last-child td{ border-bottom:none }
     .compact-list td:nth-child(2), .compact-list td:nth-child(3){ text-align:right }
     .compact-list .act{ text-align:right }
     .compact-list tr:hover td{ background:#121722 }
-    .compact-list th:last-child, .compact-list td:last-child{
+    .compact-list th:last-child,.compact-list td:last-child{
       position:sticky; right:0; background:var(--row); box-shadow:-6px 0 10px rgba(0,0,0,.12); z-index:1;
     }
 
@@ -73,15 +73,8 @@
       border:1px solid var(--line); background:#11151d; color:#fff; cursor:pointer;
       display:grid; place-items:center; font-size:20px; z-index:1000;
     }
-    .drawer-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998;
-    }
-    .drawer{
-      position:fixed; top:0; left:0; height:100%; width:360px; max-width:92vw; background:#0f1115;
-      border-right:1px solid #1e2430; box-shadow: 8px 0 40px rgba(0,0,0,.35);
-      transform:translateX(-100%); transition:.25s transform; z-index:9999; color:#e5e7eb;
-      display:flex; flex-direction:column;
-    }
+    .drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998 }
+    .drawer{ position:fixed; top:0; left:0; height:100%; width:360px; max-width:92vw; background:#0f1115; border-right:1px solid #1e2430; box-shadow:8px 0 40px rgba(0,0,0,.35); transform:translateX(-100%); transition:.25s transform; z-index:9999; color:#e5e7eb; display:flex; flex-direction:column }
     .drawer.open{ transform:translateX(0) }
     .drawer-backdrop.open{ opacity:1; pointer-events:auto }
     .drawer .hd{ padding:14px; border-bottom:1px solid #1e2430; font-size:16px; font-weight:700 }
@@ -135,11 +128,11 @@
       </div>
     </div>
 
-    <!-- Mått & pris -->
+    <!-- Mått -->
     <div class="row">
       <h2>Lägg till mått</h2>
 
-      <div class="grid3">
+      <div class="grid2">
         <div>
           <label for="artikel">Artikel/Benämning (styr pris via presets)</label>
           <input id="artikel" type="text" list="artikelOptions" placeholder="t.ex. Frost, Print, Vinyl" />
@@ -148,10 +141,6 @@
         <div>
           <label for="pris">Pris per m² (kr)</label>
           <input id="pris" type="number" value="699" min="0" step="1" />
-        </div>
-        <div>
-          <label for="minpris">Minimidebitering (kr/rad)</label>
-          <input id="minpris" type="number" value="0" min="0" step="1" />
         </div>
       </div>
 
@@ -170,28 +159,26 @@
         </div>
       </div>
 
-      <!-- LIVE-förhandsvisning för m²-raden (utan "minimidebitering"-text) -->
+      <!-- LIVE m²: exkl + inkl moms -->
       <div id="measurePreview" class="hint">Skriv mått så visas radens pris här…</div>
 
       <button class="btn" id="addMeasure" type="button">+ Lägg till mått</button>
-      <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
+      <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris och moms automatiskt.</div>
     </div>
 
-    <!-- Måttlistan i svart .row (samma look som stycksaker/tid) -->
-    <div class="row" id="measuresSection">
-      <div class="compact-list" id="listWrap" style="display:none">
-        <table>
-          <thead>
-            <tr>
-              <th>Benämning</th>
-              <th>Antal</th>
-              <th>Summa</th>
-              <th class="act">Åtgärd</th>
-            </tr>
-          </thead>
-          <tbody id="measuresBody"></tbody>
-        </table>
-      </div>
+    <!-- Måttlista -->
+    <div class="compact-list" id="listWrap" style="display:none">
+      <table>
+        <thead>
+          <tr>
+            <th>Benämning</th>
+            <th>Antal</th>
+            <th>Summa</th>
+            <th class="act">Åtgärd</th>
+          </tr>
+        </thead>
+        <tbody id="measuresBody"></tbody>
+      </table>
     </div>
 
     <!-- Stycksaker + Tid -->
@@ -202,6 +189,10 @@
         <div><label for="itemPrice">Pris/st (kr)</label><input id="itemPrice" type="number" min="0" step="1" /></div>
         <div><label for="itemQty">Antal</label><input id="itemQty" type="number" min="1" step="1" value="1" /></div>
       </div>
+
+      <!-- LIVE stycksak: exkl + inkl moms -->
+      <div id="itemPreview" class="hint"></div>
+
       <button class="btn" id="addItemBtn" type="button">+ Lägg till stycksak</button>
 
       <div class="grid3" style="margin-top:12px">
@@ -209,6 +200,9 @@
         <div><label for="hoursQty">Antal timmar</label><input id="hoursQty" type="number" min="0" step="0.25" placeholder="t.ex. 1.5" /></div>
         <div style="display:grid;align-items:end"><button class="btn" id="addTimeBtn" type="button">+ Lägg till tid</button></div>
       </div>
+
+      <!-- LIVE tid: exkl + inkl moms -->
+      <div id="timePreview" class="hint"></div>
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
@@ -241,7 +235,6 @@
         </div>
       </div>
 
-      <!-- PDF-logga (bara i PDF) -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
@@ -252,14 +245,12 @@
         </div>
       </div>
 
-      <!-- Presets m² -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Välj eller spara egna</b></div>
         <label>Förinställd text (titel)</label>
         <input id="presetTitle" type="text" placeholder="t.ex. Frost, Print, Vinyl" />
         <div class="row2" style="margin-top:8px">
           <div><label>Pris/m² (kr)</label><input id="presetPrice" type="number" min="0" step="1" /></div>
-          <div><label>Minimidebitering (kr/rad)</label><input id="presetMin" type="number" min="0" step="1" /></div>
         </div>
         <label style="margin-top:8px"><input id="presetVat" type="checkbox" checked /> Inkludera 25% moms</label>
         <div class="row2" style="margin-top:10px">
@@ -285,17 +276,17 @@
     const LS_PRESETS = "rg_presets_v1";
     const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
-    const LS_LOGO    = "rg_company_logo_dataurl"; // PDF-logga
+    const LS_LOGO    = "rg_company_logo_dataurl";
 
     const measures = [];
     let items = loadJSON(LS_ITEMS, []);
     let presets = loadJSON(LS_PRESETS, [
-      { artikel:"Frost", pris:699, moms:0.25, min:0 },
-      { artikel:"Print", pris:699, moms:0.25, min:0 },
-      { artikel:"Printlaminat", pris:799, moms:0.25, min:0 },
-      { artikel:"Vinyl", pris:699, moms:0.25, min:0 },
-      { artikel:"Vinyl flerfärg", pris:799, moms:0.25, min:0 },
-      { artikel:"Solfilm", pris:899, moms:0.25, min:0 }
+      { artikel:"Frost", pris:699, moms:0.25 },
+      { artikel:"Print", pris:699, moms:0.25 },
+      { artikel:"Printlaminat", pris:799, moms:0.25 },
+      { artikel:"Vinyl", pris:699, moms:0.25 },
+      { artikel:"Vinyl flerfärg", pris:799, moms:0.25 },
+      { artikel:"Solfilm", pris:899, moms:0.25 }
     ]);
     let itemTemplates = loadJSON(LS_TPLS, []);
     let logoDataURL = localStorage.getItem(LS_LOGO) || "";
@@ -312,13 +303,17 @@
       else{ el.style.display="none"; }
     }
 
-    // Live-förhandsvisning (utan min-rad)
+    // Helpers (format)
+    const fmt0 = n => Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
+    const fmt2 = n => Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
+
+    // Live-preview MÅTT (inkl moms)
     function previewMeasureLine(){
       const h = parseFloat($("hojd").value);
       const b = parseFloat($("bredd").value);
       const qty = parseFloat($("antal").value || "1");
       const price = parseFloat($("pris").value);
-      const min = parseFloat($("minpris").value || "0");
+      const moms = parseFloat($("moms").value || "0");
       const box = $("measurePreview");
 
       if(!h || !b || !price || !qty){
@@ -326,14 +321,39 @@
         return;
       }
       const area = (h/1000)*(b/1000);
-      const exklUtanMin = area * price * qty;
-      const exkl = Math.max(min || 0, exklUtanMin);
+      const exkl = area * price * qty;
+      const inkl = exkl * (1+moms);
 
-      box.textContent = `Rad: ${area.toFixed(2)} m²/st × ${price} kr/m² × ${qty} st = ${Math.round(exkl)} kr`;
+      box.textContent =
+        `Rad: ${fmt2(area)} m²/st × ${price} kr/m² × ${qty} st = ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
+    }
+
+    // Live-preview STYCKSAK
+    function previewItemLine(){
+      const price = parseFloat($("itemPrice").value);
+      const qty   = parseFloat($("itemQty").value || "1");
+      const moms  = parseFloat($("moms").value || "0");
+      const box   = $("itemPreview");
+      if(!price || !qty){ box.textContent = ""; return; }
+      const exkl = price * qty;
+      const inkl = exkl * (1+moms);
+      box.textContent = `Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
+    }
+
+    // Live-preview TID
+    function previewTimeLine(){
+      const rate  = parseFloat($("hourRate").value);
+      const hours = parseFloat($("hoursQty").value);
+      const moms  = parseFloat($("moms").value || "0");
+      const box   = $("timePreview");
+      if(!rate || !hours){ box.textContent = ""; return; }
+      const exkl = rate * hours;
+      const inkl = exkl * (1+moms);
+      box.textContent = `Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
 
     function render(){
-      // Måttlista (Benämning | Antal | Summa | Åtgärd)
+      // Måttlista
       const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
       measures.forEach((m,i)=>{
         total += m.exkl;
@@ -341,7 +361,7 @@
         tr.innerHTML = `
           <td style="white-space:normal"><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
           <td>${m.qty}</td>
-          <td>${m.exkl.toFixed(0)} kr</td>
+          <td>${fmt0(m.exkl)} kr</td>
           <td class="act"><button class="remove" data-i="${i}" aria-label="Ta bort rad">×</button></td>`;
         body.appendChild(tr);
       });
@@ -355,24 +375,25 @@
         tr.innerHTML = `
           <td style="white-space:normal">${it.name}</td>
           <td>${it.qty}</td>
-          <td>${(it.price*it.qty).toFixed(0)} kr</td>
+          <td>${fmt0(it.price*it.qty)} kr</td>
           <td class="act"><button class="remove" data-item="${i}" aria-label="Ta bort stycksak">×</button></td>`;
         itemsList.appendChild(tr);
       });
       $("itemsBox").style.display = items.length ? "block" : "none";
       $("itemsHint").style.display = items.length ? "none" : "block";
 
-      // Summering
+      // Summering (inkl moms)
       const moms = parseFloat($("moms").value || "0");
       const sumExkl = total + totalItems;
       const sumMoms = sumExkl * moms;
       const sumInkl = sumExkl + sumMoms;
-      $("result").textContent  = `${sumInkl.toFixed(0)} kr`;
-      $("details").textContent = `${sumExkl.toFixed(0)} kr • Moms: ${sumMoms.toFixed(0)} kr`;
+      $("result").textContent  = `${fmt0(sumInkl)} kr`;
+      $("details").textContent = `${fmt0(sumExkl)} kr • Moms: ${fmt0(sumMoms)} kr`;
 
       saveJSON(LS_ITEMS, items);
     }
 
+    // Datalist för artikel
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
@@ -382,8 +403,11 @@
     $("artikel").addEventListener("change", ()=>{
       const name = $("artikel").value.trim();
       const p = presets.find(x => x.artikel.toLowerCase() === name.toLowerCase());
-      if(p){ $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms; previewMeasureLine(); }
+      if(p){ $("pris").value = p.pris; $("moms").value = p.moms; previewMeasureLine(); }
     });
+
+    // Reagera på momsbyte – uppdatera alla previews + totals
+    $("moms").addEventListener("change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
 
     // Lägg till mått
     $("addMeasure").addEventListener("click", ()=>{
@@ -392,11 +416,9 @@
       const b = parseFloat($("bredd").value);
       const qty = parseInt($("antal").value);
       const price = parseFloat($("pris").value);
-      const min = parseFloat($("minpris").value || "0");
       if(!h||!b||!qty||!price) return;
       const area = (h/1000)*(b/1000);
-      let exkl = area*price*qty;
-      if(min && exkl < min) exkl = min;
+      const exkl = area*price*qty;
       measures.push({ artikel, h, b, qty, area, price, exkl });
       render();
       previewMeasureLine();
@@ -420,7 +442,7 @@
       if(!name||!price||!qty) return;
       items.push({ name, price, qty });
       $("itemName").value = ""; $("itemPrice").value = ""; $("itemQty").value = "1";
-      render();
+      render(); previewItemLine();
     });
 
     // Tid
@@ -430,14 +452,22 @@
       if(!rate || !hours) return;
       items.push({ name:"Arbetstid", price: rate, qty: hours });
       $("hourRate").value=""; $("hoursQty").value="";
-      render();
+      render(); previewTimeLine();
     });
 
-    ["hojd","bredd","antal","pris","minpris","artikel"].forEach(id=>{
+    // Input-listeners för previews
+    ["hojd","bredd","antal","pris","artikel"].forEach(id=>{
       $(id).addEventListener("input", previewMeasureLine);
       $(id).addEventListener("change", previewMeasureLine);
     });
-    previewMeasureLine();
+    ["itemPrice","itemQty"].forEach(id=>{
+      $(id).addEventListener("input", previewItemLine);
+      $(id).addEventListener("change", previewItemLine);
+    });
+    ["hourRate","hoursQty"].forEach(id=>{
+      $(id).addEventListener("input", previewTimeLine);
+      $(id).addEventListener("change", previewTimeLine);
+    });
 
     // Dela
     $("share").addEventListener("click", ()=>{
@@ -449,7 +479,7 @@
       }
     });
 
-    // PDF (ingen min-text)
+    // PDF (oförändrad jämfört med förra – totals tar redan hänsyn till moms)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -458,18 +488,14 @@
       const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
       let y=top;
 
-      const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-      const fmt0 = n => Number(n).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const addY = mm => y+=mm;
-
       const today = new Date().toLocaleDateString("sv-SE");
       const company = ($("avsandare").value || "Företag");
       const customer = $("kundnamn").value || "";
       const phone = $("telefon").value || "";
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // PDF-logga centrerad (om vald i drawer)
-      const logoDataURL = localStorage.getItem(LS_LOGO) || "";
+      // PDF-logga centrerad (om laddad i drawer)
       if(logoDataURL){
         try{
           const imgProps = doc.getImageProperties(logoDataURL);
@@ -500,10 +526,7 @@
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
       (window.measures||[]).forEach(l=>{
-        const radText = [
-          `${l.artikel || "Artikel"}`,
-          `${l.h} × ${l.b} mm • ${fmt2(l.area)} m²/st • á ${fmt2(l.price)} kr/m²`
-        ].join("\n");
+        const radText = [`${l.artikel || "Artikel"}`, `${l.h} × ${l.b} mm • ${fmt2((l.h/1000)*(l.b/1000))} m²/st • á ${fmt2(l.price)} kr/m²`].join("\n");
         const wrapped = doc.splitTextToSize(radText, col1W); const rowH = Math.max(8, wrapped.length*5);
         if (y+rowH > pageH-bottom-14) { doc.addPage(); y=top; }
         doc.setFontSize(10); doc.text(wrapped, col1X, y);
@@ -511,6 +534,7 @@
         doc.setFont("helvetica","normal"); y += rowH+4; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       });
 
+      const items = JSON.parse(localStorage.getItem(LS_ITEMS) || "[]");
       if(items.length){
         if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.text("Stycksaker & tid", col1X, y); y += 8; doc.setFont("helvetica","normal");
@@ -524,18 +548,18 @@
       }
 
       const sumExklMeasures = (window.measures||[]).reduce((s,l)=>s+l.exkl,0);
-      const sumExklItems = items.reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
+      const sumExklItems = (items||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
       const sumInkl = sumExkl + momsBelopp;
 
-      [["Summa exkl. moms", sumExkl, true],
-       [`${Math.round(momsSats*100)}%`, momsBelopp, false],
-       ["Att betala", sumInkl, true]
-      ].forEach(([label,val,bold])=>{
+      [["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
+       [`${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
+       ["Att betala", `${fmt0(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+      ].forEach(([label,value,bold])=>{
         if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, col1X, y); doc.text(`${fmt0(val)} kr`, col2X+col2W, y, {align:"right"});
+        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
         y += 7; doc.setDrawColor(220); doc.line(left, y, pageW-right, y); y += 5;
       });
 
@@ -546,12 +570,8 @@
     // Drawer
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
-      function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
-        drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false");
-        document.body.style.overflow="hidden"; }
-      function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open");
-        drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true");
-        document.body.style.overflow=""; }
+      function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
+      function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true"); document.body.style.overflow=""; }
       btn.addEventListener("click", e=>{ e.stopPropagation(); open(); });
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
@@ -560,26 +580,18 @@
       $("logoFile").addEventListener("change", (e)=>{
         const file = e.target.files?.[0]; if(!file) return;
         const reader = new FileReader();
-        reader.onload = () => {
-          localStorage.setItem(LS_LOGO, reader.result);
-          setLogoPreview();
-          alert("PDF-logga sparad! (påverkar ej loggan i appen)");
-        };
+        reader.onload = () => { logoDataURL = reader.result; localStorage.setItem(LS_LOGO, logoDataURL); setLogoPreview(); alert("PDF-logga sparad! (påverkar ej loggan i appen)"); };
         reader.readAsDataURL(file);
       });
-      $("logoClear").addEventListener("click", ()=>{
-        localStorage.removeItem(LS_LOGO);
-        setLogoPreview();
-      });
+      $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
 
-      // Presets
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
           const row = document.createElement("div");
           row.className = "preset-item";
           row.innerHTML = `
-            <span>${p.artikel} — ${p.pris} kr/m²${p.min?`, min ${p.min} kr`:""} ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span>
+            <span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span>
             <span>
               <button data-use="${idx}">Använd</button>
               <button data-del="${idx}">Ta bort</button>
@@ -593,7 +605,7 @@
           const del = t.getAttribute("data-del");
           if(use!=null){
             const p = presets[Number(use)];
-            $("artikel").value = p.artikel; $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms;
+            $("artikel").value = p.artikel; $("pris").value = p.pris; $("moms").value = p.moms;
             previewMeasureLine(); close();
           } else if(del!=null){
             presets.splice(Number(del),1);
@@ -607,32 +619,29 @@
       $("presetUseNow").addEventListener("click", ()=>{
         const artikel = $("presetTitle").value.trim();
         const pris    = parseFloat($("presetPrice").value);
-        const min     = parseFloat($("presetMin").value || "0");
         const moms    = $("presetVat").checked ? 0.25 : 0;
         if(!artikel || !pris) return;
-        $("artikel").value = artikel; $("pris").value = pris; $("minpris").value = min; $("moms").value = moms;
+        $("artikel").value = artikel; $("pris").value = pris; $("moms").value = moms;
         previewMeasureLine();
       });
 
       $("presetSave").addEventListener("click", ()=>{
         const artikel = $("presetTitle").value.trim();
         const pris    = parseFloat($("presetPrice").value);
-        const min     = parseFloat($("presetMin").value || "0");
         const moms    = $("presetVat").checked ? 0.25 : 0;
         if(!artikel || !pris) return;
         const existing = presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
-        if(existing){ existing.pris=pris; existing.min=min; existing.moms=moms; }
-        else{ presets.push({artikel, pris, min, moms}); }
+        if(existing){ existing.pris=pris; existing.moms=moms; }
+        else{ presets.push({artikel, pris, moms}); }
         localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
         renderPresetList();
-        $("presetTitle").value=""; $("presetPrice").value=""; $("presetMin").value="";
+        $("presetTitle").value=""; $("presetPrice").value="";
       });
     })();
 
     // Init
-    render();
-    refreshArtikelDatalist();
-    previewMeasureLine();
+    function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
+    render(); refreshArtikelDatalist(); initPreviews();
   </script>
 </body>
 </html>
