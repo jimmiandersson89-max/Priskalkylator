@@ -24,9 +24,7 @@
       width:100%; max-width:920px; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
-    .logo{
-      display:block; margin:50px auto 12px; width:220px; max-width:65%; border-radius:12px;
-    }
+    .logo{ display:block; margin:50px auto 12px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:8px 0 6px; text-align:center; font-size:30px }
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
@@ -100,6 +98,13 @@
     .drawer .muted{ color:#9aa3b2; font-size:12px }
 
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
+
+    /* Live-preview rutor */
+    .preview{
+      margin-top:8px; background:#0b0d12; border:1px dashed var(--line);
+      border-radius:12px; padding:10px 12px; font-size:14px; color:#e5e7eb;
+    }
+    .preview b{ font-weight:700 }
   </style>
 </head>
 <body>
@@ -162,6 +167,10 @@
         <div><label for="bredd">Bredd (mm)</label><input id="bredd" type="number" min="1" /></div>
         <div><label for="antal">Antal (st)</label><input id="antal" type="number" value="1" min="1" step="1" /></div>
       </div>
+
+      <!-- LIVE-FÖRHANDSVISNING FÖR MÅTT -->
+      <div id="measurePreview" class="preview" aria-live="polite">Beräknat pris (rad): –</div>
+
       <button class="btn" id="addMeasure" type="button">+ Lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris/min/moms automatiskt.</div>
     </div>
@@ -191,6 +200,10 @@
         <div><label for="itemPrice">Pris/st (kr)</label><input id="itemPrice" type="number" min="0" step="1" /></div>
         <div><label for="itemQty">Antal</label><input id="itemQty" type="number" min="1" step="1" value="1" /></div>
       </div>
+
+      <!-- LIVE-FÖRHANDSVISNING FÖR STYCKSAKER -->
+      <div id="itemPreview" class="preview" aria-live="polite">Beräknat pris (rad): –</div>
+
       <button class="btn" id="addItemBtn" type="button">+ Lägg till stycksak</button>
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
@@ -220,7 +233,6 @@
     <div class="bd">
       <div class="grp">
         <div class="row2">
-          <!-- Butiken borttagen; Start heter Kalkylatorn -->
           <a class="btn-mini" href="/">Kalkylatorn</a>
         </div>
       </div>
@@ -288,6 +300,9 @@
     }
     function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
 
+    function fmt0(n){ return Number(n).toLocaleString("sv-SE", { maximumFractionDigits:0 }); }
+    function fmt2(n){ return Number(n).toLocaleString("sv-SE", { minimumFractionDigits:2, maximumFractionDigits:2 }); }
+
     function render(){
       // Mått
       const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
@@ -332,7 +347,7 @@
       saveJSON(LS_ITEMS, items);
     }
 
-    // Autocomplete: artikel ↔ presets
+    // === AUTOKOMPLETT ARTIKEL (preset → fyll pris/min/moms) ===
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
@@ -349,6 +364,44 @@
         $("minpris").value = p.min;
         $("moms").value = p.moms;
       }
+      updateMeasurePreview();
+    });
+
+    // === BERÄKNA & VISA LIVE-PRIS FÖR MÅTT ===
+    function updateMeasurePreview(){
+      const h = parseFloat($("hojd").value);
+      const b = parseFloat($("bredd").value);
+      const qty = parseInt($("antal").value);
+      const price = parseFloat($("pris").value);
+      const min = parseFloat($("minpris").value || "0");
+
+      if(!h || !b || !qty || !price){
+        $("measurePreview").textContent = "Beräknat pris (rad): –";
+        return;
+      }
+      const areaPer = (h/1000)*(b/1000);
+      let exkl = areaPer * price * qty;
+      if(min && exkl < min) exkl = min;
+
+      $("measurePreview").innerHTML =
+        `Beräknat pris (rad): <b>${fmt0(exkl)} kr</b> &nbsp;•&nbsp; Area/st: ${fmt2(areaPer)} m²`;
+    }
+
+    // === BERÄKNA & VISA LIVE-PRIS FÖR STYCKSAK ===
+    function updateItemPreview(){
+      const price = parseFloat($("itemPrice").value);
+      const qty = parseInt($("itemQty").value);
+      if(!price || !qty){
+        $("itemPreview").textContent = "Beräknat pris (rad): –";
+        return;
+      }
+      $("itemPreview").innerHTML = `Beräknat pris (rad): <b>${fmt0(price*qty)} kr</b>`;
+    }
+
+    // Koppla lyssnare för livepreview (mått)
+    ["hojd","bredd","antal","pris","minpris"].forEach(id=>{
+      $(id).addEventListener("input", updateMeasurePreview);
+      $(id).addEventListener("change", updateMeasurePreview);
     });
 
     // Lägg till mått
@@ -365,13 +418,29 @@
       if(min && exkl < min) exkl = min;
       measures.push({ artikel, h, b, qty, area, price, exkl, min });
       render();
+      updateMeasurePreview();
     });
     $("measuresBody").addEventListener("click", (e)=>{
       const i = e.target?.dataset?.i;
-      if(i!=null){ measures.splice(Number(i),1); render(); }
+      if(i!=null){ measures.splice(Number(i),1); render(); updateMeasurePreview(); }
     });
 
-    // Stycksaker
+    // === STYCKSAKER ===
+    function fillPriceFromTemplate() {
+      const name = $("itemName").value.trim().toLowerCase();
+      if(!name) return;
+      const tpl = itemTemplates.find(t => t.name.toLowerCase() === name);
+      if(tpl) { $("itemPrice").value = tpl.price; updateItemPreview(); }
+    }
+    $("itemName").addEventListener("input", fillPriceFromTemplate);
+    $("itemName").addEventListener("change", fillPriceFromTemplate);
+    $("itemName").addEventListener("keydown", (e)=>{ if(e.key === "Enter") fillPriceFromTemplate(); });
+
+    ["itemPrice","itemQty"].forEach(id=>{
+      $(id).addEventListener("input", updateItemPreview);
+      $(id).addEventListener("change", updateItemPreview);
+    });
+
     $("addItemBtn").addEventListener("click", ()=>{
       const name = $("itemName").value.trim();
       const price = parseFloat($("itemPrice").value);
@@ -380,39 +449,25 @@
       items.push({ name, price, qty });
       $("itemName").value = ""; $("itemPrice").value = ""; $("itemQty").value = "1";
       render();
+      updateItemPreview();
     });
     $("itemsList").addEventListener("click", (e)=>{
       const i = e.target?.dataset?.item;
       if(i!=null){ items.splice(Number(i),1); render(); }
     });
 
-    // Autofyll pris medan du skriver benämningen
-    function fillPriceFromTemplate() {
-      const name = $("itemName").value.trim().toLowerCase();
-      if(!name) return;
-      const tpl = itemTemplates.find(t => t.name.toLowerCase() === name);
-      if(tpl) { $("itemPrice").value = tpl.price; }
-    }
-    $("itemName").addEventListener("input", fillPriceFromTemplate);
-    $("itemName").addEventListener("keydown", (e)=>{ if(e.key === "Enter") fillPriceFromTemplate(); });
-
     // === DELA PRISET – robust med fallback (urklipp) ===
     async function shareOrCopy(text) {
       if (navigator.share) {
-        try {
-          await navigator.share({ title: "Offert", text });
-          return true;
-        } catch (err) {
-          // avbrutet eller blockerat → fortsätt
-        }
+        try { await navigator.share({ title: "Offert", text }); return true; } catch (_) {}
       }
       try {
-        if (navigator.clipboard && navigator.clipboard.writeText) {
+        if (navigator.clipboard?.writeText) {
           await navigator.clipboard.writeText(text);
           alert("Text kopierad till urklipp.");
           return true;
         }
-      } catch (_) {}
+      } catch(_) {}
       try {
         const ta = document.createElement("textarea");
         ta.value = text;
@@ -426,7 +481,6 @@
       prompt("Kopiera texten:", text);
       return false;
     }
-
     $("share").addEventListener("click", async () => {
       const total = $("result").textContent.trim();
       const details = $("details").textContent.trim();
@@ -441,8 +495,7 @@
       lines.push(`Summa: ${total}`);
       if (details)  lines.push(details);
 
-      const text = lines.join("\n");
-      await shareOrCopy(text);
+      await shareOrCopy(lines.join("\n"));
     });
 
     // ===== PDF – kontaktblock + "Offerten är giltig i 30 dagar" =====
@@ -454,8 +507,6 @@
       const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
       let y=top;
 
-      const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-      const fmt0 = n => Number(n).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const addY = mm => y+=mm;
       const needPage = (h=0) => (y+h > pageH-bottom-14);
       const newPage = () => { doc.addPage(); y=top; drawHeader(); };
@@ -479,7 +530,6 @@
         doc.setTextColor(90); doc.text("Offerten är giltig i 30 dagar", pageW-right, y, { align:"right" });
         doc.setTextColor(0); addY(10);
 
-        // Kontaktblock
         const midX = pageW/2;
         doc.setFontSize(9); doc.setTextColor(90);
         doc.text("Avsändare", left, y);
@@ -495,10 +545,10 @@
       }
       drawHeader();
 
-      // Kolumner
+      const fmt2 = n => Number(n).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
+      const fmt0 = n => Number(n).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
 
-      // Tabellen
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
       doc.text("Benämning / Mått", col1X, y);
       doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
@@ -533,7 +583,6 @@
         addY(2); doc.setDrawColor(235); doc.line(left, y, pageW-right, y); addY(4);
       }
 
-      // Summering
       const sumBlock = [
         ["Summa exkl. moms", fmt0(sumExkl) + " kr", true],
         [`Moms ${Math.round(momsSats*100)}%`, fmt0(momsBelopp) + " kr", false],
@@ -542,7 +591,7 @@
       sumBlock.forEach(([label,value,bold])=>{
         if (needPage(12)) newPage();
         doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
+        doc.text(label, left, y); doc.text(value, pageW-right, y, {align:"right"});
         addY(7); doc.setDrawColor(220); doc.line(left, y, pageW-right, y); addY(5);
       });
 
@@ -550,7 +599,7 @@
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer öppna/stäng
+    // Drawer open/close + presets/templates (oförändrat)
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
@@ -565,7 +614,6 @@
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
-      // Presets (m²)
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
@@ -593,6 +641,7 @@
         $("pris").value = pris;
         $("minpris").value = min;
         $("moms").value = moms;
+        updateMeasurePreview();
       });
 
       $("presetSave").addEventListener("click", ()=>{
@@ -618,6 +667,7 @@
           $("pris").value = p.pris;
           $("minpris").value = p.min;
           $("moms").value = p.moms;
+          updateMeasurePreview();
           close();
         } else if(del!=null){
           presets.splice(Number(del),1);
@@ -626,7 +676,6 @@
         }
       });
 
-      // Stycksaks-mallar
       function renderTpls(){
         const box = $("tplList"); box.innerHTML = "";
         itemTemplates.forEach((t,i)=>{
@@ -679,6 +728,8 @@
     // Init
     render();
     refreshArtikelDatalist();
+    updateMeasurePreview();
+    updateItemPreview();
   </script>
 </body>
 </html>
