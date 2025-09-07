@@ -47,32 +47,18 @@
 
     /* ---- Lista/tabell ---- */
     .compact-list{
-      margin-top:10px; border:1px solid var(--line); border-radius:14px;
-      overflow:hidden; position:relative;
+      margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden; position:relative;
     }
-    .compact-list::after{ /* mjuk fade på högerkanten över scrollområdet */
-      content:""; position:absolute; top:0; right:0; width:22px; height:100%;
-      background:linear-gradient(to left, var(--card) 55%, rgba(31,41,55,0));
-      pointer-events:none;
-    }
-    .compact-list > div{
-      overflow-x:auto; -webkit-overflow-scrolling:touch;
-    }
-    .compact-list table{
-      width:100%; min-width:620px; border-collapse:collapse; font-size:14px;
-    }
-    .compact-list th, .compact-list td{
-      padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap;
-    }
+    .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
+    .compact-list th, .compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
     .compact-list th{ text-align:left; color:var(--muted); font-weight:600 }
     .compact-list td:nth-child(2),
     .compact-list td:nth-child(3),
     .compact-list td:nth-child(4),
     .compact-list td:nth-child(5){ text-align:right }
     .compact-list tr:last-child td{ border-bottom:none }
-    .compact-list tr:hover td{ background:#121722 }
 
-    /* Sticky åtgärdskolumn till höger – subtil skugga */
+    /* Sticky åtgärdskolumn till höger – funkar även när vi döljer kolumner */
     .compact-list th:last-child,
     .compact-list td:last-child{
       position:sticky; right:0; background:var(--row);
@@ -85,6 +71,15 @@
       padding:8px 12px; cursor:pointer; font-size:14px; line-height:1;
     }
     .remove:hover{ filter:brightness(1.06) }
+
+    /* --- MOBIL: visa allt utan horisontell scroll --- */
+    /* Dölj de minst viktiga kolumnerna på små skärmar */
+    @media (max-width: 480px){
+      .hide-xs{ display:none }                 /* används på th/td vi vill gömma */
+      .compact-list th, .compact-list td{ padding:10px 8px } /* lite tightare */
+      .compact-list table{ min-width:auto }    /* lås ej bredd */
+      .compact-list::after{ display:none }     /* ingen fade behövs */
+    }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
@@ -206,21 +201,19 @@
 
     <!-- Lista över mått -->
     <div class="compact-list" id="listWrap" style="display:none">
-      <div>
-        <table>
-          <thead>
-            <tr>
-              <th>Artikel / Mått</th>
-              <th>Antal</th>
-              <th>Area/st</th>
-              <th>Pris/m²</th>
-              <th>Exkl (rad)</th>
-              <th class="act">Åtgärd</th>
-            </tr>
-          </thead>
-          <tbody id="measuresBody"></tbody>
-        </table>
-      </div>
+      <table>
+        <thead>
+          <tr>
+            <th>Artikel / Mått</th>
+            <th>Antal</th>
+            <th class="hide-xs">Area/st</th>
+            <th class="hide-xs">Pris/m²</th>
+            <th>Exkl (rad)</th>
+            <th class="act">Åtgärd</th>
+          </tr>
+        </thead>
+        <tbody id="measuresBody"></tbody>
+      </table>
     </div>
 
     <!-- Stycksaker + Tid -->
@@ -240,12 +233,10 @@
       </div>
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
-        <div>
-          <table>
-            <thead><tr><th>Benämning</th><th>Pris/st</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
-            <tbody id="itemsList"></tbody>
-          </table>
-        </div>
+        <table>
+          <thead><tr><th>Benämning</th><th class="hide-xs">Pris/st</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
+          <tbody id="itemsList"></tbody>
+        </table>
       </div>
       <div class="hint" id="itemsHint">Stycksaker & tid sparas i denna enhet (localStorage).</div>
       <datalist id="itemOptions"></datalist>
@@ -314,15 +305,14 @@
   <script>
     "use strict";
 
-    // ===== Helpers / state
     const $ = id => document.getElementById(id);
     const LS_PRESETS = "rg_presets_v1";
     const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
-    const LS_LOGO    = "rg_company_logo_dataurl"; // endast för PDF
+    const LS_LOGO    = "rg_company_logo_dataurl"; // PDF-logga
 
     const measures = [];
-    let items = loadJSON(LS_ITEMS, []);            // {name, price, qty}
+    let items = loadJSON(LS_ITEMS, []);
     let presets = loadJSON(LS_PRESETS, [
       { artikel:"Frost", pris:699, moms:0.25, min:0 },
       { artikel:"Print", pris:699, moms:0.25, min:0 },
@@ -332,7 +322,7 @@
       { artikel:"Solfilm", pris:899, moms:0.25, min:0 }
     ]);
     let itemTemplates = loadJSON(LS_TPLS, []);
-    let logoDataURL = localStorage.getItem(LS_LOGO) || ""; // används endast i PDF
+    let logoDataURL = localStorage.getItem(LS_LOGO) || "";
 
     function loadJSON(key, fallback){
       try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -346,7 +336,6 @@
       else{ el.style.display="none"; }
     }
 
-    // Live-förhandsvisning av aktuell m²-rad
     function previewMeasureLine(){
       const h = parseFloat($("hojd").value);
       const b = parseFloat($("bredd").value);
@@ -359,10 +348,9 @@
         box.textContent = "Skriv mått så visas radens pris här…";
         return;
       }
-
-      const area = (h/1000)*(b/1000);                 // m² per styck
-      const exklUtanMin = area * price * qty;         // radbelopp utan min
-      const exkl = Math.max(min || 0, exklUtanMin);   // min-debitering om satt
+      const area = (h/1000)*(b/1000);
+      const exklUtanMin = area * price * qty;
+      const exkl = Math.max(min || 0, exklUtanMin);
 
       box.textContent =
         `Rad: ${area.toFixed(2)} m²/st × ${price} kr/m² × ${qty} st = ${Math.round(exklUtanMin)} kr` +
@@ -370,7 +358,7 @@
     }
 
     function render(){
-      // Mått
+      // Måttlista
       const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
       measures.forEach((m,i)=>{
         total += m.exkl;
@@ -378,22 +366,22 @@
         tr.innerHTML = `
           <td style="white-space:normal"><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
           <td>${m.qty}</td>
-          <td>${m.area.toFixed(2)} m²</td>
-          <td>${m.price} kr</td>
+          <td class="hide-xs">${m.area.toFixed(2)} m²</td>
+          <td class="hide-xs">${m.price} kr</td>
           <td>${m.exkl.toFixed(0)} kr</td>
           <td class="act"><button class="remove" data-i="${i}" aria-label="Ta bort rad">×</button></td>`;
         body.appendChild(tr);
       });
       $("listWrap").style.display = measures.length ? "block" : "none";
 
-      // Stycksaker + tid
+      // Stycksaker/tid
       const itemsList = $("itemsList"); itemsList.innerHTML = ""; let totalItems = 0;
       items.forEach((it,i)=>{
         totalItems += it.price*it.qty;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:normal">${it.name}</td>
-          <td>${it.price} kr</td>
+          <td class="hide-xs">${it.price} kr</td>
           <td>${it.qty}</td>
           <td>${(it.price*it.qty).toFixed(0)} kr</td>
           <td class="act"><button class="remove" data-item="${i}" aria-label="Ta bort stycksak">×</button></td>`;
@@ -402,7 +390,7 @@
       $("itemsBox").style.display = items.length ? "block" : "none";
       $("itemsHint").style.display = items.length ? "none" : "block";
 
-      // Summering (m² + stycksaker + tid)
+      // Summering
       const moms = parseFloat($("moms").value || "0");
       const sumExkl = total + totalItems;
       const sumMoms = sumExkl * moms;
@@ -413,7 +401,6 @@
       saveJSON(LS_ITEMS, items);
     }
 
-    // Autocomplete: artikel ↔ presets
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
       presets.forEach(p=>{
@@ -426,7 +413,6 @@
       if(p){ $("pris").value = p.pris; $("minpris").value = p.min; $("moms").value = p.moms; previewMeasureLine(); }
     });
 
-    // Lägg till mått
     $("addMeasure").addEventListener("click", ()=>{
       const artikel = $("artikel").value.trim();
       const h = parseFloat($("hojd").value);
@@ -474,14 +460,12 @@
       render();
     });
 
-    // Live-preview triggers
     ["hojd","bredd","antal","pris","minpris","artikel"].forEach(id=>{
       $(id).addEventListener("input", previewMeasureLine);
       $(id).addEventListener("change", previewMeasureLine);
     });
     previewMeasureLine();
 
-    // Share
     $("share").addEventListener("click", ()=>{
       const text = `${$("result").textContent} (${$("details").textContent})`;
       if(navigator.share){
@@ -491,7 +475,7 @@
       }
     });
 
-    // PDF (centrerad PDF-logga; app-loggan påverkas inte)
+    // PDF (centrerad PDF-logga)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -510,7 +494,7 @@
       const phone = $("telefon").value || "";
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // PDF-logga i mitten (om uppladdad)
+      // PDF-logga centrerad
       if(logoDataURL){
         try{
           const imgProps = doc.getImageProperties(logoDataURL);
@@ -592,7 +576,7 @@
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer (öppna/stäng + PDF-logga)
+    // Drawer
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
@@ -622,7 +606,7 @@
         logoDataURL=""; setLogoPreview();
       });
 
-      // Presets
+      // Presets (render + handlers)
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
         presets.forEach((p,idx)=>{
@@ -636,8 +620,7 @@
             </span>`;
           list.appendChild(row);
         });
-        // click handlers
-        list.addEventListener("click", (e)=>{
+        list.onclick = e=>{
           const t = e.target;
           if(!(t instanceof HTMLElement)) return;
           const use = t.getAttribute("data-use");
@@ -651,7 +634,7 @@
             localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
             renderPresetList();
           }
-        }, { once:true });
+        };
       }
       renderPresetList();
 
