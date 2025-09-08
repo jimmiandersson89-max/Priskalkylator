@@ -4,7 +4,7 @@
   "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
   "id": "se.reklamgiganten.priskalkylator",
 
-  "start_url": "/Priskalkylator/",
+  "start_url": "/Priskalkylator/index.html?source=pwa",
   "scope": "/Priskalkylator/",
   "display": "standalone",
   "display_override": ["standalone", "browser"],
@@ -31,14 +31,14 @@
       "name": "Ny offert",
       "short_name": "Ny offert",
       "description": "Starta en ny offert",
-      "url": "/Priskalkylator/?reset=true",
+      "url": "/Priskalkylator/index.html?reset=true",
       "icons": [{ "src": "/Priskalkylator/Icon-512.png", "sizes": "512x512", "type": "image/png" }]
     },
     {
       "name": "Skapa PDF",
       "short_name": "Skapa PDF",
       "description": "Gå direkt till PDF-knappen",
-      "url": "/Priskalkylator/#pdf",
+      "url": "/Priskalkylator/index.html#pdf",
       "icons": [{ "src": "/Priskalkylator/Icon-512.png", "sizes": "512x512", "type": "image/png" }]
     }
   ],
