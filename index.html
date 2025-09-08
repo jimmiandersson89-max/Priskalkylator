@@ -5,8 +5,20 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Offert på språng</title>
 
+  <!-- Manifest & tema -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#0f1115" />
+  <meta name="description" content="Offert på språng – en smidig priskalkylator för dekaler, print, vinyl och solfilm.">
+
+  <!-- Ikoner (OBS: rätt versaler enligt repo) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="./Icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="./Icon-512.png">
+  <link rel="apple-touch-icon" href="./Apple-touch-icon.png">
+
+  <!-- iOS helskärm -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="black">
+
   <style>
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
@@ -670,6 +682,25 @@
     // Init
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
     render(); refreshArtikelDatalist(); initPreviews();
+  </script>
+
+  <!-- PWA: registrera service worker och hoppa över waiting vid uppdatering -->
+  <script>
+  if ('serviceWorker' in navigator) {
+    navigator.serviceWorker.register('./sw.js').then(reg => {
+      if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+      reg.addEventListener('updatefound', () => {
+        const sw = reg.installing;
+        if (!sw) return;
+        sw.addEventListener('statechange', () => {
+          if (sw.state === 'installed' && reg.waiting) {
+            reg.waiting.postMessage({ type: 'SKIP_WAITING' });
+            // location.reload(); // valfritt: auto-uppdatera UI
+          }
+        });
+      });
+    }).catch(console.error);
+  }
   </script>
 </body>
 </html>
