@@ -1,27 +1,29 @@
 {
-  "name": "Offert på språng",
-  "short_name": "Offert",
+  "name": "Offert på språng – Priskalkylator",
+  "short_name": "Priskalk",
   "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
   "id": "se.reklamgiganten.priskalkylator",
 
   "start_url": "./index.html?source=pwa",
   "scope": "./",
   "display": "standalone",
+  "display_override": ["standalone", "browser"],
   "orientation": "portrait",
 
   "background_color": "#0f1115",
   "theme_color": "#0f1115",
+  "categories": ["business", "productivity"],
 
   "icons": [
-    { "src": "Icon-192.png",           "sizes": "192x192",   "type": "image/png" },
-    { "src": "Icon-512.png",           "sizes": "512x512",   "type": "image/png" },
-    { "src": "Icon-512-maskable.png",  "sizes": "512x512",   "type": "image/png", "purpose": "maskable" },
-    { "src": "Icon-1024.png",          "sizes": "1024x1024", "type": "image/png" },
-    { "src": "Apple-touch-icon.png",   "sizes": "180x180",   "type": "image/png" }
+    { "src": "Icon-192.png",          "sizes": "192x192",   "type": "image/png" },
+    { "src": "Icon-512.png",          "sizes": "512x512",   "type": "image/png" },
+    { "src": "Icon-512-maskable.png", "sizes": "512x512",   "type": "image/png", "purpose": "maskable" },
+    { "src": "Icon-1024.png",         "sizes": "1024x1024", "type": "image/png" },
+    { "src": "Apple-touch-icon.png",  "sizes": "180x180",   "type": "image/png" }
   ],
 
   "screenshots": [
-    { "src": "screenshot1.png", "sizes": "1280x720", "type": "image/png" }
+    { "src": "screenshot1.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide" }
   ],
 
   "shortcuts": [
