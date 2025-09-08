@@ -5,15 +5,18 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Offert på språng</title>
 
+  <!-- Viktigt för GitHub Pages/TWA -->
+  <base href="/Priskalkylator/">
+
   <!-- Manifest & tema -->
-  <link rel="manifest" href="./manifest.webmanifest">
+  <link rel="manifest" href="/Priskalkylator/manifest.webmanifest">
   <meta name="theme-color" content="#0f1115" />
   <meta name="description" content="Offert på språng – en smidig priskalkylator för dekaler, print, vinyl och solfilm.">
 
-  <!-- Ikoner (OBS: rätt versaler enligt repo) -->
-  <link rel="icon" type="image/png" sizes="192x192" href="./Icon-192.png">
-  <link rel="icon" type="image/png" sizes="512x512" href="./Icon-512.png">
-  <link rel="apple-touch-icon" href="./Apple-touch-icon.png">
+  <!-- Ikoner (absoluta vägar) -->
+  <link rel="icon" type="image/png" sizes="192x192" href="/Priskalkylator/Icon-192.png">
+  <link rel="icon" type="image/png" sizes="512x512" href="/Priskalkylator/Icon-512.png">
+  <link rel="apple-touch-icon" href="/Priskalkylator/Apple-touch-icon.png">
 
   <!-- iOS helskärm -->
   <meta name="apple-mobile-web-app-capable" content="yes">
@@ -109,7 +112,7 @@
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
     <!-- Fast logga i appen -->
-    <img class="logo" id="companyLogo" src="./Icon-512.png" alt="Logotyp" />
+    <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
 
     <h1>Offert på språng</h1>
 
@@ -243,7 +246,7 @@
     <div class="bd">
       <div class="grp">
         <div class="row2">
-          <a class="btn-mini" href="./index.html">Kalkylatorn</a>
+          <a class="btn-mini" href="/Priskalkylator/">Kalkylatorn</a>
         </div>
       </div>
 
@@ -684,10 +687,10 @@
     render(); refreshArtikelDatalist(); initPreviews();
   </script>
 
-  <!-- PWA: registrera service worker och hoppa över waiting vid uppdatering -->
+  <!-- PWA: registrera service worker och rätt scope -->
   <script>
   if ('serviceWorker' in navigator) {
-    navigator.serviceWorker.register('./sw.js').then(reg => {
+    navigator.serviceWorker.register('/Priskalkylator/sw.js', { scope: '/Priskalkylator/' }).then(reg => {
       if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
       reg.addEventListener('updatefound', () => {
         const sw = reg.installing;
@@ -695,7 +698,7 @@
         sw.addEventListener('statechange', () => {
           if (sw.state === 'installed' && reg.waiting) {
             reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            // location.reload(); // valfritt: auto-uppdatera UI
+            // location.reload(); // valfritt
           }
         });
       });
