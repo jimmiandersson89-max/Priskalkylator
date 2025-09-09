@@ -1,7 +1,7 @@
 // ----- Priskalkylator service worker -----
 // Bumpa VERSION när du gjort större ändringar på HTML/CSS/JS/ikoner
-const VERSION    = 'V.Benjii.2';
-const CACHE_NAME = `rg-kalkylator-${VERSION}`;
+const VERSION    = 'V.Benjii.3';  // bumpad version
+const CACHE_NAME = rg-kalkylator-${VERSION};
 
 const START_URL  = './index.html?source=pwa';
 
@@ -12,11 +12,10 @@ const CORE_ASSETS = [
   './manifest.webmanifest',
   './sw.js',
   './icon.svg',
-  './Apple-touch-icon.png',   // versaler som i repot
+  './Apple-touch-icon.png',
   './Icon-192.png',
   './Icon-512.png',
   './Icon-512-maskable.png',
-  // './screenshot1.png', // ta med om du vill kunna visa offline
 ];
 
 // Precache kärnfiler
@@ -24,7 +23,7 @@ self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
   );
-  self.skipWaiting(); // ta över direkt
+  self.skipWaiting();
 });
 
 // Rensa gamla cachar
@@ -36,12 +35,37 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// Strategi:
-// - HTML: network-first (så du får senaste index snabbt)
-// - Övriga GET: stale-while-revalidate (snabb cache, uppdatera i bakgrunden)
+// ====== NY SÄKERHETSKOLL ======
+// Blockera om appen inte körs som TWA eller PWA
+function isAllowedRequest(req) {
+  // tillåt alltid för core assets (annars bryts appen)
+  if (CORE_ASSETS.some(path => req.url.endsWith(path.replace('./','')))) return true;
+
+  // tillåt bara om requesten kommer från ditt repo/app
+  const allowedHosts = [
+    'jimmiandersson89-max.github.io',   // din GitHub Pages
+    'localhost'                         // för test lokalt
+  ];
+
+  try {
+    const url = new URL(req.url);
+    return allowedHosts.includes(url.hostname);
+  } catch {
+    return false;
+  }
+}
+// ====== SLUT SÄKERHETSKOLL ======
+
+// Strategi: HTML = network-first, övrigt = stale-while-revalidate
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
+
+  // 🔒 Stoppa allt som inte är tillåtet
+  if (!isAllowedRequest(req)) {
+    event.respondWith(new Response("Åtkomst nekad", { status: 403 }));
+    return;
+  }
 
   const isHTML =
     req.headers.get('accept')?.includes('text/html') ||
@@ -56,7 +80,6 @@ self.addEventListener('fetch', (event) => {
         return fresh;
       } catch {
         const cache = await caches.open(CACHE_NAME);
-        // försök matcha exakt URL först, annars fallback till index & START_URL
         const cached =
           (await cache.match(req)) ||
           (await cache.match(START_URL)) ||
@@ -73,13 +96,12 @@ self.addEventListener('fetch', (event) => {
     const cached = await cache.match(req);
     const fetchPromise = fetch(req)
       .then((res) => {
-        // cachbara svar (undvik opaque från t.ex. tredjeparts-CORS)
         if (res && res.status === 200 && res.type !== 'opaque') {
           cache.put(req, res.clone());
         }
         return res;
       })
-      .catch(() => cached); // offline => använd cache
+      .catch(() => cached);
     return cached || fetchPromise;
   })());
 });
