@@ -549,8 +549,8 @@
       doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
-      // Måttrader
-      (window.measures||[]).forEach(l=>{
+      // Måttrader (FIX: använd measures)
+      measures.forEach(l=>{
         const radText = [
           `${l.artikel || "Artikel"}`,
           `${l.h} × ${l.b} mm • ${fmt2p((l.h/1000)*(l.b/1000))} m²/st • á ${fmt2p(l.price)} kr/m²`
@@ -577,8 +577,8 @@
         y += 2; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       }
 
-      // Summor
-      const sumExklMeasures = (window.measures||[]).reduce((s,l)=>s+l.exkl,0);
+      // Summor (FIX: använd measures)
+      const sumExklMeasures = measures.reduce((s,l)=> s + l.exkl, 0);
       const sumExklItems = (savedItems||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
