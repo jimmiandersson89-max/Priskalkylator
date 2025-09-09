@@ -1,0 +1,10 @@
+[{
+  "relation": ["delegate_permission/common.handle_all_urls"],
+  "target": {
+    "namespace": "android_app",
+    "package_name": "com.reklamgiganten.offertpasprang",
+    "sha256_cert_fingerprints": [
+      "52:A6:A4:19:B5:34:42:9C:13:B0:15:BF:A1:6F:4B:EC:4A:43:C6:1A:57:1E:2A:83:30:77:C2:11:62:B6:5C:FD"
+    ]
+  }
+}]
