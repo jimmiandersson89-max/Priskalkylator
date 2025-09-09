@@ -12,6 +12,8 @@
   <link rel="manifest" href="/Priskalkylator/manifest.webmanifest">
   <meta name="theme-color" content="#0f1115" />
   <meta name="description" content="Offert på språng – en smidig priskalkylator för dekaler, print, vinyl och solfilm.">
+  <!-- Blockera indexering i sökmotorer -->
+  <meta name="robots" content="noindex, nofollow" />
 
   <!-- Ikoner (absoluta vägar) -->
   <link rel="icon" type="image/png" sizes="192x192" href="/Priskalkylator/Icon-192.png">
@@ -549,7 +551,7 @@
       doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
-      // Måttrader (FIX: använd measures)
+      // Måttrader
       measures.forEach(l=>{
         const radText = [
           `${l.artikel || "Artikel"}`,
@@ -577,7 +579,7 @@
         y += 2; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       }
 
-      // Summor (FIX: använd measures)
+      // Summor
       const sumExklMeasures = measures.reduce((s,l)=> s + l.exkl, 0);
       const sumExklItems = (savedItems||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
@@ -685,6 +687,50 @@
     // Init
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
     render(); refreshArtikelDatalist(); initPreviews();
+  </script>
+
+  <!--  Hård block: visa “Åtkomst nekad” direkt om ej via TWA -->
+  <style>
+    #appGate{
+      position:fixed; inset:0; display:none; place-items:center;
+      background:rgba(0,0,0,.98); z-index:99999;
+      color:#fff; text-align:center; padding:24px;
+      font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
+    #appGate .box{
+      max-width:560px; width:min(92vw,560px);
+      background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px;
+      box-shadow:0 12px 30px rgba(0,0,0,.35)
+    }
+    #appGate h3{ margin:0 0 8px; font-size:20px }
+    #appGate p{ margin:6px 0 0; color:#b7c0cf; font-size:14px }
+  </style>
+  <div id="appGate" aria-live="assertive" aria-hidden="true">
+    <div class="box">
+      <h3>Åtkomst nekad</h3>
+      <p>Den här tjänsten kan bara användas i <b>Offert på språng</b>-appen.</p>
+    </div>
+  </div>
+  <script>
+  (function () {
+    var isFromTWA = document.referrer &&
+                    document.referrer.indexOf('android-app://com.reklamgiganten.offertpasprang') === 0;
+
+    if (isFromTWA) {
+      try { sessionStorage.setItem('twa_ok', '1'); } catch(e) {}
+    }
+    var allowed = isFromTWA || (function(){
+      try { return sessionStorage.getItem('twa_ok') === '1'; } catch(e) { return false; }
+    })();
+
+    if (!allowed) {
+      var app = document.querySelector('.wrap');
+      if (app) app.style.display = 'none';
+      var gate = document.getElementById('appGate');
+      if (gate) gate.style.display = 'grid';
+      document.body.style.overflow = 'hidden';
+    }
+  })();
   </script>
 
   <!-- PWA: registrera service worker och rätt scope -->
