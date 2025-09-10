@@ -1,6 +1,6 @@
 // ----- Priskalkylator service worker -----
 // Bumpa VERSION när du gjort större ändringar på HTML/CSS/JS/ikoner
-const VERSION    = 'V.Benjii.7';  // bumpad version
+const VERSION    = 'V.Benjii.8';  // bumpad version
 const CACHE_NAME = rg-kalkylator-${VERSION};
 
 const START_URL  = './index.html?source=pwa';
