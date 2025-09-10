@@ -12,10 +12,9 @@
   <link rel="manifest" href="/Priskalkylator/manifest.webmanifest">
   <meta name="theme-color" content="#0f1115" />
   <meta name="description" content="Offert på språng – en smidig priskalkylator för dekaler, print, vinyl och solfilm.">
-  <!-- Blockera indexering i sökmotorer -->
   <meta name="robots" content="noindex, nofollow" />
 
-  <!-- Ikoner (absoluta vägar) -->
+  <!-- Ikoner -->
   <link rel="icon" type="image/png" sizes="192x192" href="/Priskalkylator/Icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="/Priskalkylator/Icon-512.png">
   <link rel="apple-touch-icon" href="/Priskalkylator/Apple-touch-icon.png">
@@ -41,7 +40,7 @@
       position:relative; width:100%; max-width:920px; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
-    .logo{ display:block; margin:50px auto 12px; width:220px; max-width:65%; border-radius:12px }
+    .logo{ display:block; margin:20px auto 12px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:8px 0 6px; text-align:center; font-size:30px }
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
@@ -113,9 +112,8 @@
   <div class="wrap">
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
-    <!-- Fast logga i appen -->
+    <!-- Logga -->
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
-
     <h1>Offert på språng</h1>
 
     <!-- Avsändare + Moms -->
@@ -152,7 +150,7 @@
       <div class="grid2">
         <div>
           <label for="artikel">Artikel/Benämning (styr pris via presets)</label>
-          <input id="artikel" type="text" list="artikelOptions" placeholder="t.ex. vinylmatta" />
+          <input id="artikel" type="text" list="artikelOptions" placeholder="t.ex. Vinylmatta" />
           <datalist id="artikelOptions"></datalist>
         </div>
         <div>
@@ -176,9 +174,9 @@
         </div>
       </div>
 
-      <!-- LIVE m²: exkl + inkl moms -->
       <div id="measurePreview" class="hint">Skriv mått så visas radens pris här…</div>
 
+      <!-- Ändrad text -->
       <button class="btn" id="addMeasure" type="button">Beräkna & lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris och moms automatiskt.</div>
     </div>
@@ -227,6 +225,7 @@
         </table>
       </div>
       <datalist id="itemOptions"></datalist>
+      <div class="hint" id="itemsHint">Stycksaker & tid sparas i denna enhet (localStorage).</div>
     </div>
 
     <!-- Resultat -->
@@ -291,12 +290,14 @@
 
     const $ = id => document.getElementById(id);
     const LS_PRESETS = "rg_presets_v1";
-    const LS_ITEMS   = "rg_items_v1";        /* <-- FIX: tog bort "the" */
+    const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1";
     const LS_LOGO    = "rg_company_logo_dataurl"; // PDF-logga
 
     const measures = [];
+    // Ladda sparade stycksaker/tid
     let items = loadJSON(LS_ITEMS, []);
+    // Ladda presets (tom från start enligt din önskan)
     let presets = loadJSON(LS_PRESETS, []);
     let itemTemplates = loadJSON(LS_TPLS, []);
     let logoDataURL = localStorage.getItem(LS_LOGO) || "";
@@ -362,11 +363,20 @@
       box.textContent = `Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
 
+    // Beräkna totalsummor (inkl stycksaker + tid)
+    function computeTotals(){
+      const moms = parseFloat($("moms").value || "0");
+      const sumExklMeasures = measures.reduce((s,l)=> s + l.exkl, 0);
+      const sumExklItems    = (items||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
+      const sumExkl = sumExklMeasures + sumExklItems;
+      const sumMoms = sumExkl * moms;
+      return { sumExkl, sumMoms, sumInkl: sumExkl + sumMoms };
+    }
+
     function render(){
       // Måttlista
-      const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
+      const body = $("measuresBody"); body.innerHTML = ""; 
       measures.forEach((m,i)=>{
-        total += m.exkl;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:normal"><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
@@ -378,9 +388,8 @@
       $("listWrap").style.display = measures.length ? "block" : "none";
 
       // Stycksaker/tid
-      const itemsList = $("itemsList"); itemsList.innerHTML = ""; let totalItems = 0;
-      items.forEach((it,i)=>{
-        totalItems += it.price*it.qty;
+      const itemsList = $("itemsList"); itemsList.innerHTML = "";
+      (items||[]).forEach((it,i)=>{
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:normal">${it.name}</td>
@@ -389,34 +398,34 @@
           <td class="act"><button class="remove" data-item="${i}" aria-label="Ta bort stycksak">×</button></td>`;
         itemsList.appendChild(tr);
       });
-      $("itemsBox").style.display = items.length ? "block" : "none";
-      $("itemsHint").style.display = items.length ? "none" : "block";
+      $("itemsBox").style.display = (items&&items.length) ? "block" : "none";
+      $("itemsHint").style.display = (items&&items.length) ? "none" : "block";
 
       // Summering (inkl moms)
-      const moms = parseFloat($("moms").value || "0");
-      const sumExkl = total + totalItems;
-      const sumMoms = sumExkl * moms;
-      const sumInkl = sumExkl + sumMoms;
+      const { sumExkl, sumMoms, sumInkl } = computeTotals();
       $("result").textContent  = `${fmt0(sumInkl)} kr`;
       $("details").textContent = `${fmt0(sumExkl)} kr • Moms: ${fmt0(sumMoms)} kr`;
 
+      // Spara stycksaker/tid lokalt
       saveJSON(LS_ITEMS, items);
     }
 
-    // Datalist för artikel
+    // Datalist för artikel (från presets)
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
-      presets.forEach(p=>{
+      (presets||[]).forEach(p=>{
         const opt = document.createElement("option"); opt.value = p.artikel; dl.appendChild(opt);
       });
     }
+
+    // Autifyll från preset
     $("artikel").addEventListener("change", ()=>{
       const name = $("artikel").value.trim();
-      const p = presets.find(x => x.artikel.toLowerCase() === name.toLowerCase());
+      const p = (presets||[]).find(x => x.artikel.toLowerCase() === name.toLowerCase());
       if(p){ $("pris").value = p.pris; $("moms").value = p.moms; previewMeasureLine(); }
     });
 
-    // Reagera på momsbyte – uppdatera previews + totals
+    // Reagera på momsbyte
     $("moms").addEventListener("change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
 
     // Lägg till mått
@@ -444,18 +453,18 @@
       if(itemIdx!=null){ items.splice(Number(itemIdx),1); render(); }
     });
 
-    // Stycksaker
+    // Lägg till stycksak
     $("addItemBtn").addEventListener("click", ()=>{
       const name = $("itemName").value.trim();
       const price = parseFloat($("itemPrice").value);
-      const qty = parseInt($("itemQty").value);
+      const qty = parseFloat($("itemQty").value);
       if(!name||!price||!qty) return;
       items.push({ name, price, qty });
       $("itemName").value = ""; $("itemPrice").value = ""; $("itemQty").value = "1";
       render(); previewItemLine();
     });
 
-    // Tid
+    // Lägg till tid
     $("addTimeBtn").addEventListener("click", ()=>{
       const rate = parseFloat($("hourRate").value);
       const hours = parseFloat($("hoursQty").value);
@@ -479,9 +488,10 @@
       $(id).addEventListener("change", previewTimeLine);
     });
 
-    // Dela
+    // DELA – inkluderar allt
     $("share").addEventListener("click", ()=>{
-      const text = `${$("result").textContent} (${$("details").textContent})`;
+      const { sumExkl, sumMoms, sumInkl } = computeTotals();
+      const text = `Offert: ${fmt0(sumInkl)} kr (exkl: ${fmt0(sumExkl)} kr, moms: ${fmt0(sumMoms)} kr)`;
       if(navigator.share){
         navigator.share({ title:"Offert", text }).catch(()=>{});
       } else {
@@ -489,7 +499,7 @@
       }
     });
 
-    // PDF
+    // PDF – inkluderar stycksaker & tid
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -505,6 +515,7 @@
       const phone    = ($("telefon").value || "").trim();
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
+      // PDF-logga (om vald i drawer)
       if(logoDataURL){
         try{
           const p = doc.getImageProperties(logoDataURL);
@@ -517,11 +528,13 @@
         }catch(e){}
       }
 
+      // Rubrik + datum
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
       doc.setFont("helvetica","normal"); doc.setFontSize(11);
       const rightX = pageW-right; doc.text(today, rightX, y, { align:"right" });
       addY(8);
 
+      // Avsändare/Kunduppgifter
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
       doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y+5);
 
@@ -532,6 +545,7 @@
 
       y += 18;
 
+      // Kolumnrubriker
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       const fmt0p = n => Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const fmt2p = n => Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
@@ -539,7 +553,8 @@
       doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
       doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
 
-      measures.forEach(l=>{
+      // Måttrader
+      (measures||[]).forEach(l=>{
         const radText = [
           `${l.artikel || "Artikel"}`,
           `${l.h} × ${l.b} mm • ${fmt2p((l.h/1000)*(l.b/1000))} m²/st • á ${fmt2p(l.price)} kr/m²`
@@ -552,6 +567,7 @@
         doc.setFont("helvetica","normal"); y += rowH+4; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       });
 
+      // Stycksaker / Tid
       const savedItems = JSON.parse(localStorage.getItem(LS_ITEMS) || "[]");
       if(savedItems.length){
         if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
@@ -565,7 +581,8 @@
         y += 2; doc.setDrawColor(235); doc.line(left, y, pageW-right, y); y += 4;
       }
 
-      const sumExklMeasures = measures.reduce((s,l)=> s + l.exkl, 0);
+      // Summor
+      const sumExklMeasures = (measures||[]).reduce((s,l)=> s + l.exkl, 0);
       const sumExklItems = (savedItems||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
@@ -617,7 +634,7 @@
 
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
-        presets.forEach((p,idx)=>{
+        (presets||[]).forEach((p,idx)=>{
           const row = document.createElement("div");
           row.className = "preset-item";
           row.innerHTML = `
@@ -660,9 +677,9 @@
         const pris    = parseFloat($("presetPrice").value);
         const moms    = $("presetVat").checked ? 0.25 : 0;
         if(!artikel || !pris) return;
-        const existing = presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
+        const existing = (presets||[]).find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
         if(existing){ existing.pris=pris; existing.moms=moms; }
-        else{ presets.push({artikel, pris, moms}); }
+        else{ (presets||[]).push({artikel, pris, moms}); }
         localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
         renderPresetList();
         $("presetTitle").value=""; $("presetPrice").value="";
@@ -718,7 +735,7 @@
   })();
   </script>
 
-  <!-- PWA: registrera service worker och rätt scope -->
+  <!-- PWA: registrera service worker -->
   <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/Priskalkylator/sw.js', { scope: '/Priskalkylator/' }).then(reg => {
