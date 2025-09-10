@@ -301,14 +301,7 @@
 
     const measures = [];
     let items = loadJSON(LS_ITEMS, []);
-    let presets = loadJSON(LS_PRESETS, [
-      { artikel:"Frost", pris:699, moms:0.25 },
-      { artikel:"Print", pris:699, moms:0.25 },
-      { artikel:"Printlaminat", pris:799, moms:0.25 },
-      { artikel:"Vinyl", pris:699, moms:0.25 },
-      { artikel:"Vinyl flerfärg", pris:799, moms:0.25 },
-      { artikel:"Solfilm", pris:899, moms:0.25 }
-    ]);
+    let presets = loadJSON(LS_PRESETS, []);
     let itemTemplates = loadJSON(LS_TPLS, []);
     let logoDataURL = localStorage.getItem(LS_LOGO) || "";
 
