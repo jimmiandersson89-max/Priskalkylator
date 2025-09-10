@@ -61,6 +61,7 @@
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
+    /* Tabeller */
     .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
     .compact-list th,.compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
@@ -253,7 +254,12 @@
     <div class="hd">Förinställningar</div>
     <div class="bd">
 
-      <!-- Avsändarprofil + logga -->
+      <!-- Topplänk -->
+      <div class="grp">
+        <a class="btn-mini" href="/Priskalkylator/">Åter till kalkylator</a>
+      </div>
+
+      <!-- 1) Avsändare + logga -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Avsändare – uppgifter som alltid syns i PDF</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -275,28 +281,7 @@
         <span class="muted">Uppgifterna sparas lokalt (denna enhet).</span>
       </div>
 
-      <!-- m²-presets (oförändrat) -->
-      <div class="grp">
-        <div style="margin-bottom:8px"><b>Skapa egna presets</b></div>
-        <label>Förinställd text (titel)</label>
-        <input id="presetTitle" type="text" placeholder="t.ex. Vinylmatta" />
-        <div class="row2" style="margin-top:8px">
-          <div><label>Pris/m² (kr)</label><input id="presetPrice" type="number" min="0" step="1" /></div>
-        </div>
-        <label style="margin-top:8px"><input id="presetVat" type="checkbox" checked /> Inkludera 25% moms</label>
-        <div class="row2" style="margin-top:10px">
-          <button class="btn-mini" id="presetUseNow" type="button">Använd nu</button>
-          <button class="btn-mini" id="presetSave" type="button">Spara preset</button>
-        </div>
-        <div class="muted" style="margin-top:8px">Sparas i din webbläsare (localStorage).</div>
-      </div>
-
-      <div class="grp">
-        <div style="margin-bottom:8px"><b>Sparade m²-presets</b></div>
-        <div class="preset-list" id="presetList"></div>
-      </div>
-
-      <!-- NYTT: Kund-presets -->
+      <!-- 2) Kund-presets -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Spara kund som preset</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -317,6 +302,46 @@
       <div class="grp">
         <div style="margin-bottom:8px"><b>Sparade kunder</b></div>
         <div class="preset-list" id="customerList"></div>
+      </div>
+
+      <!-- 3) m²-presets -->
+      <div class="grp">
+        <div style="margin-bottom:8px"><b>Skapa egna m²-presets</b></div>
+        <label>Förinställd text (titel)</label>
+        <input id="presetTitle" type="text" placeholder="t.ex. Vinylmatta" />
+        <div class="row2" style="margin-top:8px">
+          <div><label>Pris/m² (kr)</label><input id="presetPrice" type="number" min="0" step="1" /></div>
+        </div>
+        <label style="margin-top:8px"><input id="presetVat" type="checkbox" checked /> Inkludera 25% moms</label>
+        <div class="row2" style="margin-top:10px">
+          <button class="btn-mini" id="presetUseNow" type="button">Använd nu</button>
+          <button class="btn-mini" id="presetSave" type="button">Spara preset</button>
+        </div>
+        <div class="muted" style="margin-top:8px">Sparas i din webbläsare (localStorage).</div>
+      </div>
+
+      <div class="grp">
+        <div style="margin-bottom:8px"><b>Sparade m²-presets</b></div>
+        <div class="preset-list" id="presetList"></div>
+      </div>
+
+      <!-- 4) Styck-presets (NYTT) -->
+      <div class="grp">
+        <div style="margin-bottom:8px"><b>Skapa styck-presets</b></div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>Benämning</label><input id="tplName" type="text" placeholder="t.ex. Skrapa" /></div>
+          <div><label>Pris/st (kr)</label><input id="tplPrice" type="number" min="0" step="1" placeholder="0" /></div>
+        </div>
+        <div class="row2" style="margin-top:8px">
+          <button class="btn-mini" id="tplUseNow" type="button">Fyll i i formuläret</button>
+          <button class="btn-mini" id="tplSave" type="button">Spara styck-preset</button>
+        </div>
+        <div class="muted" style="margin-top:8px">Sparas lokalt (denna enhet).</div>
+      </div>
+
+      <div class="grp">
+        <div style="margin-bottom:8px"><b>Sparade styck-presets</b></div>
+        <div class="preset-list" id="tplList"></div>
       </div>
 
     </div>
@@ -462,6 +487,14 @@
       });
     }
 
+    // Datalist för styck-presets
+    function refreshItemDatalist(){
+      const dl = $("itemOptions"); dl.innerHTML = "";
+      itemTemplates.forEach(t=>{
+        const opt = document.createElement("option"); opt.value = t.name; dl.appendChild(opt);
+      });
+    }
+
     // Välj artikelpreset genom att skriva namnet
     $("artikel").addEventListener("change", ()=>{
       const name = $("artikel").value.trim();
@@ -474,10 +507,17 @@
       const name = $("kundnamn").value.trim();
       const c = customers.find(x => x.name.toLowerCase() === name.toLowerCase());
       if(c){
-        $("telefon").value = c.phone || "";
+        $("telefon").value   = c.phone || "";
         $("kundemail").value = c.email || "";
-        $("kundadress").value = c.address || "";
+        $("kundadress").value= c.address || "";
       }
+    });
+
+    // Om man väljer ett namn som finns i styck-presets, fyll item
+    $("itemName").addEventListener("change", ()=>{
+      const name = $("itemName").value.trim();
+      const t = itemTemplates.find(x => x.name.toLowerCase() === name.toLowerCase());
+      if(t){ $("itemPrice").value = t.price || ""; previewItemLine(); }
     });
 
     // Momsbyte
@@ -620,7 +660,7 @@
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
       let ky = y + 6;
       doc.text(`Kundnamn: ${customer.name || "-"}`, rightX, ky, {align:"right"}); ky += 6;
-      if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky += 6; }
+      if(customer.address){ doc.text(`Adress: ${customer.address}`, rightX, ky, {align:"right"}); ky += 6; }
       if(customer.phone){ doc.text(`Telefon: ${customer.phone}`, rightX, ky, {align:"right"}); ky += 6; }
       if(customer.email){ doc.text(`E-post: ${customer.email}`, rightX, ky, {align:"right"}); ky += 6; }
 
@@ -684,7 +724,7 @@
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer: öppna/stäng
+    // Drawer: öppna/stäng + logik
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
@@ -846,11 +886,67 @@
         $("kundadress").value= $("custAddress").value.trim();
       });
 
+      // Styck-presets list
+      function renderTplList(){
+        const list = $("tplList"); list.innerHTML = "";
+        itemTemplates.forEach((t,idx)=>{
+          const row = document.createElement("div");
+          row.className = "preset-item";
+          row.innerHTML = `
+            <span>${t.name} — ${t.price} kr/st</span>
+            <span>
+              <button data-tuse="${idx}">Fyll i</button>
+              <button data-tdel="${idx}">Ta bort</button>
+            </span>`;
+          list.appendChild(row);
+        });
+        list.onclick = e=>{
+          const t = e.target;
+          if(!(t instanceof HTMLElement)) return;
+          const use = t.getAttribute("data-tuse");
+          const del = t.getAttribute("data-tdel");
+          if(use!=null){
+            const it = itemTemplates[Number(use)];
+            $("itemName").value = it.name || "";
+            $("itemPrice").value = it.price || "";
+            $("itemQty").value = 1;
+            previewItemLine();
+          } else if(del!=null){
+            itemTemplates.splice(Number(del),1);
+            saveJSON(LS_TPLS, itemTemplates);
+            renderTplList();
+            refreshItemDatalist();
+          }
+        };
+      }
+      renderTplList();
+
+      // Styck-presets save/use
+      $("tplSave").addEventListener("click", ()=>{
+        const name = $("tplName").value.trim();
+        const price = parseFloat($("tplPrice").value);
+        if(!name || isNaN(price)){ alert("Ange benämning och pris."); return; }
+        const existing = itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
+        if(existing){ existing.price = price; }
+        else{ itemTemplates.push({name, price}); }
+        saveJSON(LS_TPLS, itemTemplates);
+        renderTplList();
+        refreshItemDatalist();
+        $("tplName").value=""; $("tplPrice").value="";
+        alert("Styck-preset sparad.");
+      });
+      $("tplUseNow").addEventListener("click", ()=>{
+        $("itemName").value = $("tplName").value.trim();
+        $("itemPrice").value = $("tplPrice").value.trim();
+        $("itemQty").value = 1;
+        previewItemLine();
+      });
+
     })();
 
     // Init
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
-    render(); refreshArtikelDatalist(); refreshCustomerDatalist(); initPreviews();
+    render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
   </script>
 
   <!-- Åtkomst-gate för TWA -->
