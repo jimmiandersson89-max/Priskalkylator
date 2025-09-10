@@ -179,7 +179,6 @@
       <!-- LIVE m²: exkl + inkl moms -->
       <div id="measurePreview" class="hint">Skriv mått så visas radens pris här…</div>
 
-      <!-- ÄNDRAD TEXT -->
       <button class="btn" id="addMeasure" type="button">Beräkna & lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris och moms automatiskt.</div>
     </div>
@@ -208,22 +207,17 @@
         <div><label for="itemQty">Antal</label><input id="itemQty" type="number" min="1" step="1" value="1" /></div>
       </div>
 
-      <!-- LIVE stycksak: exkl + inkl moms -->
       <div id="itemPreview" class="hint"></div>
-
-      <!-- ÄNDRAD TEXT -->
       <button class="btn" id="addItemBtn" type="button">Beräkna & lägg till stycksak</button>
 
       <div class="grid3" style="margin-top:12px">
         <div><label for="hourRate">Timpeng (kr/h)</label><input id="hourRate" type="number" min="0" step="1" placeholder="t.ex. 650" /></div>
         <div><label for="hoursQty">Antal timmar</label><input id="hoursQty" type="number" min="0" step="0.25" placeholder="t.ex. 1.5" /></div>
         <div style="display:grid;align-items:end">
-          <!-- ÄNDRAD TEXT -->
           <button class="btn" id="addTimeBtn" type="button">Beräkna & lägg till timpeng</button>
         </div>
       </div>
 
-      <!-- LIVE tid: exkl + inkl moms -->
       <div id="timePreview" class="hint"></div>
 
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
@@ -267,9 +261,11 @@
       </div>
 
       <div class="grp">
-        <div style="margin-bottom:8px"><b>Välj eller spara egna</b></div>
+        <!-- ÄNDRING 1: rubrik -->
+        <div style="margin-bottom:8px"><b>Skapa egna presets</b></div>
         <label>Förinställd text (titel)</label>
-        <input id="presetTitle" type="text" placeholder="t.ex. Frost, Print, Vinyl" />
+        <!-- ÄNDRING 2: placeholder -->
+        <input id="presetTitle" type="text" placeholder="t.ex. Vinylmatta" />
         <div class="row2" style="margin-top:8px">
           <div><label>Pris/m² (kr)</label><input id="presetPrice" type="number" min="0" step="1" /></div>
         </div>
