@@ -40,15 +40,15 @@
       position:relative; width:100%; max-width:920px; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
-    .logo{ display:block; margin:20px auto 12px; width:220px; max-width:65%; border-radius:12px }
+    .logo{ display:block; margin:50px auto 12px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:8px 0 6px; text-align:center; font-size:30px }
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
-    input,select,textarea{
+    input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
       padding:12px; font-size:16px; background:#fff; color:#000; outline:none;
     }
-    input:focus,select:focus,textarea:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
+    input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
@@ -61,7 +61,6 @@
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
 
-    /* Tabeller */
     .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
     .compact-list th,.compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
@@ -112,8 +111,9 @@
   <div class="wrap">
     <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
-    <!-- Logga -->
+    <!-- Fast logga i appen -->
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
+
     <h1>Offert på språng</h1>
 
     <!-- Avsändare + Moms -->
@@ -135,11 +135,22 @@
     <div class="grid2">
       <div>
         <label for="kundnamn">Kundnamn</label>
-        <input id="kundnamn" type="text" />
+        <input id="kundnamn" type="text" list="customerOptions" placeholder="Börja skriva namn..." />
+        <datalist id="customerOptions"></datalist>
       </div>
       <div>
         <label for="telefon">Telefon</label>
         <input id="telefon" type="tel" />
+      </div>
+    </div>
+    <div class="grid2">
+      <div>
+        <label for="kundemail">E-post</label>
+        <input id="kundemail" type="email" />
+      </div>
+      <div>
+        <label for="kundadress">Adress</label>
+        <input id="kundadress" type="text" placeholder="Gatuadress, postnr ort" />
       </div>
     </div>
 
@@ -150,7 +161,7 @@
       <div class="grid2">
         <div>
           <label for="artikel">Artikel/Benämning (styr pris via presets)</label>
-          <input id="artikel" type="text" list="artikelOptions" placeholder="t.ex. Vinylmatta" />
+          <input id="artikel" type="text" list="artikelOptions" placeholder="t.ex. vinylmatta" />
           <datalist id="artikelOptions"></datalist>
         </div>
         <div>
@@ -199,11 +210,7 @@
     <div class="row">
       <h2>Stycksaker</h2>
       <div class="grid3">
-        <div>
-          <label for="itemName">Benämning</label>
-          <input id="itemName" type="text" list="itemOptions" placeholder="t.ex. Skruvar" />
-          <datalist id="itemOptions"></datalist>
-        </div>
+        <div><label for="itemName">Benämning</label><input id="itemName" type="text" list="itemOptions" placeholder="t.ex. Skruvar" /></div>
         <div><label for="itemPrice">Pris/st (kr)</label><input id="itemPrice" type="number" min="0" step="1" /></div>
         <div><label for="itemQty">Antal</label><input id="itemQty" type="number" min="1" step="1" value="1" /></div>
       </div>
@@ -227,7 +234,7 @@
           <tbody id="itemsList"></tbody>
         </table>
       </div>
-      <div class="hint" id="itemsHint">Stycksaker & tid sparas i denna enhet (localStorage).</div>
+      <datalist id="itemOptions"></datalist>
     </div>
 
     <!-- Resultat -->
@@ -246,53 +253,29 @@
     <div class="hd">Förinställningar</div>
     <div class="bd">
 
-      <!-- AVSÄNDARE-INTRO -->
+      <!-- Avsändarprofil + logga -->
       <div class="grp">
-        <div style="margin-bottom:6px"><b>Avsändaruppgifter som alltid syns i PDF</b></div>
-        <div class="muted">Lägg till logga och dina företagsuppgifter. Uppgifterna sparas lokalt.</div>
-      </div>
+        <div style="margin-bottom:8px"><b>Avsändare – uppgifter som alltid syns i PDF</b></div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>Företagsnamn</label><input id="senderCompany" type="text" placeholder="Ditt företag" /></div>
+          <div><label>Telefon</label><input id="senderPhone" type="tel" placeholder="070-..." /></div>
+        </div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>E-post</label><input id="senderEmail" type="email" placeholder="du@foretag.se" /></div>
+          <div><label>Adress</label><input id="senderAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
+        </div>
 
-      <!-- PDF-LOGGA -->
-      <div class="grp">
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
         <img id="logoPreview" class="logoPreview" alt="Förhandsvisning" style="display:none" />
         <div class="row2" style="margin-top:8px">
           <button class="btn-mini" id="logoClear" type="button">Ta bort logga</button>
-          <span class="muted" style="display:grid;align-items:center">Sparas lokalt (denna enhet)</span>
-        </div>
-      </div>
-
-      <!-- AVSÄNDARE-FORMULÄR -->
-      <div class="grp">
-        <div class="row2">
-          <div>
-            <label for="senderCompany">Företagsnamn</label>
-            <input id="senderCompany" type="text" placeholder="Reklamgiganten AB" />
-          </div>
-          <div>
-            <label for="senderPhone">Telefon</label>
-            <input id="senderPhone" type="tel" placeholder="070-123 45 67" />
-          </div>
-        </div>
-        <div class="row2" style="margin-top:8px">
-          <div>
-            <label for="senderEmail">E-post</label>
-            <input id="senderEmail" type="email" placeholder="info@dittbolag.se" />
-          </div>
-          <div>
-            <label for="senderAddress">Adress</label>
-            <input id="senderAddress" type="text" placeholder="Gatan 1, 123 45 Stad" />
-          </div>
-        </div>
-        <div class="row2" style="margin-top:10px">
           <button class="btn-mini" id="senderSave" type="button">Spara uppgifter</button>
-          <button class="btn-mini" id="senderClear" type="button">Rensa uppgifter</button>
         </div>
-        <div class="muted" style="margin-top:6px">Fyller också fältet “Företag (avsändare)” i kalkylatorn.</div>
+        <span class="muted">Uppgifterna sparas lokalt (denna enhet).</span>
       </div>
 
-      <!-- m²-presets -->
+      <!-- m²-presets (oförändrat) -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Skapa egna presets</b></div>
         <label>Förinställd text (titel)</label>
@@ -313,44 +296,29 @@
         <div class="preset-list" id="presetList"></div>
       </div>
 
-      <!-- Stycksak-presets -->
+      <!-- NYTT: Kund-presets -->
       <div class="grp">
-        <div style="margin-bottom:8px"><b>Skapa egna stycksak-presets</b></div>
-        <div class="row2">
-          <div>
-            <label>Benämning</label>
-            <input id="tplName" type="text" placeholder="t.ex. Skrapa, Spackel, Rakel" />
-          </div>
-          <div>
-            <label>Pris/st (kr)</label>
-            <input id="tplPrice" type="number" min="0" step="1" placeholder="t.ex. 49" />
-          </div>
+        <div style="margin-bottom:8px"><b>Spara kund som preset</b></div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>Kundnamn</label><input id="custName" type="text" placeholder="Kund AB" /></div>
+          <div><label>Telefon</label><input id="custPhone" type="tel" placeholder="070-..." /></div>
+        </div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>E-post</label><input id="custEmail" type="email" placeholder="kund@exempel.se" /></div>
+          <div><label>Adress</label><input id="custAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
         <div class="row2" style="margin-top:8px">
-          <div>
-            <label>Standardantal (valfritt)</label>
-            <input id="tplQty" type="number" min="1" step="1" placeholder="t.ex. 1" />
-          </div>
-          <div style="display:grid;align-items:end">
-            <button class="btn-mini" id="tplUseNow" type="button">Använd nu</button>
-          </div>
+          <button class="btn-mini" id="customerUseNow" type="button">Fyll i i formuläret</button>
+          <button class="btn-mini" id="customerSave" type="button">Spara kundpreset</button>
         </div>
-        <div class="row2" style="margin-top:10px">
-          <button class="btn-mini" id="tplSave" type="button">Spara stycksak</button>
-          <span class="muted" style="display:grid;align-items:center">Fyller listan under “Benämning”.</span>
-        </div>
+        <div class="muted" style="margin-top:8px">Kundpresets sparas lokalt (denna enhet).</div>
       </div>
 
       <div class="grp">
-        <div style="margin-bottom:8px"><b>Sparade stycksak-presets</b></div>
-        <div class="preset-list" id="tplList"></div>
+        <div style="margin-bottom:8px"><b>Sparade kunder</b></div>
+        <div class="preset-list" id="customerList"></div>
       </div>
 
-      <div class="grp">
-        <div class="row2">
-          <a class="btn-mini" href="/Priskalkylator/">Kalkylatorn</a>
-        </div>
-      </div>
     </div>
   </aside>
 
@@ -360,18 +328,22 @@
     "use strict";
 
     const $ = id => document.getElementById(id);
-    const LS_PRESETS = "rg_presets_v1";
-    const LS_ITEMS   = "rg_items_v1";
-    const LS_TPLS    = "rg_item_templates_v1"; // stycksak-presets
-    const LS_LOGO    = "rg_company_logo_dataurl"; // PDF-logga
-    const LS_SENDER  = "rg_sender_profile_v1";    // avsändare
 
+    // Lagringsnycklar
+    const LS_PRESETS    = "rg_presets_v1";
+    const LS_ITEMS      = "rg_items_v1";
+    const LS_TPLS       = "rg_item_templates_v1";
+    const LS_LOGO       = "rg_company_logo_dataurl";
+    const LS_SENDER     = "rg_sender_profile_v1";
+    const LS_CUSTOMERS  = "rg_customers_v1";
+
+    // Data
     const measures = [];
     let items = loadJSON(LS_ITEMS, []);
     let presets = loadJSON(LS_PRESETS, []);
-    let itemTemplates = loadJSON(LS_TPLS, []); // {name, price, qty?}
+    let customers = loadJSON(LS_CUSTOMERS, []);
+    let itemTemplates = loadJSON(LS_TPLS, []);
     let logoDataURL = localStorage.getItem(LS_LOGO) || "";
-    let sender = loadJSON(LS_SENDER, { company:"", address:"", phone:"", email:"" });
 
     function loadJSON(key, fallback){
       try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -405,7 +377,9 @@
       const area = (h/1000)*(b/1000);
       const exkl = area * price * qty;
       const inkl = exkl * (1+moms);
-      box.textContent = `Rad: ${fmt2(area)} m²/st × ${price} kr/m² × ${qty} st = ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
+
+      box.textContent =
+        `Rad: ${fmt2(area)} m²/st × ${price} kr/m² × ${qty} st = ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
 
     // Live-preview STYCKSAK
@@ -432,20 +406,11 @@
       box.textContent = `Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
 
-    // Totalsummor
-    function computeTotals(){
-      const moms = parseFloat($("moms").value || "0");
-      const sumExklMeasures = measures.reduce((s,l)=> s + l.exkl, 0);
-      const sumExklItems    = (items||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
-      const sumExkl = sumExklMeasures + sumExklItems;
-      const sumMoms = sumExkl * moms;
-      return { sumExkl, sumMoms, sumInkl: sumExkl + sumMoms };
-    }
-
     function render(){
       // Måttlista
-      const body = $("measuresBody"); body.innerHTML = "";
+      const body = $("measuresBody"); body.innerHTML = ""; let total = 0;
       measures.forEach((m,i)=>{
+        total += m.exkl;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:normal"><b>${m.artikel || "-"}</b><br>${m.h}×${m.b} mm</td>
@@ -457,8 +422,9 @@
       $("listWrap").style.display = measures.length ? "block" : "none";
 
       // Stycksaker/tid
-      const itemsList = $("itemsList"); itemsList.innerHTML = "";
-      (items||[]).forEach((it,i)=>{
+      const itemsList = $("itemsList"); itemsList.innerHTML = ""; let totalItems = 0;
+      items.forEach((it,i)=>{
+        totalItems += it.price*it.qty;
         const tr = document.createElement("tr");
         tr.innerHTML = `
           <td style="white-space:normal">${it.name}</td>
@@ -467,52 +433,54 @@
           <td class="act"><button class="remove" data-item="${i}" aria-label="Ta bort stycksak">×</button></td>`;
         itemsList.appendChild(tr);
       });
-      $("itemsBox").style.display = (items&&items.length) ? "block" : "none";
-      $("itemsHint").style.display = (items&&items.length) ? "none" : "block";
+      $("itemsBox").style.display = items.length ? "block" : "none";
 
-      // Summering
-      const { sumExkl, sumMoms, sumInkl } = computeTotals();
+      // Summering (inkl moms)
+      const moms = parseFloat($("moms").value || "0");
+      const sumExkl = (measures.reduce((s,m)=>s+m.exkl,0)) + totalItems;
+      const sumMoms = sumExkl * moms;
+      const sumInkl = sumExkl + sumMoms;
       $("result").textContent  = `${fmt0(sumInkl)} kr`;
       $("details").textContent = `${fmt0(sumExkl)} kr • Moms: ${fmt0(sumMoms)} kr`;
 
       saveJSON(LS_ITEMS, items);
     }
 
-    // Datalist: m²-presets -> artikel
+    // Datalist för artikel
     function refreshArtikelDatalist(){
       const dl = $("artikelOptions"); dl.innerHTML = "";
-      (presets||[]).forEach(p=>{
+      presets.forEach(p=>{
         const opt = document.createElement("option"); opt.value = p.artikel; dl.appendChild(opt);
       });
     }
 
-    // Datalist: stycksak-presets -> itemName
-    function refreshItemDatalist(){
-      const dl = $("itemOptions"); dl.innerHTML = "";
-      (itemTemplates||[]).forEach(t=>{
-        const opt = document.createElement("option"); opt.value = t.name; dl.appendChild(opt);
+    // Datalist för kunder
+    function refreshCustomerDatalist(){
+      const dl = $("customerOptions"); dl.innerHTML = "";
+      customers.forEach(c=>{
+        const opt = document.createElement("option"); opt.value = c.name; dl.appendChild(opt);
       });
     }
 
-    // Autifyll från m²-preset
+    // Välj artikelpreset genom att skriva namnet
     $("artikel").addEventListener("change", ()=>{
       const name = $("artikel").value.trim();
-      const p = (presets||[]).find(x => x.artikel.toLowerCase() === name.toLowerCase());
+      const p = presets.find(x => x.artikel.toLowerCase() === name.toLowerCase());
       if(p){ $("pris").value = p.pris; $("moms").value = p.moms; previewMeasureLine(); }
     });
 
-    // Autifyll från stycksak-preset
-    $("itemName").addEventListener("change", ()=>{
-      const name = $("itemName").value.trim();
-      const t = (itemTemplates||[]).find(x => x.name.toLowerCase() === name.toLowerCase());
-      if(t){
-        if(typeof t.price === "number") $("itemPrice").value = String(t.price);
-        if(typeof t.qty === "number" && t.qty>0) $("itemQty").value = String(t.qty);
-        previewItemLine();
+    // Välj kundpreset genom att skriva/ välja namn
+    $("kundnamn").addEventListener("change", ()=>{
+      const name = $("kundnamn").value.trim();
+      const c = customers.find(x => x.name.toLowerCase() === name.toLowerCase());
+      if(c){
+        $("telefon").value = c.phone || "";
+        $("kundemail").value = c.email || "";
+        $("kundadress").value = c.address || "";
       }
     });
 
-    // Reagera på momsbyte
+    // Momsbyte
     $("moms").addEventListener("change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
 
     // Lägg till mått
@@ -530,7 +498,7 @@
       previewMeasureLine();
     });
 
-    // Ta bort rader/stycksaker
+    // Ta bort rader
     document.addEventListener("click", (e)=>{
       const t = e.target;
       if(!(t instanceof HTMLElement)) return;
@@ -540,18 +508,18 @@
       if(itemIdx!=null){ items.splice(Number(itemIdx),1); render(); }
     });
 
-    // Lägg till stycksak
+    // Stycksaker
     $("addItemBtn").addEventListener("click", ()=>{
       const name = $("itemName").value.trim();
       const price = parseFloat($("itemPrice").value);
-      const qty = parseFloat($("itemQty").value);
+      const qty = parseInt($("itemQty").value);
       if(!name||!price||!qty) return;
       items.push({ name, price, qty });
       $("itemName").value = ""; $("itemPrice").value = ""; $("itemQty").value = "1";
       render(); previewItemLine();
     });
 
-    // Lägg till tid
+    // Tid
     $("addTimeBtn").addEventListener("click", ()=>{
       const rate = parseFloat($("hourRate").value);
       const hours = parseFloat($("hoursQty").value);
@@ -561,10 +529,23 @@
       render(); previewTimeLine();
     });
 
-    // DELA – inkluderar allt
+    // Input-listeners för live-priser
+    ["hojd","bredd","antal","pris","artikel"].forEach(id=>{
+      $(id).addEventListener("input", previewMeasureLine);
+      $(id).addEventListener("change", previewMeasureLine);
+    });
+    ["itemPrice","itemQty"].forEach(id=>{
+      $(id).addEventListener("input", previewItemLine);
+      $(id).addEventListener("change", previewItemLine);
+    });
+    ["hourRate","hoursQty"].forEach(id=>{
+      $(id).addEventListener("input", previewTimeLine);
+      $(id).addEventListener("change", previewTimeLine);
+    });
+
+    // Dela (summa + momsdetalj)
     $("share").addEventListener("click", ()=>{
-      const { sumExkl, sumMoms, sumInkl } = computeTotals();
-      const text = `Offert: ${fmt0(sumInkl)} kr (exkl: ${fmt0(sumExkl)} kr, moms: ${fmt0(sumMoms)} kr)`;
+      const text = `${$("result").textContent} (${$("details").textContent})`;
       if(navigator.share){
         navigator.share({ title:"Offert", text }).catch(()=>{});
       } else {
@@ -572,7 +553,7 @@
       }
     });
 
-    // PDF – inkluderar stycksaker & tid + AVSÄNDARUPPGIFTER
+    // PDF – avsändare & kund (inkl adress/e-post), mått, stycksaker & tid
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -583,13 +564,27 @@
 
       const addY = mm => y+=mm;
       const today    = new Date().toLocaleDateString("sv-SE");
-      const cSender  = loadJSON(LS_SENDER, {company:"",address:"",phone:"",email:""});
-      const company  = ($("avsandare").value || cSender.company || "Företag").trim();
-      const customer = ($("kundnamn").value || "").trim();
-      const phone    = ($("telefon").value || "").trim(); // kundens telefon
+
+      // Avsändare (live > sparat)
+      const savedSender = loadJSON(LS_SENDER, {company:"",address:"",phone:"",email:""});
+      const sender = {
+        company: ($("avsandare").value||"").trim() || $("senderCompany")?.value?.trim() || savedSender.company || "Företag",
+        address: $("senderAddress")?.value?.trim() || savedSender.address || "",
+        phone:   $("senderPhone")?.value?.trim()   || savedSender.phone   || "",
+        email:   $("senderEmail")?.value?.trim()   || savedSender.email   || "",
+      };
+
+      // Kund (från fälten)
+      const customer = {
+        name:    ($("kundnamn").value||"").trim(),
+        phone:   ($("telefon").value||"").trim(),
+        email:   ($("kundemail").value||"").trim(),
+        address: ($("kundadress").value||"").trim(),
+      };
+
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // PDF-logga
+      // Logga
       if(logoDataURL){
         try{
           const p = doc.getImageProperties(logoDataURL);
@@ -608,36 +603,39 @@
       const rightX = pageW-right; doc.text(today, rightX, y, { align:"right" });
       addY(8);
 
-      // Avsändare (från lagrade uppgifter)
+      // Avsändare
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
-      doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y+5);
+      doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
       let sy = y + 11;
-      const avsLines = [
-        cSender.address ? cSender.address : null,
-        cSender.phone   ? `Tel: ${cSender.phone}` : null,
-        cSender.email   ? `E-post: ${cSender.email}` : null
-      ].filter(Boolean);
-      avsLines.forEach((ln)=>{ doc.text(String(ln), left, sy); sy += 5; });
+      if(sender.address){
+        const wrappedAddr = doc.splitTextToSize(sender.address, 80);
+        wrappedAddr.forEach(line => { doc.text(line, left, sy); sy += 5; });
+      }
+      if(sender.phone){ doc.text(`Tel: ${sender.phone}`, left, sy); sy += 5; }
+      if(sender.email){ doc.text(`E-post: ${sender.email}`, left, sy); sy += 5; }
 
-      // Kunduppgifter (höger)
+      // Kund
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      doc.text(`Kundnamn: ${customer || "-"}`, rightX, y+6,  {align:"right"});
-      doc.text(`Telefon: ${phone || "-"}`,    rightX, y+12, {align:"right"});
+      let ky = y + 6;
+      doc.text(`Kundnamn: ${customer.name || "-"}`, rightX, ky, {align:"right"}); ky += 6;
+      if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky += 6; }
+      if(customer.phone){ doc.text(`Telefon: ${customer.phone}`, rightX, ky, {align:"right"}); ky += 6; }
+      if(customer.email){ doc.text(`E-post: ${customer.email}`, rightX, ky, {align:"right"}); ky += 6; }
 
-      y = Math.max(sy, y + 18);
+      y = Math.max(sy, ky) + 2;
 
-      // Kolumnrubriker
+      // Tabell
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       const fmt0p = n => Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const fmt2p = n => Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
-      doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); addY(6);
-      doc.setDrawColor(200); doc.line(left, y, pageW-right, y); addY(6); doc.setFont("helvetica","normal");
+      doc.text("Benämning", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"});
+      y += 6; doc.setDrawColor(200); doc.line(left, y, pageW-right, y); y += 6; doc.setFont("helvetica","normal");
 
       // Måttrader
-      (measures||[]).forEach(l=>{
+      (window.measures||[]).forEach(l=>{
         const radText = [
           `${l.artikel || "Artikel"}`,
           `${l.h} × ${l.b} mm • ${fmt2p((l.h/1000)*(l.b/1000))} m²/st • á ${fmt2p(l.price)} kr/m²`
@@ -651,11 +649,12 @@
       });
 
       // Stycksaker / Tid
-      const savedItems = JSON.parse(localStorage.getItem(LS_ITEMS) || "[]");
-      if(savedItems.length){
+      const storedItems = loadJSON(LS_ITEMS, []);
+      const allItems = (Array.isArray(window.items) && window.items.length) ? window.items : storedItems;
+      if(allItems.length){
         if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.text("Stycksaker & tid", col1X, y); y += 8; doc.setFont("helvetica","normal");
-        savedItems.forEach(it=>{
+        allItems.forEach(it=>{
           if (y+8 > pageH-bottom) { doc.addPage(); y=top; }
           doc.text(`${it.qty} × ${it.name}`, col1X, y);
           doc.setFont("helvetica","bold"); doc.text(`${fmt0p(it.price*it.qty)} kr`, col2X+col2W, y, {align:"right"});
@@ -665,8 +664,8 @@
       }
 
       // Summor
-      const sumExklMeasures = (measures||[]).reduce((s,l)=> s + l.exkl, 0);
-      const sumExklItems = (savedItems||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
+      const sumExklMeasures = (window.measures||[]).reduce((s,l)=> s + l.exkl, 0);
+      const sumExklItems = (allItems||[]).reduce((s,it)=> s + (Number(it.price||0)*Number(it.qty||0)), 0);
       const sumExkl = sumExklMeasures + sumExklItems;
       const momsBelopp = sumExkl * momsSats;
       const sumInkl = sumExkl + momsBelopp;
@@ -685,7 +684,7 @@
       doc.save(`${safeName}.pdf`);
     });
 
-    // Drawer
+    // Drawer: öppna/stäng
     (function(){
       const btn = $("openDrawer"), drawer = $("drawer"), backdrop = $("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open");
@@ -698,7 +697,25 @@
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
-      // Init logga
+      // Avsändare load/save
+      const senderSaved = loadJSON(LS_SENDER, {company:"",address:"",phone:"",email:""});
+      $("senderCompany").value = senderSaved.company || "";
+      $("senderAddress").value = senderSaved.address || "";
+      $("senderPhone").value   = senderSaved.phone   || "";
+      $("senderEmail").value   = senderSaved.email   || "";
+
+      $("senderSave").addEventListener("click", ()=>{
+        const data = {
+          company: $("senderCompany").value.trim(),
+          address: $("senderAddress").value.trim(),
+          phone:   $("senderPhone").value.trim(),
+          email:   $("senderEmail").value.trim()
+        };
+        saveJSON(LS_SENDER, data);
+        alert("Avsändaruppgifter sparade.");
+      });
+
+      // Logga
       if(logoDataURL){ setLogoPreview(); }
       $("logoFile").addEventListener("change", (e)=>{
         const file = e.target.files?.[0]; if(!file) return;
@@ -716,43 +733,10 @@
         logoDataURL=""; setLogoPreview();
       });
 
-      // Avsändaruppgifter – fyll & spara
-      function fillSenderForm(s){
-        $("senderCompany").value = s.company || "";
-        $("senderAddress").value = s.address || "";
-        $("senderPhone").value   = s.phone   || "";
-        $("senderEmail").value   = s.email   || "";
-      }
-      fillSenderForm(sender);
-
-      // Prefill huvudfältet Företag (avsändare)
-      if(sender.company && !$("avsandare").value){
-        $("avsandare").value = sender.company;
-      }
-
-      $("senderSave").addEventListener("click", ()=>{
-        sender = {
-          company: $("senderCompany").value.trim(),
-          address: $("senderAddress").value.trim(),
-          phone:   $("senderPhone").value.trim(),
-          email:   $("senderEmail").value.trim()
-        };
-        saveJSON(LS_SENDER, sender);
-        if(sender.company) $("avsandare").value = sender.company;
-        alert("Avsändaruppgifter sparade!");
-      });
-
-      $("senderClear").addEventListener("click", ()=>{
-        sender = {company:"", address:"", phone:"", email:""};
-        saveJSON(LS_SENDER, sender);
-        fillSenderForm(sender);
-        alert("Avsändaruppgifter rensade.");
-      });
-
-      /* --- m²-PRESETS LISTA --- */
+      // m²-presets list
       function renderPresetList(){
         const list = $("presetList"); list.innerHTML = "";
-        (presets||[]).forEach((p,idx)=>{
+        presets.forEach((p,idx)=>{
           const row = document.createElement("div");
           row.className = "preset-item";
           row.innerHTML = `
@@ -774,11 +758,12 @@
             previewMeasureLine(); close();
           } else if(del!=null){
             presets.splice(Number(del),1);
-            localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
-            renderPresetList(); refreshArtikelDatalist();
+            saveJSON(LS_PRESETS, presets);
+            renderPresetList();
           }
         };
       }
+      renderPresetList();
 
       $("presetUseNow").addEventListener("click", ()=>{
         const artikel = $("presetTitle").value.trim();
@@ -794,95 +779,78 @@
         const pris    = parseFloat($("presetPrice").value);
         const moms    = $("presetVat").checked ? 0.25 : 0;
         if(!artikel || !pris) return;
-        const existing = (presets||[]).find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
+        const existing = presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
         if(existing){ existing.pris=pris; existing.moms=moms; }
-        else{ (presets||[]).push({artikel, pris, moms}); }
-        localStorage.setItem(LS_PRESETS, JSON.stringify(presets));
-        renderPresetList(); refreshArtikelDatalist();
+        else{ presets.push({artikel, pris, moms}); }
+        saveJSON(LS_PRESETS, presets);
+        renderPresetList();
         $("presetTitle").value=""; $("presetPrice").value="";
       });
 
-      /* --- STYCKSAK-PRESETS LISTA --- */
-      function renderTplList(){
-        const list = $("tplList"); list.innerHTML = "";
-        (itemTemplates||[]).forEach((t,idx)=>{
+      // Kund-presets list
+      function renderCustomerList(){
+        const list = $("customerList"); list.innerHTML = "";
+        customers.forEach((c,idx)=>{
           const row = document.createElement("div");
           row.className = "preset-item";
-          const qtyTxt = (typeof t.qty==="number" && t.qty>0) ? ` • ${t.qty} st` : "";
           row.innerHTML = `
-            <span>${t.name} — ${t.price} kr${qtyTxt}</span>
+            <span>${c.name} — ${c.phone || ""} ${c.email ? "• "+c.email : ""}</span>
             <span>
-              <button data-use="${idx}">Använd</button>
-              <button data-del="${idx}">Ta bort</button>
+              <button data-cuse="${idx}">Fyll i</button>
+              <button data-cdel="${idx}">Ta bort</button>
             </span>`;
           list.appendChild(row);
         });
         list.onclick = e=>{
           const t = e.target;
           if(!(t instanceof HTMLElement)) return;
-          const use = t.getAttribute("data-use");
-          const del = t.getAttribute("data-del");
+          const use = t.getAttribute("data-cuse");
+          const del = t.getAttribute("data-cdel");
           if(use!=null){
-            const tpl = itemTemplates[Number(use)];
-            $("itemName").value = tpl.name;
-            $("itemPrice").value = typeof tpl.price==="number" ? tpl.price : "";
-            if(typeof tpl.qty==="number" && tpl.qty>0) $("itemQty").value = tpl.qty;
-            previewItemLine(); close();
+            const c = customers[Number(use)];
+            $("kundnamn").value  = c.name || "";
+            $("telefon").value   = c.phone || "";
+            $("kundemail").value = c.email || "";
+            $("kundadress").value= c.address || "";
           } else if(del!=null){
-            itemTemplates.splice(Number(del),1);
-            localStorage.setItem(LS_TPLS, JSON.stringify(itemTemplates));
-            renderTplList(); refreshItemDatalist();
+            customers.splice(Number(del),1);
+            saveJSON(LS_CUSTOMERS, customers);
+            renderCustomerList();
+            refreshCustomerDatalist();
           }
         };
       }
+      renderCustomerList();
 
-      $("tplUseNow").addEventListener("click", ()=>{
-        const name = $("tplName").value.trim();
-        const price = parseFloat($("tplPrice").value);
-        const qty = parseInt($("tplQty").value);
-        if(!name || !price) return;
-        $("itemName").value = name;
-        $("itemPrice").value = String(price);
-        if(qty>0) $("itemQty").value = String(qty);
-        previewItemLine();
+      // Kund-presets save/use
+      $("customerSave").addEventListener("click", ()=>{
+        const name = $("custName").value.trim();
+        const phone = $("custPhone").value.trim();
+        const email = $("custEmail").value.trim();
+        const address = $("custAddress").value.trim();
+        if(!name){ alert("Ange kundnamn."); return; }
+        const existing = customers.find(c=>c.name.toLowerCase()===name.toLowerCase());
+        if(existing){ existing.phone=phone; existing.email=email; existing.address=address; }
+        else{ customers.push({name, phone, email, address}); }
+        saveJSON(LS_CUSTOMERS, customers);
+        renderCustomerList();
+        refreshCustomerDatalist();
+        $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value="";
+        alert("Kund sparad.");
       });
 
-      $("tplSave").addEventListener("click", ()=>{
-        const name = $("tplName").value.trim();
-        const price = parseFloat($("tplPrice").value);
-        const qtyRaw = $("tplQty").value;
-        const qty = qtyRaw ? parseInt(qtyRaw) : undefined;
-
-        if(!name || isNaN(price)) return;
-
-        const existing = (itemTemplates||[]).find(t=>t.name.toLowerCase()===name.toLowerCase());
-        if(existing){
-          existing.price = price;
-          existing.qty = (qty && qty>0) ? qty : undefined;
-        }else{
-          itemTemplates.push({ name, price, ...(qty && qty>0 ? {qty} : {}) });
-        }
-        localStorage.setItem(LS_TPLS, JSON.stringify(itemTemplates));
-        renderTplList(); refreshItemDatalist();
-
-        $("tplName").value=""; $("tplPrice").value=""; $("tplQty").value="";
+      $("customerUseNow").addEventListener("click", ()=>{
+        $("kundnamn").value  = $("custName").value.trim();
+        $("telefon").value   = $("custPhone").value.trim();
+        $("kundemail").value = $("custEmail").value.trim();
+        $("kundadress").value= $("custAddress").value.trim();
       });
 
-      // initiera listor
-      renderPresetList();
-      renderTplList();
-      refreshArtikelDatalist();
-      refreshItemDatalist();
     })();
 
     // Init
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
-    // Prefill avsändare i toppfält om sparat
-    (function(){
-      const s = loadJSON(LS_SENDER, {company:""});
-      if(s.company && !$("avsandare").value){ $("avsandare").value = s.company; }
-    })();
-    render(); initPreviews();
+    render(); refreshArtikelDatalist(); refreshCustomerDatalist(); initPreviews();
   </script>
 
   <!-- Åtkomst-gate för TWA -->
@@ -929,7 +897,7 @@
   })();
   </script>
 
-  <!-- PWA: registrera service worker -->
+  <!-- PWA: registrera service worker och rätt scope -->
   <script>
   if ('serviceWorker' in navigator) {
     navigator.serviceWorker.register('/Priskalkylator/sw.js', { scope: '/Priskalkylator/' }).then(reg => {
