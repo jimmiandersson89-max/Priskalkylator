@@ -71,7 +71,7 @@
     .remove:hover{ filter:brightness(1.06) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
-    .hint{ color:#b7c0cf; font-size:12px; margin-top:6px }
+    .hint{ color:var(--muted); font-size:12px; margin-top:6px }
     .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
@@ -188,7 +188,7 @@
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
           <thead><tr><th>Benämning</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
-          <tbody id="itemsList"></tbody>
+        <tbody id="itemsList"></tbody>
         </table>
       </div>
       <datalist id="itemOptions"></datalist>
@@ -305,6 +305,7 @@
     const LS_LOGO      = "rg_company_logo_dataurl";
     const LS_SENDER    = "rg_sender_profile_v1";
     const LS_CUSTOMERS = "rg_customers_v1";
+    const LS_OFFER_NO  = "rg_offer_no_v1"; // <-- Offertnummer räknare
 
     // Data
     let items          = loadJSON(LS_ITEMS, []);
@@ -401,12 +402,19 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // ---------- PDF ----------
+    // Skapa PDF (med Offert Nr och giltighetstext)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
       const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
       const addY=mm=>y+=mm; const today=new Date().toLocaleDateString("sv-SE");
+
+      // Hämta/spara offertnummer (1..500, loopar)
+      let n = parseInt(localStorage.getItem(LS_OFFER_NO) || "1", 10);
+      if (isNaN(n) || n < 1 || n > 500) n = 1;
+      const offerNo = n;
+      const nextNo = (offerNo >= 500) ? 1 : (offerNo + 1);
+      localStorage.setItem(LS_OFFER_NO, String(nextNo));
 
       const savedSender = loadJSON(LS_SENDER, {company:"",address:"",phone:"",email:""});
       const sender = { company: savedSender.company||"Företag", address: savedSender.address||"", phone: savedSender.phone||"", email: savedSender.email||"" };
@@ -414,38 +422,45 @@
       const customer = { name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
       const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
 
-      /* LOGGA – CENTRERAD HÖGST UPP */
-      if(logoDataURL){
-        try{
-          const p = doc.getImageProperties(logoDataURL);
-          const maxW = 60, maxH = 22;
-          let w = maxW, h = maxW * (p.height/p.width);
-          if(h>maxH){ h = maxH; w = h * (p.width/p.height); }
-          const x = (pageW - w) / 2;
-          const yImg = y - 8;               // lite högre upp än rubriken
-          doc.addImage(logoDataURL, p.fileType || "PNG", x, yImg, w, h);
-          addY(16);                         // luft före rubrik
-        }catch(e){}
-      }
+      // Logga överst, centrerad
+      if(logoDataURL){ try{
+        const p=doc.getImageProperties(logoDataURL);
+        const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width);
+        if(h>maxH){ h=maxH; w=h*(p.width/p.height); }
+        const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); // något högre
+        addY(20);
+      }catch(e){} }
 
+      // Rubrik och datum
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
-      doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(8);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"});
+      addY(6);
 
+      // Offert Nr under datum, höger
+      doc.setFont("helvetica","bold"); doc.setFontSize(11);
+      doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"});
+      addY(4);
+
+      // Avsändare vänster
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
       doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
       let sy=y+11; if(sender.address){ doc.splitTextToSize(sender.address,80).forEach(line=>{ doc.text(line,left,sy); sy+=5; }); }
-      if(sender.phone){ doc.text(`Tel: ${sender.phone}`, left, sy); sy+=5; }
-      if(sender.email){ doc.text(`E-post: ${sender.email}`, left, sy); sy+=5; }
+      if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
+      if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
 
+      // Kund höger
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      let ky=y+6; doc.text(`Kundnamn: ${customer.name||"-"}`, rightX, ky, {align:"right"}); ky+=6;
-      if(customer.address){ doc.text(`Adress: ${customer.address}`, rightX, ky, {align:"right"}); ky+=6; }
-      if(customer.phone){ doc.text(`Telefon: ${customer.phone}`, rightX, ky, {align:"right"}); ky+=6; }
-      if(customer.email){ doc.text(`E-post: ${customer.email}`, rightX, ky, {align:"right"}); ky+=6; }
+      let ky=y+6;
+      if(customer.name){ doc.text(customer.name, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=6; }
+
       y=Math.max(sy,ky)+2;
 
+      // Spec + belopp
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
@@ -467,17 +482,21 @@
       ].forEach(([label,value,bold])=>{
         if(y+12>pageH-bottom){ doc.addPage(); y=top; }
         doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
+        doc.text(label, col1X, y);
+        doc.text(value, col2X+col2W, y, {align:"right"});
         y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
 
-      /* Giltighetstext under totalsumman */
-      doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(90);
-      doc.text("Offerten är giltig i 30 dagar.", pageW/2, y+6, { align: "center" });
+      // Giltighetstext centrerad
+      if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
+      doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      doc.text("Offerten är giltig i 30 dagar.", pageW/2, y, {align:"center"});
 
-      const safeName=(($("kundnamn").value||"offert").replace(/[^\w\- åäöÅÄÖ]/g,"_")); doc.save(`${safeName}.pdf`);
+      // Filnamn: Kundnamn + OffertNr
+      const base = (customer.name || "offert").trim() || "offert";
+      const safeBase = base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
+      doc.save(`${safeBase} ${offerNo}.pdf`);
     });
-    // ---------- /PDF ----------
 
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
