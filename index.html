@@ -71,7 +71,7 @@
     .remove:hover{ filter:brightness(1.06) }
 
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
-    .hint{ color:var(--muted); font-size:12px; margin-top:6px }
+    .hint{ color:#b7c0cf; font-size:12px; margin-top:6px }
     .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
@@ -188,7 +188,7 @@
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
           <thead><tr><th>Benämning</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
-        <tbody id="itemsList"></tbody>
+          <tbody id="itemsList"></tbody>
         </table>
       </div>
       <datalist id="itemOptions"></datalist>
@@ -401,7 +401,7 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // -------- PDF (med tre ändringar) --------
+    // ---------- PDF ----------
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
@@ -414,85 +414,61 @@
       const customer = { name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
       const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
 
-      // ÄNDRING 1: logga till vänster (nära "Offert från")
+      /* LOGGA – LITE HÖGRE OCH VÄNSTER OM RUBRIKEN */
       if(logoDataURL){
         try{
-          const p=doc.getImageProperties(logoDataURL);
-          const maxW=42, maxH=18; // lite mindre och nära vänster
-          let w=maxW, h=maxW*(p.height/p.width);
-          if(h>maxH){ h=maxH; w=h*(p.width/p.height); }
-          const x = left; // vänsterkant
-          doc.addImage(logoDataURL, p.fileType||"PNG", x, y-4, w, h);
-          addY(18);
+          const p = doc.getImageProperties(logoDataURL);
+          const maxW = 42, maxH = 18;
+          let w = maxW, h = maxW * (p.height/p.width);
+          if(h>maxH){ h = maxH; w = h * (p.width/p.height); }
+          const x = left;
+          const yImg = y - 10;                // flytta upp loggan
+          doc.addImage(logoDataURL, p.fileType || "PNG", x, yImg, w, h);
+          addY(14);                           // lite mindre luft ovan rubriken
         }catch(e){}
       }
 
-      // Rubrik + datum
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
       doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(8);
 
-      // Avsändare (bara värden)
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
       doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      let sy=y+11;
-      if(sender.address){
-        const lines = doc.splitTextToSize(sender.address, 80);
-        lines.forEach(line=>{ doc.text(line,left,sy); sy+=5; });
-      }
-      if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
-      if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
+      let sy=y+11; if(sender.address){ doc.splitTextToSize(sender.address,80).forEach(line=>{ doc.text(line,left,sy); sy+=5; }); }
+      if(sender.phone){ doc.text(`Tel: ${sender.phone}`, left, sy); sy+=5; }
+      if(sender.email){ doc.text(`E-post: ${sender.email}`, left, sy); sy+=5; }
 
-      // Kund (bara värden)
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      let ky=y+6;
-      if(customer.name){ doc.text(customer.name, rightX, ky, {align:"right"}); ky+=5; }
-      if(customer.address){
-        const klines = doc.splitTextToSize(customer.address, 90);
-        klines.forEach(line=>{ doc.text(line, rightX, ky, {align:"right"}); ky+=5; });
-      }
-      if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=5; }
-      if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=5; }
+      let ky=y+6; doc.text(`Kundnamn: ${customer.name||"-"}`, rightX, ky, {align:"right"}); ky+=6;
+      if(customer.address){ doc.text(`Adress: ${customer.address}`, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.phone){ doc.text(`Telefon: ${customer.phone}`, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.email){ doc.text(`E-post: ${customer.email}`, rightX, ky, {align:"right"}); ky+=6; }
       y=Math.max(sy,ky)+2;
 
-      // Tabell
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
-      doc.text("Specifikation", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"});
-      y+=6; doc.setDrawColor(200); doc.line(left,y,pageW-right,y); y+=6; doc.setFont("helvetica","normal");
+      doc.text("Specifikation", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); y+=6; doc.setDrawColor(200); doc.line(left,y,pageW-right,y); y+=6; doc.setFont("helvetica","normal");
 
       items.forEach(it=>{
         if(y+6>pageH-bottom-14){ doc.addPage(); y=top; }
         doc.text(`${it.qty} × ${it.name}`, col1X, y);
-        doc.setFont("helvetica","bold");
-        doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"});
-        doc.setFont("helvetica","normal");
+        doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"}); doc.setFont("helvetica","normal");
         y+=6;
       });
       y+=2; doc.setDrawColor(235); doc.line(left,y,pageW-right,y); y+=4;
 
-      // Summering
       const sumExkl=items.reduce((s,it)=>s+(Number(it.price||0)*Number(it.qty||0)),0);
       const momsBelopp=sumExkl*momsSats, sumInkl=sumExkl+momsBelopp;
-      [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],
-       [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],
-       ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
-      ].forEach(([label,value,bold])=>{
+      [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],[`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]].forEach(([label,value,bold])=>{
         if(y+12>pageH-bottom){ doc.addPage(); y=top; }
-        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
-        y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
+        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal"); doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"}); y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
 
-      // ÄNDRING 2: giltighetstext centrerad under totalsumman
-      doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      doc.text("Offerten är giltig i 30 dagar.", pageW/2, y+6, {align:"center"});
-
-      const safeName=(($("kundnamn").value||"offert").replace(/[^\w\- åäöÅÄÖ]/g,"_"));
-      doc.save(`${safeName}.pdf`);
+      const safeName=(($("kundnamn").value||"offert").replace(/[^\w\- åäöÅÄÖ]/g,"_")); doc.save(`${safeName}.pdf`);
     });
+    // ---------- /PDF ----------
 
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
