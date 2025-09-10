@@ -44,11 +44,11 @@
     h1{ margin:8px 0 6px; text-align:center; font-size:30px }
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
-    input,select{
+    input,select,textarea{
       width:100%; border-radius:14px; border:1px solid var(--line);
       padding:12px; font-size:16px; background:#fff; color:#000; outline:none;
     }
-    input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
+    input:focus,select:focus,textarea:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
@@ -245,12 +245,14 @@
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
     <div class="hd">Förinställningar</div>
     <div class="bd">
+
+      <!-- AVSÄNDARE-INTRO -->
       <div class="grp">
-        <div class="row2">
-          <a class="btn-mini" href="/Priskalkylator/">Kalkylatorn</a>
-        </div>
+        <div style="margin-bottom:6px"><b>Avsändaruppgifter som alltid syns i PDF</b></div>
+        <div class="muted">Lägg till logga och dina företagsuppgifter. Uppgifterna sparas lokalt.</div>
       </div>
 
+      <!-- PDF-LOGGA -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
@@ -259,6 +261,35 @@
           <button class="btn-mini" id="logoClear" type="button">Ta bort logga</button>
           <span class="muted" style="display:grid;align-items:center">Sparas lokalt (denna enhet)</span>
         </div>
+      </div>
+
+      <!-- AVSÄNDARE-FORMULÄR -->
+      <div class="grp">
+        <div class="row2">
+          <div>
+            <label for="senderCompany">Företagsnamn</label>
+            <input id="senderCompany" type="text" placeholder="Reklamgiganten AB" />
+          </div>
+          <div>
+            <label for="senderPhone">Telefon</label>
+            <input id="senderPhone" type="tel" placeholder="070-123 45 67" />
+          </div>
+        </div>
+        <div class="row2" style="margin-top:8px">
+          <div>
+            <label for="senderEmail">E-post</label>
+            <input id="senderEmail" type="email" placeholder="info@dittbolag.se" />
+          </div>
+          <div>
+            <label for="senderAddress">Adress</label>
+            <input id="senderAddress" type="text" placeholder="Gatan 1, 123 45 Stad" />
+          </div>
+        </div>
+        <div class="row2" style="margin-top:10px">
+          <button class="btn-mini" id="senderSave" type="button">Spara uppgifter</button>
+          <button class="btn-mini" id="senderClear" type="button">Rensa uppgifter</button>
+        </div>
+        <div class="muted" style="margin-top:6px">Fyller också fältet “Företag (avsändare)” i kalkylatorn.</div>
       </div>
 
       <!-- m²-presets -->
@@ -282,7 +313,7 @@
         <div class="preset-list" id="presetList"></div>
       </div>
 
-      <!-- NYTT: Stycksak-presets -->
+      <!-- Stycksak-presets -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Skapa egna stycksak-presets</b></div>
         <div class="row2">
@@ -314,6 +345,12 @@
         <div style="margin-bottom:8px"><b>Sparade stycksak-presets</b></div>
         <div class="preset-list" id="tplList"></div>
       </div>
+
+      <div class="grp">
+        <div class="row2">
+          <a class="btn-mini" href="/Priskalkylator/">Kalkylatorn</a>
+        </div>
+      </div>
     </div>
   </aside>
 
@@ -327,12 +364,14 @@
     const LS_ITEMS   = "rg_items_v1";
     const LS_TPLS    = "rg_item_templates_v1"; // stycksak-presets
     const LS_LOGO    = "rg_company_logo_dataurl"; // PDF-logga
+    const LS_SENDER  = "rg_sender_profile_v1";    // avsändare
 
     const measures = [];
     let items = loadJSON(LS_ITEMS, []);
     let presets = loadJSON(LS_PRESETS, []);
     let itemTemplates = loadJSON(LS_TPLS, []); // {name, price, qty?}
     let logoDataURL = localStorage.getItem(LS_LOGO) || "";
+    let sender = loadJSON(LS_SENDER, { company:"", address:"", phone:"", email:"" });
 
     function loadJSON(key, fallback){
       try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); }
@@ -522,20 +561,6 @@
       render(); previewTimeLine();
     });
 
-    // Input-listeners för live-priser
-    ["hojd","bredd","antal","pris","artikel"].forEach(id=>{
-      $(id).addEventListener("input", previewMeasureLine);
-      $(id).addEventListener("change", previewMeasureLine);
-    });
-    ["itemPrice","itemQty"].forEach(id=>{
-      $(id).addEventListener("input", previewItemLine);
-      $(id).addEventListener("change", previewItemLine);
-    });
-    ["hourRate","hoursQty"].forEach(id=>{
-      $(id).addEventListener("input", previewTimeLine);
-      $(id).addEventListener("change", previewTimeLine);
-    });
-
     // DELA – inkluderar allt
     $("share").addEventListener("click", ()=>{
       const { sumExkl, sumMoms, sumInkl } = computeTotals();
@@ -547,7 +572,7 @@
       }
     });
 
-    // PDF – inkluderar stycksaker & tid
+    // PDF – inkluderar stycksaker & tid + AVSÄNDARUPPGIFTER
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -558,12 +583,13 @@
 
       const addY = mm => y+=mm;
       const today    = new Date().toLocaleDateString("sv-SE");
-      const company  = ($("avsandare").value || "Företag").trim();
+      const cSender  = loadJSON(LS_SENDER, {company:"",address:"",phone:"",email:""});
+      const company  = ($("avsandare").value || cSender.company || "Företag").trim();
       const customer = ($("kundnamn").value || "").trim();
-      const phone    = ($("telefon").value || "").trim();
+      const phone    = ($("telefon").value || "").trim(); // kundens telefon
       const momsSats = parseFloat(($("moms")||{value:"0"}).value || "0");
 
-      // PDF-logga (om vald i drawer)
+      // PDF-logga
       if(logoDataURL){
         try{
           const p = doc.getImageProperties(logoDataURL);
@@ -582,16 +608,25 @@
       const rightX = pageW-right; doc.text(today, rightX, y, { align:"right" });
       addY(8);
 
-      // Avsändare/Kunduppgifter
+      // Avsändare (från lagrade uppgifter)
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
       doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(company, left, y+5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      let sy = y + 11;
+      const avsLines = [
+        cSender.address ? cSender.address : null,
+        cSender.phone   ? `Tel: ${cSender.phone}` : null,
+        cSender.email   ? `E-post: ${cSender.email}` : null
+      ].filter(Boolean);
+      avsLines.forEach((ln)=>{ doc.text(String(ln), left, sy); sy += 5; });
 
+      // Kunduppgifter (höger)
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
       doc.text(`Kundnamn: ${customer || "-"}`, rightX, y+6,  {align:"right"});
       doc.text(`Telefon: ${phone || "-"}`,    rightX, y+12, {align:"right"});
 
-      y += 18;
+      y = Math.max(sy, y + 18);
 
       // Kolumnrubriker
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
@@ -663,9 +698,8 @@
       backdrop.addEventListener("click", close);
       document.addEventListener("keydown", e=>{ if(e.key==="Escape") close(); });
 
+      // Init logga
       if(logoDataURL){ setLogoPreview(); }
-
-      // PDF-logga
       $("logoFile").addEventListener("change", (e)=>{
         const file = e.target.files?.[0]; if(!file) return;
         const reader = new FileReader();
@@ -680,6 +714,39 @@
       $("logoClear").addEventListener("click", ()=>{
         localStorage.removeItem(LS_LOGO);
         logoDataURL=""; setLogoPreview();
+      });
+
+      // Avsändaruppgifter – fyll & spara
+      function fillSenderForm(s){
+        $("senderCompany").value = s.company || "";
+        $("senderAddress").value = s.address || "";
+        $("senderPhone").value   = s.phone   || "";
+        $("senderEmail").value   = s.email   || "";
+      }
+      fillSenderForm(sender);
+
+      // Prefill huvudfältet Företag (avsändare)
+      if(sender.company && !$("avsandare").value){
+        $("avsandare").value = sender.company;
+      }
+
+      $("senderSave").addEventListener("click", ()=>{
+        sender = {
+          company: $("senderCompany").value.trim(),
+          address: $("senderAddress").value.trim(),
+          phone:   $("senderPhone").value.trim(),
+          email:   $("senderEmail").value.trim()
+        };
+        saveJSON(LS_SENDER, sender);
+        if(sender.company) $("avsandare").value = sender.company;
+        alert("Avsändaruppgifter sparade!");
+      });
+
+      $("senderClear").addEventListener("click", ()=>{
+        sender = {company:"", address:"", phone:"", email:""};
+        saveJSON(LS_SENDER, sender);
+        fillSenderForm(sender);
+        alert("Avsändaruppgifter rensade.");
       });
 
       /* --- m²-PRESETS LISTA --- */
@@ -810,6 +877,11 @@
 
     // Init
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
+    // Prefill avsändare i toppfält om sparat
+    (function(){
+      const s = loadJSON(LS_SENDER, {company:""});
+      if(s.company && !$("avsandare").value){ $("avsandare").value = s.company; }
+    })();
     render(); initPreviews();
   </script>
 
