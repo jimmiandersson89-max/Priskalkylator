@@ -414,17 +414,17 @@
       const customer = { name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
       const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
 
-      /* LOGGA – LITE HÖGRE OCH VÄNSTER OM RUBRIKEN */
+      /* LOGGA – CENTRERAD HÖGST UPP */
       if(logoDataURL){
         try{
           const p = doc.getImageProperties(logoDataURL);
-          const maxW = 42, maxH = 18;
+          const maxW = 60, maxH = 22;
           let w = maxW, h = maxW * (p.height/p.width);
           if(h>maxH){ h = maxH; w = h * (p.width/p.height); }
-          const x = left;
-          const yImg = y - 10;                // flytta upp loggan
+          const x = (pageW - w) / 2;
+          const yImg = y - 8;               // lite högre upp än rubriken
           doc.addImage(logoDataURL, p.fileType || "PNG", x, yImg, w, h);
-          addY(14);                           // lite mindre luft ovan rubriken
+          addY(16);                         // luft före rubrik
         }catch(e){}
       }
 
@@ -461,10 +461,19 @@
 
       const sumExkl=items.reduce((s,it)=>s+(Number(it.price||0)*Number(it.qty||0)),0);
       const momsBelopp=sumExkl*momsSats, sumInkl=sumExkl+momsBelopp;
-      [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],[`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]].forEach(([label,value,bold])=>{
+      [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],
+       [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],
+       ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+      ].forEach(([label,value,bold])=>{
         if(y+12>pageH-bottom){ doc.addPage(); y=top; }
-        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal"); doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"}); y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
+        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
+        doc.text(label, col1X, y); doc.text(value, col2X+col2W, y, {align:"right"});
+        y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
+
+      /* Giltighetstext under totalsumman */
+      doc.setFont("helvetica","normal"); doc.setFontSize(10); doc.setTextColor(90);
+      doc.text("Offerten är giltig i 30 dagar.", pageW/2, y+6, { align: "center" });
 
       const safeName=(($("kundnamn").value||"offert").replace(/[^\w\- åäöÅÄÖ]/g,"_")); doc.save(`${safeName}.pdf`);
     });
