@@ -495,7 +495,7 @@
       // Filnamn: Kundnamn + OffertNr
       const base = (customer.name || "offert").trim() || "offert";
       const safeBase = base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
-      doc.save(`${safeBase} ${offerNo}.pdf`);
+      doc.save(`${safeBase} Offert ${offerNo}.pdf`);
     });
 
     (function(){
