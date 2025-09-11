@@ -49,6 +49,15 @@
     textarea{ min-height:90px; resize:vertical }
     input:focus,select:focus,textarea:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
+    /* Mindre & snyggare placeholder för textareorna */
+    #otherInfo::placeholder,
+    #offerNote::placeholder{
+      font-size:13px;
+      line-height:1.4;
+      color:#a6afbf;
+      opacity:1;
+    }
+
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
     @media (min-width:720px){
@@ -204,16 +213,15 @@
     <div id="result" class="out">Lägg till ett mått eller en post.</div>
     <div id="details" class="hint"></div>
 
-    <!-- NYTT: Övriga uppgifter (visas ej som rubrik i PDF) -->
+    <!-- Övriga uppgifter (visas ej som rubrik i PDF) -->
     <label for="otherInfo" style="margin-top:12px">Övriga uppgifter</label>
     <textarea id="otherInfo" placeholder="här kan du skriva i övriga uppgifter dessa hamnar alltid under specifikationer i pdf"></textarea>
 
-    <!-- Kommentar (denna rubrik skrivs i PDF efter total) -->
+    <!-- Kommentar (rubriken skrivs i PDF efter total) -->
     <label for="offerNote" style="margin-top:12px">kommentar</label>
     <textarea id="offerNote" placeholder="skriv din kommentar här, den läggs till i offerten (Pdf)"></textarea>
 
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
-    <!-- Flyttad: 'Dela priset' efter PDF-knappen -->
     <button class="btn" id="share" type="button">Dela priset</button>
 
     <div id="versionLabel">V.Benjii</div>
@@ -412,7 +420,7 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // PDF: 'otherInfo' läggs under artiklarna UTAN rubrik. 'offerNote' efter totalsumma med rubriken "kommentar".
+    // PDF: 'otherInfo' under artiklarna (utan rubrik). 'offerNote' efter totalsumma med rubriken "kommentar".
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
