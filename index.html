@@ -42,11 +42,12 @@
     /* rubriker & inputs */
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
-    input,select{
+    input,select,textarea{
       width:100%; border-radius:14px; border:1px solid var(--line);
       padding:12px; font-size:16px; background:#fff; color:#000; outline:none;
     }
-    input:focus,select:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
+    textarea{ min-height:90px; resize:vertical }
+    input:focus,select:focus,textarea:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
@@ -110,7 +111,7 @@
     <!-- Öppna företagspanelen -->
     <button class="btn" id="openDrawer" type="button">Fyll i dina företagsuppgifter här.</button>
 
-    <!-- KUND: Egen låda (samma stil som mått) -->
+    <!-- KUND: Egen låda -->
     <div class="row" style="margin-top:10px">
       <h2 style="color:#fff;margin:0 0 8px">Fyll i kunduppgifter nedan</h2>
 
@@ -203,7 +204,13 @@
     <div id="result" class="out">Lägg till ett mått eller en post.</div>
     <div id="details" class="hint"></div>
 
+    <!-- Knappar & Komentar -->
     <button class="btn" id="share" type="button">Dela priset</button>
+
+    <!-- Ny: Komentar som följer med i PDF -->
+    <label for="offerNote" style="margin-top:12px">Komentar</label>
+    <textarea id="offerNote" placeholder="skriv din komentar här, den läggs till i offerten (pdd)"></textarea>
+
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
     <div id="versionLabel">V.Benjii</div>
   </div>
@@ -213,7 +220,6 @@
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
     <div class="hd">Förinställningar</div>
     <div class="bd">
-      <!-- Avsändarprofil -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Avsändare – uppgifter som alltid syns i PDF</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -293,7 +299,7 @@
         <div class="preset-list" id="tplList"></div>
       </div>
 
-      <!-- FLYTTAD: Åter-knappen längst ner -->
+      <!-- Åter-knappen längst ner -->
       <div class="grp" style="margin-top:20px">
         <a class="btn-mini" href="/Priskalkylator/">Åter till kalkylator</a>
       </div>
@@ -401,7 +407,7 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // PDF
+    // PDF (inkluderar Komentar)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
@@ -416,6 +422,7 @@
       const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
       const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
       const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
+      const note=($("offerNote").value||"").trim();
 
       if(logoDataURL){ try{ const p=doc.getImageProperties(logoDataURL); const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width); if(h>maxH){ h=maxH; w=h*(p.width/p.height); } const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); addY(20); }catch(e){} }
 
@@ -464,6 +471,20 @@
         doc.text(value, col2X+col2W, y, {align:"right"});
         y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
+
+      // Komentar under totalsumman och före giltighetstexten
+      if (note) {
+        if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
+        doc.setFont("helvetica","bold"); doc.setFontSize(11);
+        doc.text("Komentar", left, y); y += 6;
+        doc.setFont("helvetica","normal"); doc.setFontSize(10);
+        const wrapped = doc.splitTextToSize(note, pageW - left - right);
+        wrapped.forEach(line=>{
+          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
+          doc.text(line, left, y); y += 5;
+        });
+        y += 2; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y += 5;
+      }
 
       if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
