@@ -204,12 +204,12 @@
     <div id="result" class="out">Lägg till ett mått eller en post.</div>
     <div id="details" class="hint"></div>
 
-    <!-- Knappar & Komentar -->
+    <!-- Knappar & kommentar -->
     <button class="btn" id="share" type="button">Dela priset</button>
 
-    <!-- Ny: Komentar som följer med i PDF -->
-    <label for="offerNote" style="margin-top:12px">Komentar</label>
-    <textarea id="offerNote" placeholder="skriv din komentar här, den läggs till i offerten (pdd)"></textarea>
+    <!-- Ny: kommentar som följer med i PDF -->
+    <label for="offerNote" style="margin-top:12px">kommentar</label>
+    <textarea id="offerNote" placeholder="skriv din kommentar här, den läggs till i offerten (Pdf)"></textarea>
 
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
     <div id="versionLabel">V.Benjii</div>
@@ -220,6 +220,8 @@
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
     <div class="hd">Förinställningar</div>
     <div class="bd">
+      <div class="grp"><!-- flyttad till botten också, men lämnar en toppmarginal tomt --></div>
+
       <div class="grp">
         <div style="margin-bottom:8px"><b>Avsändare – uppgifter som alltid syns i PDF</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -407,7 +409,7 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // PDF (inkluderar Komentar)
+    // PDF (inkluderar kommentar)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
@@ -472,11 +474,11 @@
         y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
 
-      // Komentar under totalsumman och före giltighetstexten
+      // kommentar under totalsumman och före giltighetstexten
       if (note) {
         if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text("Komentar", left, y); y += 6;
+        doc.text("kommentar", left, y); y += 6;
         doc.setFont("helvetica","normal"); doc.setFontSize(10);
         const wrapped = doc.splitTextToSize(note, pageW - left - right);
         wrapped.forEach(line=>{
