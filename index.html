@@ -77,11 +77,8 @@
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
     /* Drawer */
-    .hamburger{
-      position:absolute; left:14px; top:14px; width:42px; height:42px; border-radius:12px;
-      border:1px solid var(--line); background:#11151d; color:#fff; cursor:pointer;
-      display:grid; place-items:center; font-size:20px; z-index:1000;
-    }
+    /* behåller stilar men vi använder inte hamburger-knappen längre */
+    .hamburger{ display:none; }
     .drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998 }
     .drawer{ position:fixed; top:0; left:0; height:100%; width:360px; max-width:92vw; background:#0f1115; border-right:1px solid #1e2430; box-shadow:8px 0 40px rgba(0,0,0,.35); transform:translateX(-100%); transition:.25s transform; z-index:9999; color:#e5e7eb; display:flex; flex-direction:column }
     .drawer.open{ transform:translateX(0) }
@@ -103,21 +100,12 @@
 </head>
 <body>
   <div class="wrap">
-    <button class="hamburger" id="openDrawer" aria-label="Öppna meny" type="button">☰</button>
 
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
     <h1>Offert på språng</h1>
 
-    <!-- Överkant: ENDAST moms (avsändare tas från Drawern) -->
-    <div class="grid2">
-      <div>
-        <label for="moms">Välj moms</label>
-        <select id="moms">
-          <option value="0">Exkl. moms</option>
-          <option value="0.25" selected>Inkl. 25%</option>
-        </select>
-      </div>
-    </div>
+    <!-- NY: knapp som öppnar drawern -->
+    <button class="btn" id="openDrawer" type="button">Fyll i dina företagsuppgifter här.</button>
 
     <!-- Kunduppgifter -->
     <div class="grid2">
@@ -139,6 +127,17 @@
       <div>
         <label for="kundadress">Adress</label>
         <input id="kundadress" type="text" placeholder="Gatuadress, postnr ort" />
+      </div>
+    </div>
+
+    <!-- FLYTTAD: Moms under adress -->
+    <div class="grid2">
+      <div>
+        <label for="moms">Välj moms</label>
+        <select id="moms">
+          <option value="0">Exkl. moms</option>
+          <option value="0.25" selected>Inkl. 25%</option>
+        </select>
       </div>
     </div>
 
@@ -188,7 +187,7 @@
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
           <thead><tr><th>Benämning</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
-        <tbody id="itemsList"></tbody>
+          <tbody id="itemsList"></tbody>
         </table>
       </div>
       <datalist id="itemOptions"></datalist>
@@ -298,29 +297,20 @@
     "use strict";
     const $ = id => document.getElementById(id);
 
-    // Keys
-    const LS_PRESETS   = "rg_presets_v1";
-    const LS_ITEMS     = "rg_items_v1";
-    const LS_TPLS      = "rg_item_templates_v1";
-    const LS_LOGO      = "rg_company_logo_dataurl";
-    const LS_SENDER    = "rg_sender_profile_v1";
-    const LS_CUSTOMERS = "rg_customers_v1";
-    const LS_OFFER_NO  = "rg_offer_no_v1"; // <-- Offertnummer räknare
+    const LS_PRESETS="rg_presets_v1", LS_ITEMS="rg_items_v1", LS_TPLS="rg_item_templates_v1",
+          LS_LOGO="rg_company_logo_dataurl", LS_SENDER="rg_sender_profile_v1",
+          LS_CUSTOMERS="rg_customers_v1", LS_OFFER_NO="rg_offer_no_v1";
 
-    // Data
-    let items          = loadJSON(LS_ITEMS, []);
-    let presets        = loadJSON(LS_PRESETS, []);
-    let customers      = loadJSON(LS_CUSTOMERS, []);
-    let itemTemplates  = loadJSON(LS_TPLS, []);
-    let logoDataURL    = localStorage.getItem(LS_LOGO) || "";
+    let items=loadJSON(LS_ITEMS,[]), presets=loadJSON(LS_PRESETS,[]),
+        customers=loadJSON(LS_CUSTOMERS,[]), itemTemplates=loadJSON(LS_TPLS,[]),
+        logoDataURL=localStorage.getItem(LS_LOGO)||"";
 
-    function loadJSON(key, fallback){ try{ return JSON.parse(localStorage.getItem(key) || JSON.stringify(fallback)); } catch{ return fallback; } }
-    function saveJSON(key, val){ localStorage.setItem(key, JSON.stringify(val)); }
+    function loadJSON(k,f){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(f)); }catch{ return f; } }
+    function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
+    function setLogoPreview(){ const el=$("logoPreview"); if(logoDataURL){ el.src=logoDataURL; el.style.display="block"; } else { el.style.display="none"; } }
 
-    function setLogoPreview(){ const el=$("logoPreview"); if(logoDataURL){ el.src=logoDataURL; el.style.display="block"; } else{ el.style.display="none"; } }
-
-    const fmt0 = n => Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
-    const fmt2 = n => Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
+    const fmt0=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
+    const fmt2=n=>Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
 
     function previewMeasureLine(){
       const h=parseFloat($("hojd").value), b=parseFloat($("bredd").value), qty=parseFloat($("antal").value||"1");
@@ -402,46 +392,28 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // Skapa PDF (med Offert Nr och giltighetstext)
+    // PDF (oförändrad mot din senaste – med offertnummer/giltighet etc.)
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
       const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
       const addY=mm=>y+=mm; const today=new Date().toLocaleDateString("sv-SE");
 
-      // Hämta/spara offertnummer (1..500, loopar)
-      let n = parseInt(localStorage.getItem(LS_OFFER_NO) || "1", 10);
-      if (isNaN(n) || n < 1 || n > 500) n = 1;
-      const offerNo = n;
-      const nextNo = (offerNo >= 500) ? 1 : (offerNo + 1);
-      localStorage.setItem(LS_OFFER_NO, String(nextNo));
+      let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
+      if(isNaN(n)||n<1||n>500) n=1;
+      const offerNo=n; localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
 
-      const savedSender = loadJSON(LS_SENDER, {company:"",address:"",phone:"",email:""});
-      const sender = { company: savedSender.company||"Företag", address: savedSender.address||"", phone: savedSender.phone||"", email: savedSender.email||"" };
-
-      const customer = { name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
+      const savedSender=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
+      const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
+      const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
       const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
 
-      // Logga överst, centrerad
-      if(logoDataURL){ try{
-        const p=doc.getImageProperties(logoDataURL);
-        const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width);
-        if(h>maxH){ h=maxH; w=h*(p.width/p.height); }
-        const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); // något högre
-        addY(20);
-      }catch(e){} }
+      if(logoDataURL){ try{ const p=doc.getImageProperties(logoDataURL); const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width); if(h>maxH){ h=maxH; w=h*(p.width/p.height); } const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); addY(20); }catch(e){} }
 
-      // Rubrik och datum
       doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
-      doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"});
-      addY(6);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(6);
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"}); addY(4);
 
-      // Offert Nr under datum, höger
-      doc.setFont("helvetica","bold"); doc.setFontSize(11);
-      doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"});
-      addY(4);
-
-      // Avsändare vänster
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
       doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
@@ -449,7 +421,6 @@
       if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
       if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
 
-      // Kund höger
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
       let ky=y+6;
@@ -457,10 +428,8 @@
       if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky+=6; }
       if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=6; }
       if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=6; }
-
       y=Math.max(sy,ky)+2;
 
-      // Spec + belopp
       const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
       const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
       doc.setFont("helvetica","bold"); doc.setFontSize(11);
@@ -469,8 +438,8 @@
       items.forEach(it=>{
         if(y+6>pageH-bottom-14){ doc.addPage(); y=top; }
         doc.text(`${it.qty} × ${it.name}`, col1X, y);
-        doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"}); doc.setFont("helvetica","normal");
-        y+=6;
+        doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"});
+        doc.setFont("helvetica","normal"); y+=6;
       });
       y+=2; doc.setDrawColor(235); doc.line(left,y,pageW-right,y); y+=4;
 
@@ -487,22 +456,23 @@
         y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
 
-      // Giltighetstext centrerad
       if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
       doc.setFont("helvetica","normal"); doc.setFontSize(10);
       doc.text("Offerten är giltig i 30 dagar.", pageW/2, y, {align:"center"});
 
-      // Filnamn: Kundnamn + OffertNr
-      const base = (customer.name || "offert").trim() || "offert";
-      const safeBase = base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
+      const base=(customer.name||"offert").trim()||"offert";
+      const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
       doc.save(`${safeBase} Offert ${offerNo}.pdf`);
     });
 
+    // Drawer open/close på nya gröna knappen
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
       function close(){ drawer.classList.remove("open"); backdrop.classList.remove("open"); drawer.setAttribute("aria-hidden","true"); backdrop.setAttribute("aria-hidden","true"); document.body.style.overflow=""; }
-      btn.addEventListener("click",e=>{ e.stopPropagation(); open(); }); backdrop.addEventListener("click",close); document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
+      btn.addEventListener("click",e=>{ e.stopPropagation(); open(); });
+      backdrop.addEventListener("click",close);
+      document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
 
       const senderSaved=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
       $("senderCompany").value=senderSaved.company||""; $("senderAddress").value=senderSaved.address||""; $("senderPhone").value=senderSaved.phone||""; $("senderEmail").value=senderSaved.email||"";
