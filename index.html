@@ -171,8 +171,6 @@
       <button class="btn" id="addMeasure" type="button">Beräkna & lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris och moms automatiskt.</div>
 
-      <!-- ingen divider -->
-
       <h2>Lägg till stycksaker</h2>
       <div class="grid3">
         <div><label for="itemName">Benämning</label><input id="itemName" type="text" list="itemOptions" placeholder="t.ex. Skruvar" /></div>
@@ -215,8 +213,7 @@
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
     <div class="hd">Förinställningar</div>
     <div class="bd">
-      <div class="grp"><a class="btn-mini" href="/Priskalkylator/">Åter till kalkylator</a></div>
-
+      <!-- Avsändarprofil -->
       <div class="grp">
         <div style="margin-bottom:8px"><b>Avsändare – uppgifter som alltid syns i PDF</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -294,6 +291,11 @@
       <div class="grp">
         <div style="margin-bottom:8px"><b>Sparade styck-presets</b></div>
         <div class="preset-list" id="tplList"></div>
+      </div>
+
+      <!-- FLYTTAD: Åter-knappen längst ner -->
+      <div class="grp" style="margin-top:20px">
+        <a class="btn-mini" href="/Priskalkylator/">Åter till kalkylator</a>
       </div>
     </div>
   </aside>
