@@ -34,15 +34,13 @@
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
     }
 
-    /* Flytta upp logga, titel och gröna knappen */
+    /* topp */
     .logo{ display:block; margin:10px auto 8px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:6px 0 8px; text-align:center; font-size:30px }
     #openDrawer.btn{ margin-top:6px; margin-bottom:10px }
 
-    /* Rubriker & formulär */
+    /* rubriker & inputs */
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
-    .kund-rubrik{ color:#ffffff; margin:8px 2px 6px } /* Ny vit rubrik ovanför Kundnamn */
-
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
     input,select{
       width:100%; border-radius:14px; border:1px solid var(--line);
@@ -60,7 +58,6 @@
     .row{
       background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
     }
-    .row .divider{ height:1px; background:var(--line); margin:12px 0; }
 
     .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
@@ -110,43 +107,44 @@
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
     <h1>Offert på språng</h1>
 
-    <!-- NY: knapp som öppnar drawern -->
+    <!-- Öppna företagspanelen -->
     <button class="btn" id="openDrawer" type="button">Fyll i dina företagsuppgifter här.</button>
 
-    <!-- Ny vit rubrik direkt ovanför kundfälten -->
-    <h2 class="kund-rubrik">Fyll i kunduppgifter nedan</h2>
+    <!-- KUND: Egen låda (samma stil som mått) -->
+    <div class="row" style="margin-top:10px">
+      <h2 style="color:#fff;margin:0 0 8px">Fyll i kunduppgifter nedan</h2>
 
-    <!-- Kunduppgifter -->
-    <div class="grid2">
-      <div>
-        <label for="kundnamn">Kundnamn</label>
-        <input id="kundnamn" type="text" list="customerOptions" placeholder="Börja skriva namn..." />
-        <datalist id="customerOptions"></datalist>
+      <div class="grid2">
+        <div>
+          <label for="kundnamn">Kundnamn</label>
+          <input id="kundnamn" type="text" list="customerOptions" placeholder="Börja skriva namn..." />
+          <datalist id="customerOptions"></datalist>
+        </div>
+        <div>
+          <label for="telefon">Telefon</label>
+          <input id="telefon" type="tel" />
+        </div>
       </div>
-      <div>
-        <label for="telefon">Telefon</label>
-        <input id="telefon" type="tel" />
-      </div>
-    </div>
-    <div class="grid2">
-      <div>
-        <label for="kundemail">E-post</label>
-        <input id="kundemail" type="email" />
-      </div>
-      <div>
-        <label for="kundadress">Adress</label>
-        <input id="kundadress" type="text" placeholder="Gatuadress, postnr ort" />
-      </div>
-    </div>
 
-    <!-- FLYTTAD: Moms under adress -->
-    <div class="grid2">
-      <div>
-        <label for="moms">Välj moms</label>
-        <select id="moms">
-          <option value="0">Exkl. moms</option>
-          <option value="0.25" selected>Inkl. 25%</option>
-        </select>
+      <div class="grid2">
+        <div>
+          <label for="kundemail">E-post</label>
+          <input id="kundemail" type="email" />
+        </div>
+        <div>
+          <label for="kundadress">Adress</label>
+          <input id="kundadress" type="text" placeholder="Gatuadress, postnr ort" />
+        </div>
+      </div>
+
+      <div class="grid2">
+        <div>
+          <label for="moms">Välj moms</label>
+          <select id="moms">
+            <option value="0">Exkl. moms</option>
+            <option value="0.25" selected>Inkl. 25%</option>
+          </select>
+        </div>
       </div>
     </div>
 
@@ -173,7 +171,7 @@
       <button class="btn" id="addMeasure" type="button">Beräkna & lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris och moms automatiskt.</div>
 
-      <div class="divider"></div>
+      <!-- ingen divider -->
 
       <h2>Lägg till stycksaker</h2>
       <div class="grid3">
@@ -401,7 +399,7 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // PDF (oförändrad)
+    // PDF
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
@@ -474,7 +472,7 @@
       doc.save(`${safeBase} Offert ${offerNo}.pdf`);
     });
 
-    // Drawer open/close på nya gröna knappen
+    // Drawer open/close
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
