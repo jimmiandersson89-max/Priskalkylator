@@ -204,18 +204,18 @@
     <div id="result" class="out">Lägg till ett mått eller en post.</div>
     <div id="details" class="hint"></div>
 
-    <!-- NYTT: Övriga uppgifter (mellan resultat och "Dela priset") -->
+    <!-- NYTT: Övriga uppgifter (visas ej som rubrik i PDF) -->
     <label for="otherInfo" style="margin-top:12px">Övriga uppgifter</label>
     <textarea id="otherInfo" placeholder="här kan du skriva i övriga uppgifter dessa hamnar alltid under specifikationer i pdf"></textarea>
 
-    <!-- Knappar & kommentar -->
-    <button class="btn" id="share" type="button">Dela priset</button>
-
-    <!-- Kommentar som hamnar efter totalsumman i PDF -->
+    <!-- Kommentar (denna rubrik skrivs i PDF efter total) -->
     <label for="offerNote" style="margin-top:12px">kommentar</label>
     <textarea id="offerNote" placeholder="skriv din kommentar här, den läggs till i offerten (Pdf)"></textarea>
 
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
+    <!-- Flyttad: 'Dela priset' efter PDF-knappen -->
+    <button class="btn" id="share" type="button">Dela priset</button>
+
     <div id="versionLabel">V.Benjii</div>
   </div>
 
@@ -412,7 +412,7 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // PDF (inkluderar "Övriga uppgifter" under artiklarna samt "kommentar" efter totalsumman)
+    // PDF: 'otherInfo' läggs under artiklarna UTAN rubrik. 'offerNote' efter totalsumma med rubriken "kommentar".
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
@@ -464,15 +464,12 @@
         doc.setFont("helvetica","normal"); y+=6;
       });
 
-      /* Övriga uppgifter direkt under artiklarna i specifikationen */
+      /* Övriga uppgifter under artiklarna – utan rubrik i PDF */
       if (otherInfo) {
         y += 4;
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text("Övriga uppgifter", col1X, y);
-        y += 6;
         doc.setFont("helvetica","normal"); doc.setFontSize(10);
-        const wrappedOther = doc.splitTextToSize(otherInfo, pageW - left - right);
-        wrappedOther.forEach(line=>{
+        const lines = doc.splitTextToSize(otherInfo, pageW - left - right);
+        lines.forEach(line=>{
           if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
           doc.text(line, left, y); y += 5;
         });
