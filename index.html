@@ -109,6 +109,26 @@
 
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
     .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
+
+    /* PDF-toast (nr 3) */
+    .toast {
+      position: fixed;
+      left: 50%;
+      bottom: 20px;
+      transform: translateX(-50%) translateY(8px);
+      background: #11151d;
+      border: 1px solid var(--line);
+      color: #fff;
+      padding: 10px 14px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 10000;
+      font-size: 14px;
+    }
+    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
   </style>
 </head>
 <body>
@@ -226,6 +246,9 @@
 
     <div id="versionLabel">V.Benjii</div>
   </div>
+
+  <!-- Toast för PDF-status -->
+  <div id="pdfToast" class="toast" aria-live="polite"></div>
 
   <!-- Drawer -->
   <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
@@ -420,105 +443,128 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // PDF: 'otherInfo' under artiklarna (utan rubrik). 'offerNote' efter totalsumma med rubriken "kommentar".
+    // --- Toast helpers (nr 3)
+    const toastEl = $("pdfToast");
+    function showToast(msg){
+      if(!toastEl) return;
+      toastEl.textContent = msg;
+      toastEl.classList.add("show");
+    }
+    function hideToast(delay=2000){
+      if(!toastEl) return;
+      setTimeout(()=>toastEl.classList.remove("show"), delay);
+    }
+
+    // PDF + visuell feedback
     $("pdf").addEventListener("click", ()=>{
-      const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
-      const left=15,right=15,top=18,bottom=18;
-      const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
-      const addY=mm=>y+=mm; const today=new Date().toLocaleDateString("sv-SE");
+      showToast("Skapar PDF…");
+      // Låt UI hinna rita toasten innan PDF-bygget kör igång
+      setTimeout(()=> {
+        try{
+          const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
+          const left=15,right=15,top=18,bottom=18;
+          const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
+          const addY=mm=>y+=mm; const today=new Date().toLocaleDateString("sv-SE");
 
-      let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
-      if(isNaN(n)||n<1||n>500) n=1;
-      const offerNo=n; localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
+          let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
+          if(isNaN(n)||n<1||n>500) n=1;
+          const offerNo=n; localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
 
-      const savedSender=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
-      const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
-      const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
-      const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
-      const otherInfo=($("otherInfo").value||"").trim();
-      const note=($("offerNote").value||"").trim();
+          const savedSender=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
+          const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
+          const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
+          const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
+          const otherInfo=($("otherInfo").value||"").trim();
+          const note=($("offerNote").value||"").trim();
 
-      if(logoDataURL){ try{ const p=doc.getImageProperties(logoDataURL); const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width); if(h>maxH){ h=maxH; w=h*(p.width/p.height); } const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); addY(20); }catch(e){} }
+          if(logoDataURL){ try{ const p=doc.getImageProperties(logoDataURL); const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width); if(h>maxH){ h=maxH; w=h*(p.width/p.height); } const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); addY(20); }catch(e){} }
 
-      doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
-      doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(6);
-      doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"}); addY(4);
+          doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
+          doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(6);
+          doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"}); addY(4);
 
-      doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
-      doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
-      doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      let sy=y+11; if(sender.address){ doc.splitTextToSize(sender.address,80).forEach(line=>{ doc.text(line,left,sy); sy+=5; }); }
-      if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
-      if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
+          doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
+          doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
+          doc.setFont("helvetica","normal"); doc.setFontSize(10);
+          let sy=y+11; if(sender.address){ doc.splitTextToSize(sender.address,80).forEach(line=>{ doc.text(line,left,sy); sy+=5; }); }
+          if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
+          if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
 
-      doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
-      doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      let ky=y+6;
-      if(customer.name){ doc.text(customer.name, rightX, ky, {align:"right"}); ky+=6; }
-      if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky+=6; }
-      if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=6; }
-      if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=6; }
-      y=Math.max(sy,ky)+2;
+          doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
+          doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
+          let ky=y+6;
+          if(customer.name){ doc.text(customer.name, rightX, ky, {align:"right"}); ky+=6; }
+          if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky+=6; }
+          if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=6; }
+          if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=6; }
+          y=Math.max(sy,ky)+2;
 
-      const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
-      const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
-      doc.setFont("helvetica","bold"); doc.setFontSize(11);
-      doc.text("Specifikation", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); y+=6; doc.setDrawColor(200); doc.line(left,y,pageW-right,y); y+=6; doc.setFont("helvetica","normal");
+          const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
+          const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
+          doc.setFont("helvetica","bold"); doc.setFontSize(11);
+          doc.text("Specifikation", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); y+=6; doc.setDrawColor(200); doc.line(left,y,pageW-right,y); y+=6; doc.setFont("helvetica","normal");
 
-      items.forEach(it=>{
-        if(y+6>pageH-bottom-14){ doc.addPage(); y=top; }
-        doc.text(`${it.qty} × ${it.name}`, col1X, y);
-        doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"});
-        doc.setFont("helvetica","normal"); y+=6;
-      });
+          items.forEach(it=>{
+            if(y+6>pageH-bottom-14){ doc.addPage(); y=top; }
+            doc.text(`${it.qty} × ${it.name}`, col1X, y);
+            doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"});
+            doc.setFont("helvetica","normal"); y+=6;
+          });
 
-      /* Övriga uppgifter under artiklarna – utan rubrik i PDF */
-      if (otherInfo) {
-        y += 4;
-        doc.setFont("helvetica","normal"); doc.setFontSize(10);
-        const lines = doc.splitTextToSize(otherInfo, pageW - left - right);
-        lines.forEach(line=>{
-          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.text(line, left, y); y += 5;
-        });
-      }
+          if (otherInfo) {
+            y += 4;
+            doc.setFont("helvetica","normal"); doc.setFontSize(10);
+            const lines = doc.splitTextToSize(otherInfo, pageW - left - right);
+            lines.forEach(line=>{
+              if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
+              doc.text(line, left, y); y += 5;
+            });
+          }
 
-      y+=2; doc.setDrawColor(235); doc.line(left,y,pageW-right,y); y+=4;
+          y+=2; doc.setDrawColor(235); doc.line(left,y,pageW-right,y); y+=4;
 
-      const sumExkl=items.reduce((s,it)=>s+(Number(it.price||0)*Number(it.qty||0)),0);
-      const momsBelopp=sumExkl*momsSats, sumInkl=sumExkl+momsBelopp;
-      [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],
-       [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],
-       ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
-      ].forEach(([label,value,bold])=>{
-        if(y+12>pageH-bottom){ doc.addPage(); y=top; }
-        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, col1X, y);
-        doc.text(value, col2X+col2W, y, {align:"right"});
-        y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
-      });
+          const sumExkl=items.reduce((s,it)=>s+(Number(it.price||0)*Number(it.qty||0)),0);
+          const momsBelopp=sumExkl*momsSats, sumInkl=sumExkl+momsBelopp;
+          [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],
+           [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],
+           ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+          ].forEach(([label,value,bold])=>{
+            if(y+12>pageH-bottom){ doc.addPage(); y=top; }
+            doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
+            doc.text(label, col1X, y);
+            doc.text(value, col2X+col2W, y, {align:"right"});
+            y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
+          });
 
-      /* Kommentar efter totalsumman */
-      if (note) {
-        if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text("kommentar", left, y); y += 6;
-        doc.setFont("helvetica","normal"); doc.setFontSize(10);
-        const wrapped = doc.splitTextToSize(note, pageW - left - right);
-        wrapped.forEach(line=>{
-          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.text(line, left, y); y += 5;
-        });
-        y += 2; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y += 5;
-      }
+          if (note) {
+            if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
+            doc.setFont("helvetica","bold"); doc.setFontSize(11);
+            doc.text("kommentar", left, y); y += 6;
+            doc.setFont("helvetica","normal"); doc.setFontSize(10);
+            const wrapped = doc.splitTextToSize(note, pageW - left - right);
+            wrapped.forEach(line=>{
+              if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
+              doc.text(line, left, y); y += 5;
+            });
+            y += 2; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y += 5;
+          }
 
-      if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
-      doc.setFont("helvetica","normal"); doc.setFontSize(10);
-      doc.text("Offerten är giltig i 30 dagar.", pageW/2, y, {align:"center"});
+          if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
+          doc.setFont("helvetica","normal"); doc.setFontSize(10);
+          doc.text("Offerten är giltig i 30 dagar.", pageW/2, y, {align:"center"});
 
-      const base=(customer.name||"offert").trim()||"offert";
-      const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
-      doc.save(`${safeBase} Offert ${offerNo}.pdf`);
+          const base=(customer.name||"offert").trim()||"offert";
+          const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
+          doc.save(`${safeBase} Offert ${offerNo}.pdf`);
+
+          showToast("PDF klar – fil sparas");
+          hideToast(2000);
+        }catch(err){
+          showToast("Något gick fel vid skapandet");
+          hideToast(2500);
+          console.error(err);
+        }
+      }, 30);
     });
 
     // Drawer open/close
