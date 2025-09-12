@@ -110,25 +110,25 @@
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
     .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
 
-    /* PDF-toast (nr 3) */
-    .toast {
-      position: fixed;
-      left: 50%;
-      bottom: 20px;
-      transform: translateX(-50%) translateY(8px);
-      background: #11151d;
-      border: 1px solid var(--line);
-      color: #fff;
-      padding: 10px 14px;
-      border-radius: 12px;
-      box-shadow: 0 10px 30px rgba(0,0,0,.35);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s, transform .2s;
-      z-index: 10000;
-      font-size: 14px;
+    /* ===== PDF-efter-panel (botten-sheet) ===== */
+    .sheet-backdrop{
+      position:fixed; inset:0; background:rgba(0,0,0,.45);
+      opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998;
     }
-    .toast.show { opacity: 1; transform: translateX(-50%) translateY(0); }
+    .sheet{
+      position:fixed; left:0; right:0; bottom:0; transform:translateY(100%);
+      background:#0f1115; border-top-left-radius:16px; border-top-right-radius:16px;
+      border:1px solid #1e2430; box-shadow:0 -10px 30px rgba(0,0,0,.4);
+      padding:16px; z-index:9999; transition:.25s transform; color:#fff;
+    }
+    .sheet.open{ transform:translateY(0) }
+    .sheet-backdrop.open{ opacity:1; pointer-events:auto }
+    .sheet h3{ margin:0 0 6px; font-size:18px }
+    .sheet p{ margin:0 0 12px; color:#b7c0cf; font-size:13px }
+    .sheet .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
+    .sheet .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
+    .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
+    .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
   </style>
 </head>
 <body>
@@ -247,9 +247,6 @@
     <div id="versionLabel">V.Benjii</div>
   </div>
 
-  <!-- Toast för PDF-status -->
-  <div id="pdfToast" class="toast" aria-live="polite"></div>
-
   <!-- Drawer -->
   <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
@@ -342,6 +339,21 @@
     </div>
   </aside>
 
+  <!-- Efter-PDF: botten-sheet -->
+  <div id="pdfSheetBackdrop" class="sheet-backdrop" aria-hidden="true"></div>
+  <div id="pdfSheet" class="sheet" aria-live="polite" aria-hidden="true">
+    <h3>Offert skapad</h3>
+    <p id="pdfName">PDF klar.</p>
+    <div class="row3" style="margin-top:8px">
+      <button id="openPdfBtn" class="btn-mini">Öppna PDF</button>
+      <button id="downloadPdfBtn" class="btn-mini">Ladda ner</button>
+      <button id="sharePdfBtn" class="btn-mini secondary">Dela</button>
+    </div>
+    <div class="row2" style="margin-top:10px">
+      <button id="closeSheetBtn" class="btn-mini secondary">Stäng</button>
+    </div>
+  </div>
+
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
@@ -355,6 +367,9 @@
     let items=loadJSON(LS_ITEMS,[]), presets=loadJSON(LS_PRESETS,[]),
         customers=loadJSON(LS_CUSTOMERS,[]), itemTemplates=loadJSON(LS_TPLS,[]),
         logoDataURL=localStorage.getItem(LS_LOGO)||"";
+
+    // Håller senaste PDF i minnet för "Öppna / Ladda ner / Dela"
+    let lastPdfBlob = null, lastPdfUrl = null, lastPdfFilename = "offert.pdf";
 
     function loadJSON(k,f){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(f)); }catch{ return f; } }
     function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
@@ -443,131 +458,181 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // --- Toast helpers (nr 3)
-    const toastEl = $("pdfToast");
-    function showToast(msg){
-      if(!toastEl) return;
-      toastEl.textContent = msg;
-      toastEl.classList.add("show");
-    }
-    function hideToast(delay=2000){
-      if(!toastEl) return;
-      setTimeout(()=>toastEl.classList.remove("show"), delay);
-    }
-
-    // PDF + visuell feedback
+    // ====== PDF + efter-panel ======
     $("pdf").addEventListener("click", ()=>{
-      showToast("Skapar PDF…");
-      // Låt UI hinna rita toasten innan PDF-bygget kör igång
-      setTimeout(()=> {
-        try{
-          const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
-          const left=15,right=15,top=18,bottom=18;
-          const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
-          const addY=mm=>y+=mm; const today=new Date().toLocaleDateString("sv-SE");
+      const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
+      const left=15,right=15,top=18,bottom=18;
+      const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
+      const addY=mm=>y+=mm; const today=new Date().toLocaleDateString("sv-SE");
 
-          let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
-          if(isNaN(n)||n<1||n>500) n=1;
-          const offerNo=n; localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
+      let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
+      if(isNaN(n)||n<1||n>500) n=1;
+      const offerNo=n; localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
 
-          const savedSender=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
-          const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
-          const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
-          const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
-          const otherInfo=($("otherInfo").value||"").trim();
-          const note=($("offerNote").value||"").trim();
+      const savedSender=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
+      const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
+      const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
+      const momsSats=parseFloat(($("moms")||{value:"0"}).value||"0");
+      const otherInfo=($("otherInfo").value||"").trim();
+      const note=($("offerNote").value||"").trim();
 
-          if(logoDataURL){ try{ const p=doc.getImageProperties(logoDataURL); const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width); if(h>maxH){ h=maxH; w=h*(p.width/p.height); } const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); addY(20); }catch(e){} }
+      if(logoDataURL){ try{
+        const p=doc.getImageProperties(logoDataURL);
+        const maxW=60,maxH=22; let w=maxW,h=maxW*(p.height/p.width);
+        if(h>maxH){ h=maxH; w=h*(p.width/p.height); }
+        const x=(pageW-w)/2; doc.addImage(logoDataURL,p.fileType||"PNG",x,y-8,w,h); addY(20);
+      }catch(e){} }
 
-          doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
-          doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(6);
-          doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"}); addY(4);
+      doc.setFont("helvetica","bold"); doc.setFontSize(18); doc.text("Offert", left, y);
+      doc.setFont("helvetica","normal"); doc.setFontSize(11); const rightX=pageW-right; doc.text(today, rightX, y, {align:"right"}); addY(6);
+      doc.setFont("helvetica","bold"); doc.setFontSize(11); doc.text(`Offert Nr ${offerNo}`, rightX, y, {align:"right"}); addY(4);
 
-          doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
-          doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
-          doc.setFont("helvetica","normal"); doc.setFontSize(10);
-          let sy=y+11; if(sender.address){ doc.splitTextToSize(sender.address,80).forEach(line=>{ doc.text(line,left,sy); sy+=5; }); }
-          if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
-          if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
+      doc.setFontSize(9); doc.setTextColor(90); doc.text("Offert från", left, y);
+      doc.setTextColor(0); doc.setFont("helvetica","bold"); doc.setFontSize(12); doc.text(sender.company, left, y+5);
+      doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      let sy=y+11; if(sender.address){ doc.splitTextToSize(sender.address,80).forEach(line=>{ doc.text(line,left,sy); sy+=5; }); }
+      if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
+      if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
 
-          doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
-          doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
-          let ky=y+6;
-          if(customer.name){ doc.text(customer.name, rightX, ky, {align:"right"}); ky+=6; }
-          if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky+=6; }
-          if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=6; }
-          if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=6; }
-          y=Math.max(sy,ky)+2;
+      doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
+      doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      let ky=y+6;
+      if(customer.name){ doc.text(customer.name, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.address){ doc.text(customer.address, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.phone){ doc.text(customer.phone, rightX, ky, {align:"right"}); ky+=6; }
+      if(customer.email){ doc.text(customer.email, rightX, ky, {align:"right"}); ky+=6; }
+      y=Math.max(sy,ky)+2;
 
-          const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
-          const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
-          doc.setFont("helvetica","bold"); doc.setFontSize(11);
-          doc.text("Specifikation", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); y+=6; doc.setDrawColor(200); doc.line(left,y,pageW-right,y); y+=6; doc.setFont("helvetica","normal");
+      const col1W=120, col2W=pageW-left-right-col1W, col1X=left, col2X=left+col1W;
+      const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
+      doc.setFont("helvetica","bold"); doc.setFontSize(11);
+      doc.text("Specifikation", col1X, y); doc.text("Belopp", col2X+col2W, y, {align:"right"}); y+=6; doc.setDrawColor(200); doc.line(left,y,pageW-right,y); y+=6; doc.setFont("helvetica","normal");
 
-          items.forEach(it=>{
-            if(y+6>pageH-bottom-14){ doc.addPage(); y=top; }
-            doc.text(`${it.qty} × ${it.name}`, col1X, y);
-            doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"});
-            doc.setFont("helvetica","normal"); y+=6;
-          });
+      items.forEach(it=>{
+        if(y+6>pageH-bottom-14){ doc.addPage(); y=top; }
+        doc.text(`${it.qty} × ${it.name}`, col1X, y);
+        doc.setFont("helvetica","bold"); doc.text(`${fmt0p(Number(it.price||0)*Number(it.qty||0))} kr`, col2X+col2W, y, {align:"right"});
+        doc.setFont("helvetica","normal"); y+=6;
+      });
 
-          if (otherInfo) {
-            y += 4;
-            doc.setFont("helvetica","normal"); doc.setFontSize(10);
-            const lines = doc.splitTextToSize(otherInfo, pageW - left - right);
-            lines.forEach(line=>{
-              if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-              doc.text(line, left, y); y += 5;
-            });
-          }
+      // Övriga uppgifter under artiklarna – utan rubrik i PDF
+      if (otherInfo) {
+        y += 4;
+        doc.setFont("helvetica","normal"); doc.setFontSize(10);
+        const lines = doc.splitTextToSize(otherInfo, pageW - left - right);
+        lines.forEach(line=>{
+          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
+          doc.text(line, left, y); y += 5;
+        });
+      }
 
-          y+=2; doc.setDrawColor(235); doc.line(left,y,pageW-right,y); y+=4;
+      y+=2; doc.setDrawColor(235); doc.line(left,y,pageW-right,y); y+=4;
 
-          const sumExkl=items.reduce((s,it)=>s+(Number(it.price||0)*Number(it.qty||0)),0);
-          const momsBelopp=sumExkl*momsSats, sumInkl=sumExkl+momsBelopp;
-          [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],
-           [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],
-           ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
-          ].forEach(([label,value,bold])=>{
-            if(y+12>pageH-bottom){ doc.addPage(); y=top; }
-            doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
-            doc.text(label, col1X, y);
-            doc.text(value, col2X+col2W, y, {align:"right"});
-            y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
-          });
+      const sumExkl=items.reduce((s,it)=>s+(Number(it.price||0)*Number(it.qty||0)),0);
+      const momsBelopp=sumExkl*momsSats, sumInkl=sumExkl+momsBelopp;
+      [["Summa exkl. moms", fmt0p(sumExkl)+" kr", true],
+       [`${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr", false],
+       ["Att betala", `${fmt0p(sumInkl)} kr ${momsSats>0?"(inkl. moms)":"(exkl. moms)"}`, true]
+      ].forEach(([label,value,bold])=>{
+        if(y+12>pageH-bottom){ doc.addPage(); y=top; }
+        doc.setFontSize(11); doc.setFont("helvetica", bold?"bold":"normal");
+        doc.text(label, col1X, y);
+        doc.text(value, col2X+col2W, y, {align:"right"});
+        y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
+      });
 
-          if (note) {
-            if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
-            doc.setFont("helvetica","bold"); doc.setFontSize(11);
-            doc.text("kommentar", left, y); y += 6;
-            doc.setFont("helvetica","normal"); doc.setFontSize(10);
-            const wrapped = doc.splitTextToSize(note, pageW - left - right);
-            wrapped.forEach(line=>{
-              if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-              doc.text(line, left, y); y += 5;
-            });
-            y += 2; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y += 5;
-          }
+      // Kommentar efter totalsumman
+      if (note) {
+        if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
+        doc.setFont("helvetica","bold"); doc.setFontSize(11);
+        doc.text("kommentar", left, y); y += 6;
+        doc.setFont("helvetica","normal"); doc.setFontSize(10);
+        const wrapped = doc.splitTextToSize(note, pageW - left - right);
+        wrapped.forEach(line=>{
+          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
+          doc.text(line, left, y); y += 5;
+        });
+        y += 2; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y += 5;
+      }
 
-          if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.setFont("helvetica","normal"); doc.setFontSize(10);
-          doc.text("Offerten är giltig i 30 dagar.", pageW/2, y, {align:"center"});
+      if (y+10 > pageH-bottom) { doc.addPage(); y=top; }
+      doc.setFont("helvetica","normal"); doc.setFontSize(10);
+      doc.text("Offerten är giltig i 30 dagar.", pageW/2, y, {align:"center"});
 
-          const base=(customer.name||"offert").trim()||"offert";
-          const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
-          doc.save(`${safeBase} Offert ${offerNo}.pdf`);
+      const base=(customer.name||"offert").trim()||"offert";
+      const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
+      const fileName = `${safeBase} Offert ${offerNo}.pdf`;
 
-          showToast("PDF klar – fil sparas");
-          hideToast(2000);
-        }catch(err){
-          showToast("Något gick fel vid skapandet");
-          hideToast(2500);
-          console.error(err);
-        }
-      }, 30);
+      // ⬇️ NYTT: generera Blob + visa panel
+      const blob = doc.output("blob");
+      if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} }
+      lastPdfBlob = blob;
+      lastPdfUrl = URL.createObjectURL(blob);
+      lastPdfFilename = fileName;
+      openPdfSheet(fileName);
     });
 
-    // Drawer open/close
+    // ===== Botten-sheet logik =====
+    const sheet = $("pdfSheet");
+    const sheetBackdrop = $("pdfSheetBackdrop");
+    const pdfNameEl = $("pdfName");
+    const openBtn = $("openPdfBtn");
+    const dlBtn = $("downloadPdfBtn");
+    const shareBtn = $("sharePdfBtn");
+    const closeBtn = $("closeSheetBtn");
+
+    function openPdfSheet(name){
+      pdfNameEl.textContent = name;
+      sheet.classList.add("open");
+      sheetBackdrop.classList.add("open");
+      sheet.setAttribute("aria-hidden","false");
+      sheetBackdrop.setAttribute("aria-hidden","false");
+    }
+    function closePdfSheet(){
+      sheet.classList.remove("open");
+      sheetBackdrop.classList.remove("open");
+      sheet.setAttribute("aria-hidden","true");
+      sheetBackdrop.setAttribute("aria-hidden","true");
+    }
+    sheetBackdrop.addEventListener("click", closePdfSheet);
+    closeBtn.addEventListener("click", closePdfSheet);
+
+    openBtn.addEventListener("click", ()=>{
+      if (!lastPdfUrl) return;
+      // Öppna i ny flik/visare
+      window.open(lastPdfUrl, "_blank");
+    });
+
+    dlBtn.addEventListener("click", ()=>{
+      if (!lastPdfUrl) return;
+      const a = document.createElement("a");
+      a.href = lastPdfUrl;
+      a.download = lastPdfFilename;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+    });
+
+    shareBtn.addEventListener("click", async ()=>{
+      if (!lastPdfBlob) return;
+      try{
+        const file = new File([lastPdfBlob], lastPdfFilename, { type: "application/pdf" });
+        if (navigator.canShare && navigator.canShare({ files: [file] })){
+          await navigator.share({ title: "Offert", text: "Se bifogad offert (PDF).", files: [file] });
+        } else {
+          // Fallback: öppna istället
+          window.open(lastPdfUrl, "_blank");
+        }
+      }catch(e){
+        // Ignorera avbruten delning
+      }
+    });
+
+    window.addEventListener("beforeunload", ()=>{
+      if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} }
+    });
+
+    // ===== Drawer open/close =====
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
@@ -591,13 +656,32 @@
 
       function renderCustomerList(){ const list=$("customerList"); list.innerHTML=""; customers.forEach((c,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span><span><button data-cuse="${idx}">Fyll i</button><button data-cdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-cuse"), del=t.getAttribute("data-cdel"); if(use!=null){ const c=customers[Number(use)]; $("kundnamn").value=c.name||""; $("telefon").value=c.phone||""; $("kundemail").value=c.email||""; $("kundadress").value=c.address||""; } else if(del!=null){ customers.splice(Number(del),1); saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist(); } }; }
       renderCustomerList();
-      $("customerSave").addEventListener("click", ()=>{ const name=$("custName").value.trim(), phone=$("custPhone").value.trim(), email=$("custEmail").value.trim(), address=$("custAddress").value.trim(); if(!name){ alert("Ange kundnamn."); return; } const ex=customers.find(c=>c.name.toLowerCase()===name.toLowerCase()); if(ex){ ex.phone=phone; ex.email=email; ex.address=address; } else { customers.push({name,phone,email,address}); } saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist(); $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value=""; alert("Kund sparad."); });
-      $("customerUseNow").addEventListener("click", ()=>{ $("kundnamn").value=$("custName").value.trim(); $("telefon").value=$("custPhone").value.trim(); $("kundemail").value=$("custEmail").value.trim(); $("kundadress").value=$("custAddress").value.trim(); });
+      $("customerSave").addEventListener("click", ()=>{
+        const name=$("custName").value.trim(), phone=$("custPhone").value.trim(), email=$("custEmail").value.trim(), address=$("custAddress").value.trim();
+        if(!name){ alert("Ange kundnamn."); return; }
+        const ex=customers.find(c=>c.name.toLowerCase()===name.toLowerCase());
+        if(ex){ ex.phone=phone; ex.email=email; ex.address=address; }
+        else { customers.push({name,phone,email,address}); }
+        saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist();
+        $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value=""; alert("Kund sparad.");
+      });
+      $("customerUseNow").addEventListener("click", ()=>{
+        $("kundnamn").value=$("custName").value.trim(); $("telefon").value=$("custPhone").value.trim(); $("kundemail").value=$("custEmail").value.trim(); $("kundadress").value=$("custAddress").value.trim();
+      });
 
       function renderTplList(){ const list=$("tplList"); list.innerHTML=""; itemTemplates.forEach((t,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${t.name} — ${t.price} kr/st</span><span><button data-tuse="${idx}">Fyll i</button><button data-tdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-tuse"), del=t.getAttribute("data-tdel"); if(use!=null){ const it=itemTemplates[Number(use)]; $("itemName").value=it.name||""; $("itemPrice").value=it.price||""; $("itemQty").value=1; previewItemLine(); } else if(del!=null){ itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist(); } }; }
       renderTplList();
-      $("tplSave").addEventListener("click", ()=>{ const name=$("tplName").value.trim(), price=parseFloat($("tplPrice").value); if(!name||isNaN(price)){ alert("Ange benämning och pris."); return; } const ex=itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase()); if(ex){ ex.price=price; } else { itemTemplates.push({name,price}); } saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist(); $("tplName").value=""; $("tplPrice").value=""; alert("Styck-preset sparad."); });
-      $("tplUseNow").addEventListener("click", ()=>{ $("itemName").value=$("tplName").value.trim(); $("itemPrice").value=$("tplPrice").value.trim(); $("itemQty").value=1; previewItemLine(); });
+      $("tplSave").addEventListener("click", ()=>{
+        const name=$("tplName").value.trim(), price=parseFloat($("tplPrice").value);
+        if(!name||isNaN(price)){ alert("Ange benämning och pris."); return; }
+        const ex=itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
+        if(ex){ ex.price=price; } else { itemTemplates.push({name,price}); }
+        saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist();
+        $("tplName").value=""; $("tplPrice").value=""; alert("Styck-preset sparad.");
+      });
+      $("tplUseNow").addEventListener("click", ()=>{
+        $("itemName").value=$("tplName").value.trim(); $("itemPrice").value=$("tplPrice").value.trim(); $("itemQty").value=1; previewItemLine();
+      });
     })();
 
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
