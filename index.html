@@ -129,6 +129,29 @@
     .sheet .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
     .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
     .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
+
+    /* ====== TOAST (för att ersätta alert) ====== */
+    #toast {
+      position: fixed;
+      left: 50%;
+      bottom: 24px;
+      transform: translateX(-50%);
+      background: #11151d;
+      color: #fff;
+      border: 1px solid #2a2f3c;
+      border-radius: 12px;
+      padding: 10px 14px;
+      font-size: 14px;
+      box-shadow: 0 8px 24px rgba(0,0,0,.35);
+      opacity: 0;
+      pointer-events: none;
+      transition: opacity .2s, transform .2s;
+      z-index: 10000;
+    }
+    #toast.show {
+      opacity: 1;
+      transform: translateX(-50%) translateY(-6px);
+    }
   </style>
 </head>
 <body>
@@ -244,7 +267,7 @@
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
     <button class="btn" id="share" type="button">Dela priset</button>
 
-    <div id="versionLabel">V.Benjii</div>
+    <div id="versionLabel">V4.Benjii</div>
   </div>
 
   <!-- Drawer -->
@@ -351,6 +374,9 @@
     </div>
   </div>
 
+  <!-- Toast container -->
+  <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
+
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
@@ -358,6 +384,17 @@
     const $ = id => document.getElementById(id);
     // Säker helper: kopplar bara event om elementet finns
     const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
+
+    // ===== Toast helpers + override alert =====
+    function toast(msg, ms = 1800){
+      const el = $('toast');
+      if (!el) return;
+      el.textContent = String(msg ?? '');
+      el.classList.add('show');
+      clearTimeout(el._t);
+      el._t = setTimeout(()=> el.classList.remove('show'), ms);
+    }
+    window.alert = toast;
 
     const LS_PRESETS="rg_presets_v1", LS_ITEMS="rg_items_v1", LS_TPLS="rg_item_templates_v1",
           LS_LOGO="rg_company_logo_dataurl", LS_SENDER="rg_sender_profile_v1",
@@ -493,6 +530,7 @@
       if(sender.phone){ doc.text(sender.phone, left, sy); sy+=5; }
       if(sender.email){ doc.text(sender.email, left, sy); sy+=5; }
 
+      const rightX=pageW-right;
       doc.setFontSize(9); doc.setTextColor(90); doc.text("Kunduppgifter", rightX, y, {align:"right"});
       doc.setTextColor(0); doc.setFont("helvetica","normal"); doc.setFontSize(10);
       let ky=y+6;
@@ -646,18 +684,12 @@
 
       function renderPresetList(){ const list=$("presetList"); list.innerHTML=""; presets.forEach((p,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span><span><button data-use="${idx}">Använd</button><button data-del="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-use"), del=t.getAttribute("data-del"); if(use!=null){ const p=presets[Number(use)]; $("artikel").value=p.artikel; $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); close(); } else if(del!=null){ presets.splice(Number(del),1); saveJSON(LS_PRESETS,presets); renderPresetList(); } }; }
       renderPresetList();
-      on("presetUseNow","click", ()=>{
-        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
-        if(!artikel||!pris) return;
-        $("artikel").value=artikel; $("pris").value=pris; $("moms").value=moms; previewMeasureLine();
-      });
-      $("presetSave").addEventListener("click", ()=>{ const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0; if(!artikel||!pris) return; const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase()); if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); } saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; });
+
+      $("presetSave").addEventListener("click", ()=>{ const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0; if(!artikel||!pris) return; const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase()); if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); } saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad."); });
 
       function renderCustomerList(){ const list=$("customerList"); list.innerHTML=""; customers.forEach((c,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span><span><button data-cuse="${idx}">Fyll i</button><button data-cdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-cuse"), del=t.getAttribute("data-cdel"); if(use!=null){ const c=customers[Number(use)]; $("kundnamn").value=c.name||""; $("telefon").value=c.phone||""; $("kundemail").value=c.email||""; $("kundadress").value=c.address||""; } else if(del!=null){ customers.splice(Number(del),1); saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist(); } }; }
       renderCustomerList();
-      on("customerUseNow","click", ()=>{
-        $("kundnamn").value=$("custName").value.trim(); $("telefon").value=$("custPhone").value.trim(); $("kundemail").value=$("custEmail").value.trim(); $("kundadress").value=$("custAddress").value.trim();
-      });
+
       $("customerSave").addEventListener("click", ()=>{
         const name=$("custName").value.trim(), phone=$("custPhone").value.trim(), email=$("custEmail").value.trim(), address=$("custAddress").value.trim();
         if(!name){ alert("Ange kundnamn."); return; }
@@ -670,9 +702,7 @@
 
       function renderTplList(){ const list=$("tplList"); list.innerHTML=""; itemTemplates.forEach((t,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${t.name} — ${t.price} kr/st</span><span><button data-tuse="${idx}">Fyll i</button><button data-tdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-tuse"), del=t.getAttribute("data-tdel"); if(use!=null){ const it=itemTemplates[Number(use)]; $("itemName").value=it.name||""; $("itemPrice").value=it.price||""; $("itemQty").value=1; previewItemLine(); } else if(del!=null){ itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist(); } }; }
       renderTplList();
-      on("tplUseNow","click", ()=>{
-        $("itemName").value=$("tplName").value.trim(); $("itemPrice").value=$("tplPrice").value.trim(); $("itemQty").value=1; previewItemLine();
-      });
+
       $("tplSave").addEventListener("click", ()=>{
         const name=$("tplName").value.trim(), price=parseFloat($("tplPrice").value);
         if(!name||isNaN(price)){ alert("Ange benämning och pris."); return; }
