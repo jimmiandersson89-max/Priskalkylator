@@ -686,7 +686,44 @@
 
       $("presetSave").addEventListener("click", ()=>{ const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0; if(!artikel||!pris) return; const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase()); if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); } saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad."); });
 
-      function renderCustomerList(){ const list=$("customerList"); list.innerHTML=""; customers.forEach((c,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span><span><button data-cuse="${idx}">Fyll i</button><button data-cdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-cuse"), del=t.getAttribute("data-cdel"); if(use!=null){ const c=customers[Number(use)]; $("kundnamn").value=c.name||""; $("telefon").value=c.phone||""; $("kundemail").value=c.email||""; $("kundadress").value=c.address||""; } else if(del!=null){ customers.splice(Number(del),1); saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist(); } }; }
+      /* ==== ÄNDRING #1 och #2: Kundlistans knapp & funktion ==== */
+      function renderCustomerList(){
+        const list=$("customerList");
+        list.innerHTML="";
+        customers.forEach((c,idx)=>{
+          const row=document.createElement("div");
+          row.className="preset-item";
+          row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span>
+                         <span>
+                           <button data-cedit="${idx}">Redigera</button>
+                           <button data-cdel="${idx}">Ta bort</button>
+                         </span>`;
+          list.appendChild(row);
+        });
+
+        list.onclick=e=>{
+          const t=e.target;
+          if(!(t instanceof HTMLElement)) return;
+          const edit=t.getAttribute("data-cedit");
+          const del=t.getAttribute("data-cdel");
+
+          if(edit!=null){
+            const c=customers[Number(edit)];
+            // Fyll i "Spara kund som preset"-formuläret för redigering
+            $("custName").value = c.name || "";
+            $("custPhone").value = c.phone || "";
+            $("custEmail").value = c.email || "";
+            $("custAddress").value = c.address || "";
+          } else if(del!=null){
+            customers.splice(Number(del),1);
+            saveJSON(LS_CUSTOMERS,customers);
+            renderCustomerList();
+            refreshCustomerDatalist();
+          }
+        };
+      }
+      /* ==== SLUT på ändringar ==== */
+
       renderCustomerList();
 
       $("customerSave").addEventListener("click", ()=>{
