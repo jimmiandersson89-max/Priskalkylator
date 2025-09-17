@@ -382,10 +382,8 @@
   <script>
     "use strict";
     const $ = id => document.getElementById(id);
-    // Säker helper: kopplar bara event om elementet finns
     const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
 
-    // ===== Toast helpers + override alert =====
     function toast(msg, ms = 1800){
       const el = $('toast');
       if (!el) return;
@@ -404,7 +402,6 @@
         customers=loadJSON(LS_CUSTOMERS,[]), itemTemplates=loadJSON(LS_TPLS,[]),
         logoDataURL=localStorage.getItem(LS_LOGO)||"";
 
-    // Håller senaste PDF i minnet för "Öppna / Ladda ner / Dela"
     let lastPdfBlob = null, lastPdfUrl = null, lastPdfFilename = "offert.pdf";
 
     function loadJSON(k,f){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(f)); }catch{ return f; } }
@@ -551,7 +548,6 @@
         doc.setFont("helvetica","normal"); y+=6;
       });
 
-      // Övriga uppgifter under artiklarna – utan rubrik i PDF
       if (otherInfo) {
         y += 4;
         doc.setFont("helvetica","normal"); doc.setFontSize(10);
@@ -577,7 +573,6 @@
         y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
 
-      // Kommentar efter totalsumman
       if (note) {
         if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.setFontSize(11);
@@ -599,7 +594,6 @@
       const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
       const fileName = `${safeBase} Offert ${offerNo}.pdf`;
 
-      // ⬇️ Generera Blob + visa panel
       const blob = doc.output("blob");
       if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} }
       lastPdfBlob = blob;
@@ -681,12 +675,49 @@
       $("logoFile").addEventListener("change", e=>{ const file=e.target.files?.[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); }; r.readAsDataURL(file); });
       $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
 
-      function renderPresetList(){ const list=$("presetList"); list.innerHTML=""; presets.forEach((p,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span><span><button data-use="${idx}">Använd</button><button data-del="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-use"), del=t.getAttribute("data-del"); if(use!=null){ const p=presets[Number(use)]; $("artikel").value=p.artikel; $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); close(); } else if(del!=null){ presets.splice(Number(del),1); saveJSON(LS_PRESETS,presets); renderPresetList(); } }; }
+      /* m²-presets LISTA */
+      function renderPresetList(){
+        const list=$("presetList");
+        list.innerHTML="";
+        presets.forEach((p,idx)=>{
+          const row=document.createElement("div");
+          row.className="preset-item";
+          row.innerHTML=`<span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span>
+                         <span>
+                           <button data-pedit="${idx}">Redigera</button>
+                           <button data-del="${idx}">Ta bort</button>
+                         </span>`;
+          list.appendChild(row);
+        });
+        list.onclick=e=>{
+          const t=e.target;
+          if(!(t instanceof HTMLElement)) return;
+          const edit=t.getAttribute("data-pedit");
+          const del=t.getAttribute("data-del");
+          if(edit!=null){
+            const p=presets[Number(edit)];
+            // Fyll i formuläret "Skapa egna m²-presets" för redigering
+            $("presetTitle").value = p.artikel || "";
+            $("presetPrice").value = p.pris ?? "";
+            $("presetVat").checked = (p.moms === 0.25);
+          } else if(del!=null){
+            presets.splice(Number(del),1);
+            saveJSON(LS_PRESETS,presets);
+            renderPresetList();
+          }
+        };
+      }
       renderPresetList();
 
-      $("presetSave").addEventListener("click", ()=>{ const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0; if(!artikel||!pris) return; const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase()); if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); } saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad."); });
+      $("presetSave").addEventListener("click", ()=>{
+        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
+        if(!artikel||!pris) return;
+        const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
+        if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
+        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
+      });
 
-      /* ==== ÄNDRING #1 och #2: Kundlistans knapp & funktion ==== */
+      /* KUNDER LISTA – tidigare ändrad till Redigera */
       function renderCustomerList(){
         const list=$("customerList");
         list.innerHTML="";
@@ -709,7 +740,6 @@
 
           if(edit!=null){
             const c=customers[Number(edit)];
-            // Fyll i "Spara kund som preset"-formuläret för redigering
             $("custName").value = c.name || "";
             $("custPhone").value = c.phone || "";
             $("custEmail").value = c.email || "";
@@ -722,8 +752,6 @@
           }
         };
       }
-      /* ==== SLUT på ändringar ==== */
-
       renderCustomerList();
 
       $("customerSave").addEventListener("click", ()=>{
@@ -736,7 +764,38 @@
         $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value=""; alert("Kund sparad.");
       });
 
-      function renderTplList(){ const list=$("tplList"); list.innerHTML=""; itemTemplates.forEach((t,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${t.name} — ${t.price} kr/st</span><span><button data-tuse="${idx}">Fyll i</button><button data-tdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-tuse"), del=t.getAttribute("data-tdel"); if(use!=null){ const it=itemTemplates[Number(use)]; $("itemName").value=it.name||""; $("itemPrice").value=it.price||""; $("itemQty").value=1; previewItemLine(); } else if(del!=null){ itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist(); } }; }
+      /* Styck-presets LISTA */
+      function renderTplList(){
+        const list=$("tplList");
+        list.innerHTML="";
+        itemTemplates.forEach((tpl,idx)=>{
+          const row=document.createElement("div");
+          row.className="preset-item";
+          row.innerHTML=`<span>${tpl.name} — ${tpl.price} kr/st</span>
+                         <span>
+                           <button data-tedit="${idx}">Redigera</button>
+                           <button data-tdel="${idx}">Ta bort</button>
+                         </span>`;
+          list.appendChild(row);
+        });
+        list.onclick=e=>{
+          const t=e.target;
+          if(!(t instanceof HTMLElement)) return;
+          const edit=t.getAttribute("data-tedit");
+          const del=t.getAttribute("data-tdel");
+          if(edit!=null){
+            const it=itemTemplates[Number(edit)];
+            // Fyll i formuläret "Skapa styck-presets" för redigering
+            $("tplName").value = it.name || "";
+            $("tplPrice").value = it.price ?? "";
+          } else if(del!=null){
+            itemTemplates.splice(Number(del),1);
+            saveJSON(LS_TPLS,itemTemplates);
+            renderTplList();
+            refreshItemDatalist();
+          }
+        };
+      }
       renderTplList();
 
       $("tplSave").addEventListener("click", ()=>{
