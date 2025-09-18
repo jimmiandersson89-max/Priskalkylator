@@ -93,7 +93,14 @@
     /* Drawer */
     .hamburger{ display:none; }
     .drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998 }
-    .drawer{ position:fixed; top:0; left:0; height:100%; width:360px; max-width:92vw; background:#0f1115; border-right:1px solid #1e2430; box-shadow:8px 0 40px rgba(0,0,0,.35); transform:translateX(-100%); transition:.25s transform; z-index:9999; color:#e5e7eb; display:flex; flex-direction:column }
+    .drawer{
+      position:fixed; top:0; left:0; height:100%;
+      width:360px; max-width:92vw;
+      background:#0f1115; border-right:1px solid #1e2430;
+      box-shadow:8px 0 40px rgba(0,0,0,.35);
+      transform:translateX(-100%); transition:.25s transform;
+      z-index:9999; color:#e5e7eb; display:flex; flex-direction:column
+    }
     .drawer.open{ transform:translateX(0) }
     .drawer-backdrop.open{ opacity:1; pointer-events:auto }
     .drawer .hd{ padding:14px; border-bottom:1px solid #1e2430; font-size:16px; font-weight:700 }
@@ -106,6 +113,14 @@
     .preset-item:last-child{ border-bottom:none }
     .preset-item button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer }
     .drawer .muted{ color:#9aa3b2; font-size:12px }
+
+    /* >>> Responsiv drawer i landskap/breda skärmar <<< */
+    @media (min-width: 800px) {
+      .drawer { width: 60vw; max-width: 600px; }
+    }
+    @media (min-width: 1200px) {
+      .drawer { width: 40vw; max-width: 800px; }
+    }
 
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
     .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
@@ -130,7 +145,7 @@
     .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
     .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
 
-    /* ====== TOAST (för att ersätta alert) ====== */
+    /* ====== TOAST ====== */
     #toast {
       position: fixed;
       left: 50%;
@@ -148,10 +163,7 @@
       transition: opacity .2s, transform .2s;
       z-index: 10000;
     }
-    #toast.show {
-      opacity: 1;
-      transform: translateX(-50%) translateY(-6px);
-    }
+    #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
   </style>
 </head>
 <body>
@@ -675,83 +687,12 @@
       $("logoFile").addEventListener("change", e=>{ const file=e.target.files?.[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); }; r.readAsDataURL(file); });
       $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
 
-      /* m²-presets LISTA */
-      function renderPresetList(){
-        const list=$("presetList");
-        list.innerHTML="";
-        presets.forEach((p,idx)=>{
-          const row=document.createElement("div");
-          row.className="preset-item";
-          row.innerHTML=`<span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span>
-                         <span>
-                           <button data-pedit="${idx}">Redigera</button>
-                           <button data-del="${idx}">Ta bort</button>
-                         </span>`;
-          list.appendChild(row);
-        });
-        list.onclick=e=>{
-          const t=e.target;
-          if(!(t instanceof HTMLElement)) return;
-          const edit=t.getAttribute("data-pedit");
-          const del=t.getAttribute("data-del");
-          if(edit!=null){
-            const p=presets[Number(edit)];
-            // Fyll i formuläret "Skapa egna m²-presets" för redigering
-            $("presetTitle").value = p.artikel || "";
-            $("presetPrice").value = p.pris ?? "";
-            $("presetVat").checked = (p.moms === 0.25);
-          } else if(del!=null){
-            presets.splice(Number(del),1);
-            saveJSON(LS_PRESETS,presets);
-            renderPresetList();
-          }
-        };
-      }
+      function renderPresetList(){ const list=$("presetList"); list.innerHTML=""; presets.forEach((p,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span><span><button data-use="${idx}">Använd</button><button data-del="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-use"), del=t.getAttribute("data-del"); if(use!=null){ const p=presets[Number(use)]; $("artikel").value=p.artikel; $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); close(); } else if(del!=null){ presets.splice(Number(del),1); saveJSON(LS_PRESETS,presets); renderPresetList(); } }; }
       renderPresetList();
 
-      $("presetSave").addEventListener("click", ()=>{
-        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
-        if(!artikel||!pris) return;
-        const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
-        if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
-        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
-      });
+      $("presetSave").addEventListener("click", ()=>{ const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0; if(!artikel||!pris) return; const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase()); if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); } saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad."); });
 
-      /* KUNDER LISTA – tidigare ändrad till Redigera */
-      function renderCustomerList(){
-        const list=$("customerList");
-        list.innerHTML="";
-        customers.forEach((c,idx)=>{
-          const row=document.createElement("div");
-          row.className="preset-item";
-          row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span>
-                         <span>
-                           <button data-cedit="${idx}">Redigera</button>
-                           <button data-cdel="${idx}">Ta bort</button>
-                         </span>`;
-          list.appendChild(row);
-        });
-
-        list.onclick=e=>{
-          const t=e.target;
-          if(!(t instanceof HTMLElement)) return;
-          const edit=t.getAttribute("data-cedit");
-          const del=t.getAttribute("data-cdel");
-
-          if(edit!=null){
-            const c=customers[Number(edit)];
-            $("custName").value = c.name || "";
-            $("custPhone").value = c.phone || "";
-            $("custEmail").value = c.email || "";
-            $("custAddress").value = c.address || "";
-          } else if(del!=null){
-            customers.splice(Number(del),1);
-            saveJSON(LS_CUSTOMERS,customers);
-            renderCustomerList();
-            refreshCustomerDatalist();
-          }
-        };
-      }
+      function renderCustomerList(){ const list=$("customerList"); list.innerHTML=""; customers.forEach((c,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span><span><button data-cedit="${idx}">Redigera</button><button data-cdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const edit=t.getAttribute("data-cedit"), del=t.getAttribute("data-cdel"); if(edit!=null){ const c=customers[Number(edit)]; $("custName").value=c.name||""; $("custPhone").value=c.phone||""; $("custEmail").value=c.email||""; $("custAddress").value=c.address||""; } else if(del!=null){ customers.splice(Number(del),1); saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist(); } }; }
       renderCustomerList();
 
       $("customerSave").addEventListener("click", ()=>{
@@ -764,38 +705,7 @@
         $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value=""; alert("Kund sparad.");
       });
 
-      /* Styck-presets LISTA */
-      function renderTplList(){
-        const list=$("tplList");
-        list.innerHTML="";
-        itemTemplates.forEach((tpl,idx)=>{
-          const row=document.createElement("div");
-          row.className="preset-item";
-          row.innerHTML=`<span>${tpl.name} — ${tpl.price} kr/st</span>
-                         <span>
-                           <button data-tedit="${idx}">Redigera</button>
-                           <button data-tdel="${idx}">Ta bort</button>
-                         </span>`;
-          list.appendChild(row);
-        });
-        list.onclick=e=>{
-          const t=e.target;
-          if(!(t instanceof HTMLElement)) return;
-          const edit=t.getAttribute("data-tedit");
-          const del=t.getAttribute("data-tdel");
-          if(edit!=null){
-            const it=itemTemplates[Number(edit)];
-            // Fyll i formuläret "Skapa styck-presets" för redigering
-            $("tplName").value = it.name || "";
-            $("tplPrice").value = it.price ?? "";
-          } else if(del!=null){
-            itemTemplates.splice(Number(del),1);
-            saveJSON(LS_TPLS,itemTemplates);
-            renderTplList();
-            refreshItemDatalist();
-          }
-        };
-      }
+      function renderTplList(){ const list=$("tplList"); list.innerHTML=""; itemTemplates.forEach((t,idx)=>{ const row=document.createElement("div"); row.className="preset-item"; row.innerHTML=`<span>${t.name} — ${t.price} kr/st</span><span><button data-tuse="${idx}">Fyll i</button><button data-tdel="${idx}">Ta bort</button></span>`; list.appendChild(row); }); list.onclick=e=>{ const t=e.target; if(!(t instanceof HTMLElement)) return; const use=t.getAttribute("data-tuse"), del=t.getAttribute("data-tdel"); if(use!=null){ const it=itemTemplates[Number(use)]; $("itemName").value=it.name||""; $("itemPrice").value=it.price||""; $("itemQty").value=1; previewItemLine(); } else if(del!=null){ itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist(); } }; }
       renderTplList();
 
       $("tplSave").addEventListener("click", ()=>{
