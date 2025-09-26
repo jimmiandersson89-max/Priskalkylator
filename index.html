@@ -20,7 +20,7 @@
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
       --text:#ffffff; --muted:#b7c0cf; --btn:#16a34a; --btn-hover:#139043; --row:#0b0d12;
-      --danger:#b91c1c;
+      --danger:#b91c1c; --warning:#f59e0b;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -49,25 +49,14 @@
     textarea{ min-height:90px; resize:vertical }
     input:focus,select:focus,textarea:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
 
-    /* Mindre & snyggare placeholder för textareorna */
-    #otherInfo::placeholder,
-    #offerNote::placeholder{
-      font-size:13px;
-      line-height:1.4;
-      color:#a6afbf;
-      opacity:1;
-    }
+    /* placeholder styling */
+    #otherInfo::placeholder, #offerNote::placeholder{ font-size:13px; line-height:1.4; color:#a6afbf; opacity:1; }
 
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
-    @media (min-width:720px){
-      .grid2{ grid-template-columns:1fr 1fr }
-      .grid3{ grid-template-columns:1fr 1fr 1fr }
-    }
+    @media (min-width:720px){ .grid2{ grid-template-columns:1fr 1fr } .grid3{ grid-template-columns:1fr 1fr 1fr } }
 
-    .row{
-      background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px;
-    }
+    .row{ background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px }
 
     .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
@@ -77,9 +66,7 @@
     .compact-list td:nth-child(2), .compact-list td:nth-child(3){ text-align:right }
     .compact-list .act{ text-align:right }
     .compact-list tr:hover td{ background:#121722 }
-    .compact-list th:last-child,.compact-list td:last-child{
-      position:sticky; right:0; background:var(--row); box-shadow:-6px 0 10px rgba(0,0,0,.12); z-index:1;
-    }
+    .compact-list th:last-child,.compact-list td:last-child{ position:sticky; right:0; background:var(--row); box-shadow:-6px 0 10px rgba(0,0,0,.12); z-index:1; }
 
     .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:14px; line-height:1 }
     .remove:hover{ filter:brightness(1.06) }
@@ -89,6 +76,15 @@
     .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
+    .btn[disabled]{ opacity:.55; cursor:not-allowed }
+
+    /* Trial banner */
+    #trialBanner{
+      display:none; margin:-8px 0 8px; padding:10px 12px;
+      border:1px solid #3a2e10; background:#1b1507; color:#ffd58a;
+      border-radius:12px; font-size:13px;
+    }
+    #trialBanner b{ color:#fff; }
 
     /* Drawer */
     .hamburger{ display:none; }
@@ -110,62 +106,40 @@
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
     .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
 
-    /* ===== Gör drawer helskärm i liggande läge ===== */
-    @media (orientation: landscape) {
-      .drawer { width: 100vw; max-width: 100vw; }
-    }
+    @media (orientation: landscape) { .drawer { width: 100vw; max-width: 100vw; } }
 
-    /* ===== PDF-efter-panel (botten-sheet) ===== */
-    .sheet-backdrop{
-      position:fixed; inset:0; background:rgba(0,0,0,.45);
-      opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998;
-    }
-    .sheet{
-      position:fixed; left:0; right:0; bottom:0; transform:translateY(100%);
-      background:#0f1115; border-top-left-radius:16px; border-top-right-radius:16px;
-      border:1px solid #1e2430; box-shadow:0 -10px 30px rgba(0,0,0,.4);
-      padding:16px; z-index:9999; transition:.25s transform; color:#fff;
-    }
-    .sheet.open{ transform:translateY(0) }
-    .sheet-backdrop.open{ opacity:1; pointer-events:auto }
-    .sheet h3{ margin:0 0 6px; font-size:18px }
-    .sheet p{ margin:0 0 12px; color:#b7c0cf; font-size:13px }
+    /* PDF-sheet */
+    .sheet-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998; }
+    .sheet{ position:fixed; left:0; right:0; bottom:0; transform:translateY(100%); background:#0f1115; border-top-left-radius:16px; border-top-right-radius:16px; border:1px solid #1e2430; box-shadow:0 -10px 30px rgba(0,0,0,.4); padding:16px; z-index:9999; transition:.25s transform; color:#fff; }
+    .sheet.open{ transform:translateY(0) } .sheet-backdrop.open{ opacity:1; pointer-events:auto }
+    .sheet h3{ margin:0 0 6px; font-size:18px } .sheet p{ margin:0 0 12px; color:#b7c0cf; font-size:13px }
     .sheet .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
     .sheet .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
     .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
     .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
 
-    /* ====== TOAST (för att ersätta alert) ====== */
-    #toast {
-      position: fixed;
-      left: 50%;
-      bottom: 24px;
-      transform: translateX(-50%);
-      background: #11151d;
-      color: #fff;
-      border: 1px solid #2a2f3c;
-      border-radius: 12px;
-      padding: 10px 14px;
-      font-size: 14px;
-      box-shadow: 0 8px 24px rgba(0,0,0,.35);
-      opacity: 0;
-      pointer-events: none;
-      transition: opacity .2s, transform .2s;
-      z-index: 10000;
-    }
+    /* TOAST */
+    #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #11151d; color: #fff; border: 1px solid #2a2f3c; border-radius: 12px; padding: 10px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10000; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
+
+    /* PAYWALL (låser allt efter test) */
+    #paywall{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.92); z-index:10001; color:#fff; text-align:center; padding:24px; }
+    #paywall .box{ max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35) }
+    #paywall h3{ margin:0 0 8px; font-size:20px }
+    #paywall p{ margin:6px 0 14px; color:#b7c0cf; font-size:14px }
+    #paywall .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
   </style>
 </head>
 <body>
   <div class="wrap">
-
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
     <h1>Offert på språng</h1>
 
-    <!-- Öppna företagspanelen -->
+    <div id="trialBanner"></div>
+
     <button class="btn" id="openDrawer" type="button">Fyll i dina företagsuppgifter här.</button>
 
-    <!-- KUND: Egen låda -->
+    <!-- KUND -->
     <div class="row" style="margin-top:10px">
       <h2 style="color:#fff;margin:0 0 8px">Fyll i kunduppgifter nedan</h2>
 
@@ -203,7 +177,7 @@
       </div>
     </div>
 
-    <!-- EN RUTA: Mått + Stycksaker + Tid + Lista -->
+    <!-- MÅTT / STYCK / TID -->
     <div class="row">
       <h2>Lägg till mått</h2>
       <div class="grid2">
@@ -258,11 +232,10 @@
     <div id="result" class="out">Lägg till ett mått eller en post.</div>
     <div id="details" class="hint"></div>
 
-    <!-- Övriga uppgifter (visas ej som rubrik i PDF) -->
+    <!-- Övrigt / Kommentar -->
     <label for="otherInfo" style="margin-top:12px">Övriga uppgifter</label>
     <textarea id="otherInfo" placeholder="Här kan du skriva i övriga uppgifter. Dessa hamnar alltid under specifikationer i offerten (pdf)"></textarea>
 
-    <!-- Kommentar (rubriken skrivs i PDF efter total) -->
     <label for="offerNote" style="margin-top:12px">kommentar</label>
     <textarea id="offerNote" placeholder="Skriv din kommentar här, den läggs till i offerten (Pdf)"></textarea>
 
@@ -376,7 +349,20 @@
     </div>
   </div>
 
-  <!-- Toast container -->
+  <!-- Paywall overlay -->
+  <div id="paywall" aria-live="assertive" aria-hidden="true">
+    <div class="box">
+      <h3>Testperioden är slut</h3>
+      <p>För att fortsätta använda Offert på språng behöver du ett aktivt abonnemang.</p>
+      <div class="row2" style="margin-top:10px">
+        <button class="btn" id="paywallBuy">Prenumerera</button>
+        <button class="btn secondary" id="paywallRestore">Återställ köp</button>
+      </div>
+      <p class="hint" style="margin-top:10px">Har du redan köpt? Välj <b>Återställ köp</b>.</p>
+    </div>
+  </div>
+
+  <!-- Toast -->
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
@@ -387,32 +373,119 @@
     const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
 
     function toast(msg, ms = 1800){
-      const el = $('toast');
-      if (!el) return;
-      el.textContent = String(msg ?? '');
-      el.classList.add('show');
-      clearTimeout(el._t);
-      el._t = setTimeout(()=> el.classList.remove('show'), ms);
+      const el = $('toast'); if (!el) return;
+      el.textContent = String(msg ?? ''); el.classList.add('show');
+      clearTimeout(el._t); el._t = setTimeout(()=> el.classList.remove('show'), ms);
     }
     window.alert = toast;
 
+    /* ===== KEYS ===== */
     const LS_PRESETS="rg_presets_v1", LS_ITEMS="rg_items_v1", LS_TPLS="rg_item_templates_v1",
           LS_LOGO="rg_company_logo_dataurl", LS_SENDER="rg_sender_profile_v1",
-          LS_CUSTOMERS="rg_customers_v1", LS_OFFER_NO="rg_offer_no_v1";
+          LS_CUSTOMERS="rg_customers_v1", LS_OFFER_NO="rg_offer_no_v1",
+          LS_TRIAL="rg_trial_start_v1", LS_SUB="rg_sub_active_v1";
 
+    /* ===== STATE ===== */
     let items=loadJSON(LS_ITEMS,[]), presets=loadJSON(LS_PRESETS,[]),
         customers=loadJSON(LS_CUSTOMERS,[]), itemTemplates=loadJSON(LS_TPLS,[]),
         logoDataURL=localStorage.getItem(LS_LOGO)||"";
+    let lastPdfBlob=null, lastPdfUrl=null, lastPdfFilename="offert.pdf";
 
-    let lastPdfBlob = null, lastPdfUrl = null, lastPdfFilename = "offert.pdf";
-
+    /* ===== HELPERS ===== */
     function loadJSON(k,f){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(f)); }catch{ return f; } }
     function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
-    function setLogoPreview(){ const el=$("logoPreview"); if(logoDataURL){ el.src=logoDataURL; el.style.display="block"; } else { el.style.display="none"; } }
-
+    function setLogoPreview(){ const el=$("logoPreview"); if(el){ if(logoDataURL){ el.src=logoDataURL; el.style.display="block"; } else { el.style.display="none"; } } }
     const fmt0=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
     const fmt2=n=>Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
 
+    /* ====== TRIAL / SUBS ====== */
+    const TRIAL_DAYS = 5;
+
+    function getTrial(){
+      let t=parseInt(localStorage.getItem(LS_TRIAL)||"0",10);
+      if(!t){ t=Date.now(); localStorage.setItem(LS_TRIAL,String(t)); }
+      const end=t+TRIAL_DAYS*24*60*60*1000;
+      const msLeft=end-Date.now();
+      return { startedAt:t, end, msLeft, daysLeft: Math.max(0, Math.ceil(msLeft/86400000)), expired: msLeft<=0 };
+    }
+    function isSubscribed(){
+      return localStorage.getItem(LS_SUB)==="1" ||
+             sessionStorage.getItem("sub_ok")==="1" ||
+             (window.Billing && window.Billing.isActive===true);
+    }
+    function lockPdfUI(lock){
+      const btn=$("pdf");
+      if(btn){
+        btn.disabled = !!lock;
+        btn.textContent = lock ? "Skapa offert (PDF låst i testläge)" : "Skapa offert (PDF)";
+      }
+    }
+    function showTrialBanner(daysLeft){
+      const b=$("trialBanner");
+      if(!b) return;
+      b.style.display="block";
+      b.innerHTML = `<b>Testläge:</b> ${daysLeft} ${daysLeft===1?"dag":"dagar"} kvar. PDF är låst tills du prenumererar.`;
+    }
+    function hideTrialBanner(){ const b=$("trialBanner"); if(b) b.style.display="none"; }
+
+    function showPaywall(){
+      const p=$("paywall"); if(!p) return;
+      p.style.display="grid"; p.setAttribute("aria-hidden","false");
+      document.body.style.overflow = "hidden";
+    }
+    function hidePaywall(){
+      const p=$("paywall"); if(!p) return;
+      p.style.display="none"; p.setAttribute("aria-hidden","true");
+      document.body.style.overflow = "";
+    }
+
+    function applyEntitlements(){
+      const trial=getTrial();
+      const sub=isSubscribed();
+      if(sub){
+        hideTrialBanner(); hidePaywall(); lockPdfUI(false);
+        return;
+      }
+      // ej sub
+      if(trial.expired){
+        hideTrialBanner();
+        showPaywall();
+        lockPdfUI(true);
+      }else{
+        showTrialBanner(trial.daysLeft);
+        lockPdfUI(true); // PDF alltid låst under test
+      }
+    }
+
+    // Billing hooks (din billing.js kan kalla dessa)
+    window.addEventListener("billing-active", ()=>{
+      localStorage.setItem(LS_SUB,"1");
+      applyEntitlements();
+      toast("Premium aktiverat – tack!");
+    });
+    window.addEventListener("billing-reset", ()=>{
+      localStorage.removeItem(LS_SUB);
+      applyEntitlements();
+      toast("Abonnemang ej aktivt.");
+    });
+
+    // Paywall-knappar
+    on("paywallBuy","click", ()=>{
+      if (window.Billing && typeof window.Billing.subscribe === "function"){
+        window.Billing.subscribe();
+      } else {
+        toast("Öppnar köp i appen…");
+      }
+    });
+    on("paywallRestore","click", ()=>{
+      if (window.Billing && typeof window.Billing.restore === "function"){
+        window.Billing.restore();
+      } else {
+        toast("Försök öppna appens Återställ köp.");
+      }
+    });
+
+    /* ====== KALKYL + UI ====== */
     function previewMeasureLine(){
       const h=parseFloat($("hojd").value), b=parseFloat($("bredd").value), qty=parseFloat($("antal").value||"1");
       const price=parseFloat($("pris").value), moms=parseFloat($("moms").value||"0"), box=$("measurePreview");
@@ -493,8 +566,19 @@
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    // ====== PDF + efter-panel ======
+    // ====== PDF (gated) ======
     $("pdf").addEventListener("click", ()=>{
+      // gate: PDF kräver abonnemang
+      if (!isSubscribed()){
+        const trial=getTrial();
+        if(!trial.expired){
+          alert("PDF är låst under testperioden. Prenumerera för att skapa PDF.");
+        }else{
+          showPaywall();
+        }
+        return;
+      }
+
       const { jsPDF } = window.jspdf; const doc=new jsPDF({ unit:"mm", format:"a4" });
       const left=15,right=15,top=18,bottom=18;
       const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight(); let y=top;
@@ -576,7 +660,8 @@
         y+=7; doc.setDrawColor(220); doc.line(left,y,pageW-right,y); y+=5;
       });
 
-      // Kommentar efter totalsumman
+      // Kommentar
+      const note=($("offerNote").value||"").trim();
       if (note) {
         if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
         doc.setFont("helvetica","bold"); doc.setFontSize(11);
@@ -606,7 +691,7 @@
       openPdfSheet(fileName);
     });
 
-    // ===== Botten-sheet logik =====
+    // PDF-sheet logik
     const sheet = $("pdfSheet");
     const sheetBackdrop = $("pdfSheetBackdrop");
     const pdfNameEl = $("pdfName");
@@ -631,38 +716,13 @@
     sheetBackdrop.addEventListener("click", closePdfSheet);
     closeBtn.addEventListener("click", closePdfSheet);
 
-    openBtn.addEventListener("click", ()=>{
-      if (!lastPdfUrl) return;
-      window.open(lastPdfUrl, "_blank");
-    });
+    openBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; window.open(lastPdfUrl, "_blank"); });
+    dlBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; const a=document.createElement("a"); a.href=lastPdfUrl; a.download=lastPdfFilename; document.body.appendChild(a); a.click(); a.remove(); });
+    shareBtn.addEventListener("click", async ()=>{ if (!lastPdfBlob) return; try{ const file = new File([lastPdfBlob], lastPdfFilename, { type: "application/pdf" }); if (navigator.canShare && navigator.canShare({ files: [file] })){ await navigator.share({ title: "Offert", text: "Se bifogad offert (PDF).", files: [file] }); } else { window.open(lastPdfUrl, "_blank"); } }catch(e){} });
 
-    dlBtn.addEventListener("click", ()=>{
-      if (!lastPdfUrl) return;
-      const a = document.createElement("a");
-      a.href = lastPdfUrl;
-      a.download = lastPdfFilename;
-      document.body.appendChild(a);
-      a.click();
-      a.remove();
-    });
+    window.addEventListener("beforeunload", ()=>{ if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} } });
 
-    shareBtn.addEventListener("click", async ()=>{
-      if (!lastPdfBlob) return;
-      try{
-        const file = new File([lastPdfBlob], lastPdfFilename, { type: "application/pdf" });
-        if (navigator.canShare && navigator.canShare({ files: [file] })){
-          await navigator.share({ title: "Offert", text: "Se bifogad offert (PDF).", files: [file] });
-        } else {
-          window.open(lastPdfUrl, "_blank");
-        }
-      }catch(e){ /* ignorera */ }
-    });
-
-    window.addEventListener("beforeunload", ()=>{
-      if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} }
-    });
-
-    // ===== Drawer open/close + presets/kunder/tpl =====
+    // Drawer + listor + sparande
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
@@ -679,68 +739,37 @@
       $("logoFile").addEventListener("change", e=>{ const file=e.target.files?.[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); }; r.readAsDataURL(file); });
       $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
 
-      /* m²-presets LISTA */
       function renderPresetList(){
-        const list=$("presetList");
-        list.innerHTML="";
+        const list=$("presetList"); list.innerHTML="";
         presets.forEach((p,idx)=>{
           const row=document.createElement("div");
           row.className="preset-item";
           row.innerHTML=`<span>${p.artikel} — ${p.pris} kr/m² ${p.moms===0.25?"(inkl 25%)":"(exkl)"}</span>
-                         <span>
-                           <button data-pedit="${idx}">Redigera</button>
-                           <button data-del="${idx}">Ta bort</button>
-                         </span>`;
+                         <span><button data-pedit="${idx}">Redigera</button><button data-del="${idx}">Ta bort</button></span>`;
           list.appendChild(row);
         });
         list.onclick=e=>{
-          const t=e.target;
-          if(!(t instanceof HTMLElement)) return;
-          const edit=t.getAttribute("data-pedit");
-          const del=t.getAttribute("data-del");
-          if(edit!=null){
-            const p=presets[Number(edit)];
-            $("presetTitle").value = p.artikel || "";
-            $("presetPrice").value = p.pris ?? "";
-            $("presetVat").checked = (p.moms === 0.25);
-          } else if(del!=null){
-            presets.splice(Number(del),1);
-            saveJSON(LS_PRESETS,presets);
-            renderPresetList();
-          }
+          const t=e.target; if(!(t instanceof HTMLElement)) return;
+          const edit=t.getAttribute("data-pedit"); const del=t.getAttribute("data-del");
+          if(edit!=null){ const p=presets[Number(edit)]; $("presetTitle").value=p.artikel||""; $("presetPrice").value=p.pris??""; $("presetVat").checked=(p.moms===0.25); }
+          else if(del!=null){ presets.splice(Number(del),1); saveJSON(LS_PRESETS,presets); renderPresetList(); }
         };
       }
       renderPresetList();
 
-      $("presetSave").addEventListener("click", ()=>{
-        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
-        if(!artikel||!pris) return;
-        const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
-        if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
-        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
-      });
-
-      /* KUNDER LISTA – Redigera */
       function renderCustomerList(){
-        const list=$("customerList");
-        list.innerHTML="";
+        const list=$("customerList"); list.innerHTML="";
         customers.forEach((c,idx)=>{
           const row=document.createElement("div");
           row.className="preset-item";
           row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span>
-                         <span>
-                           <button data-cedit="${idx}">Redigera</button>
-                           <button data-cdel="${idx}">Ta bort</button>
-                         </span>`;
+                         <span><button data-cedit="${idx}">Redigera</button><button data-cdel="${idx}">Ta bort</button></span>`;
           list.appendChild(row);
         });
 
         list.onclick=e=>{
-          const t=e.target;
-          if(!(t instanceof HTMLElement)) return;
-          const edit=t.getAttribute("data-cedit");
-          const del=t.getAttribute("data-cdel");
-
+          const t=e.target; if(!(t instanceof HTMLElement)) return;
+          const edit=t.getAttribute("data-cedit"); const del=t.getAttribute("data-cdel");
           if(edit!=null){
             const c=customers[Number(edit)];
             $("custName").value = c.name || "";
@@ -748,10 +777,8 @@
             $("custEmail").value = c.email || "";
             $("custAddress").value = c.address || "";
           } else if(del!=null){
-            customers.splice(Number(del),1);
-            saveJSON(LS_CUSTOMERS,customers);
-            renderCustomerList();
-            refreshCustomerDatalist();
+            customers.splice(Number(del),1); saveJSON(LS_CUSTOMERS,customers);
+            renderCustomerList(); refreshCustomerDatalist();
           }
         };
       }
@@ -767,54 +794,63 @@
         $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value=""; alert("Kund sparad.");
       });
 
-      /* Styck-presets LISTA */
       function renderTplList(){
-        const list=$("tplList");
-        list.innerHTML="";
+        const list=$("tplList"); list.innerHTML="";
         itemTemplates.forEach((tpl,idx)=>{
           const row=document.createElement("div");
           row.className="preset-item";
           row.innerHTML=`<span>${tpl.name} — ${tpl.price} kr/st</span>
-                         <span>
-                           <button data-tedit="${idx}">Redigera</button>
-                           <button data-tdel="${idx}">Ta bort</button>
-                         </span>`;
+                         <span><button data-tedit="${idx}">Redigera</button><button data-tdel="${idx}">Ta bort</button></span>`;
           list.appendChild(row);
         });
         list.onclick=e=>{
-          const t=e.target;
-          if(!(t instanceof HTMLElement)) return;
-          const edit=t.getAttribute("data-tedit");
-          const del=t.getAttribute("data-tdel");
+          const t=e.target; if(!(t instanceof HTMLElement)) return;
+          const edit=t.getAttribute("data-tedit"); const del=t.getAttribute("data-tdel");
           if(edit!=null){
             const it=itemTemplates[Number(edit)];
             $("tplName").value = it.name || "";
             $("tplPrice").value = it.price ?? "";
           } else if(del!=null){
-            itemTemplates.splice(Number(del),1);
-            saveJSON(LS_TPLS,itemTemplates);
-            renderTplList();
-            refreshItemDatalist();
+            itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates);
+            renderTplList(); refreshItemDatalist();
           }
         };
       }
       renderTplList();
 
-      $("tplSave").addEventListener("click", ()=>{
-        const name=$("tplName").value.trim(), price=parseFloat($("tplPrice").value);
-        if(!name||isNaN(price)){ alert("Ange benämning och pris."); return; }
-        const ex=itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
-        if(ex){ ex.price=price; } else { itemTemplates.push({name,price}); }
-        saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist();
-        $("tplName").value=""; $("tplPrice").value=""; alert("Styck-preset sparad.");
+      $("presetSave").addEventListener("click", ()=>{
+        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
+        if(!artikel||!pris) return;
+        const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
+        if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
+        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
       });
     })();
 
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
     render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
+
+    /* ===== Gate: endast i appen (TWA) ===== */
+    (function () {
+      var isFromTWA = document.referrer && document.referrer.indexOf('android-app://se.reklamgiganten.priskalkylator') === 0;
+      if (isFromTWA) { try { sessionStorage.setItem('twa_ok', '1'); } catch(e) {} }
+      var allowed = isFromTWA || (function(){ try { return sessionStorage.getItem('twa_ok') === '1'; } catch(e) { return false; } })();
+      if (!allowed) {
+        // Visa ändå – men du kan byta till hard gate om du vill
+        // För hård spärr: uncomment nedan
+        /*
+        var app = document.querySelector('.wrap'); if (app) app.style.display = 'none';
+        var gate = document.getElementById('appGate'); if (gate) gate.style.display = 'grid';
+        document.body.style.overflow = 'hidden';
+        */
+      }
+    })();
+
+    // Start: applicera rätt låsning
+    applyEntitlements();
   </script>
 
-  <!-- Gate -->
+  <!-- Gate (om du vill hårdspärra webbläsare) -->
   <style>
     #appGate{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.98); z-index:99999; color:#fff; text-align:center; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
     #appGate .box{ max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35) }
@@ -826,18 +862,6 @@
       <p>Den här tjänsten kan bara användas i <b>Offert på språng</b>-appen.</p>
     </div>
   </div>
-  <script>
-    (function () {
-      var isFromTWA = document.referrer && document.referrer.indexOf('android-app://se.reklamgiganten.priskalkylator') === 0;
-      if (isFromTWA) { try { sessionStorage.setItem('twa_ok', '1'); } catch(e) {} }
-      var allowed = isFromTWA || (function(){ try { return sessionStorage.getItem('twa_ok') === '1'; } catch(e) { return false; } })();
-      if (!allowed) {
-        var app = document.querySelector('.wrap'); if (app) app.style.display = 'none';
-        var gate = document.getElementById('appGate'); if (gate) gate.style.display = 'grid';
-        document.body.style.overflow = 'hidden';
-      }
-    })();
-  </script>
 
   <!-- PWA -->
   <script>
