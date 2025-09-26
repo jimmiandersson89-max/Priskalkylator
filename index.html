@@ -110,12 +110,11 @@
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
     .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
 
-    /* ===== Gör drawer helskärm i liggande läge ===== */
     @media (orientation: landscape) {
       .drawer { width: 100vw; max-width: 100vw; }
     }
 
-    /* ===== PDF-efter-panel (botten-sheet) ===== */
+    /* PDF-efter-panel (botten-sheet) */
     .sheet-backdrop{
       position:fixed; inset:0; background:rgba(0,0,0,.45);
       opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998;
@@ -135,7 +134,7 @@
     .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
     .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
 
-    /* ====== TOAST (för att ersätta alert) ====== */
+    /* TOAST */
     #toast {
       position: fixed;
       left: 50%;
@@ -199,6 +198,18 @@
             <option value="0">Exkl. moms</option>
             <option value="0.25" selected>Inkl. 25%</option>
           </select>
+        </div>
+      </div>
+
+      <!-- Kund: extra uppgifter -->
+      <div class="grid2">
+        <div>
+          <label for="kundYourRef">Er referens</label>
+          <input id="kundYourRef" type="text" placeholder="kundens referens" />
+        </div>
+        <div>
+          <label for="kundDelivery">Leveransvillkor</label>
+          <input id="kundDelivery" type="text" placeholder="t.ex. Fritt vårt lager" />
         </div>
       </div>
     </div>
@@ -290,6 +301,15 @@
           <div><label>Adress</label><input id="senderAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
 
+        <!-- Avsändare: extra fält -->
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>Vår referens</label><input id="senderOurRef" type="text" placeholder="namn/initialer" /></div>
+          <div><label>Betalningsvillkor</label><input id="senderTerms" type="text" placeholder="t.ex. 30 dagar netto" /></div>
+        </div>
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>Dröjsmålsränta</label><input id="senderInterest" type="text" placeholder="t.ex. 8% + ref.ränta" /></div>
+        </div>
+
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
         <img id="logoPreview" class="logoPreview" alt="Förhandsvisning" style="display:none" />
@@ -311,6 +331,13 @@
           <div><label>E-post</label><input id="custEmail" type="email" placeholder="kund@exempel.se" /></div>
           <div><label>Adress</label><input id="custAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
+
+        <!-- Kundpreset: extra fält -->
+        <div class="row2" style="margin-bottom:8px">
+          <div><label>Er referens</label><input id="custYourRef" type="text" placeholder="kundens referens" /></div>
+          <div><label>Leveransvillkor</label><input id="custDelivery" type="text" placeholder="t.ex. Fritt vårt lager" /></div>
+        </div>
+
         <div class="row2" style="margin-top:8px">
           <button class="btn-mini" id="customerSave" type="button">Spara kundpreset</button>
         </div>
@@ -452,8 +479,20 @@
     function refreshCustomerDatalist(){ const dl=$("customerOptions"); dl.innerHTML=""; customers.forEach(c=>{ const o=document.createElement("option"); o.value=c.name; dl.appendChild(o); }); }
     function refreshItemDatalist(){ const dl=$("itemOptions"); dl.innerHTML=""; itemTemplates.forEach(t=>{ const o=document.createElement("option"); o.value=t.name; dl.appendChild(o); }); }
 
+    // Fyll fält vid val av kund
+    $("kundnamn").addEventListener("change", ()=>{
+      const name=$("kundnamn").value.trim();
+      const c=customers.find(x=>x.name.toLowerCase()===name.toLowerCase());
+      if(c){
+        $("telefon").value      = c.phone   || "";
+        $("kundemail").value    = c.email   || "";
+        $("kundadress").value   = c.address || "";
+        $("kundYourRef").value  = c.yourRef || "";
+        $("kundDelivery").value = c.delivery|| "";
+      }
+    });
+
     $("artikel").addEventListener("change", ()=>{ const name=$("artikel").value.trim(); const p=presets.find(x=>x.artikel.toLowerCase()===name.toLowerCase()); if(p){ $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); } });
-    $("kundnamn").addEventListener("change", ()=>{ const name=$("kundnamn").value.trim(); const c=customers.find(x=>x.name.toLowerCase()===name.toLowerCase()); if(c){ $("telefon").value=c.phone||""; $("kundemail").value=c.email||""; $("kundadress").value=c.address||""; } });
     $("itemName").addEventListener("change", ()=>{ const name=$("itemName").value.trim(); const t=itemTemplates.find(x=>x.name.toLowerCase()===name.toLowerCase()); if(t){ $("itemPrice").value=t.price||""; previewItemLine(); } });
 
     $("moms").addEventListener("change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
@@ -515,9 +554,19 @@ $("pdf").addEventListener("click", ()=>{
   let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10); if(isNaN(n)||n<1||n>500) n=1;
   const offerNo=n; localStorage.setItem(LS_OFFER_NO,String(offerNo>=500?1:offerNo+1));
 
-  const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
-  const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||""};
-  const cust={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
+  const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:"",ourRef:"",terms:"",interest:""});
+  const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||"", ourRef:s.ourRef||"", terms:s.terms||"", interest:s.interest||""};
+  const cust={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim(),
+               yourRef:($("kundYourRef").value||"").trim(), delivery:($("kundDelivery").value||"").trim() };
+
+  // referensvärden till rutan
+  const ref = {
+    our: sender.ourRef,
+    your: cust.yourRef,
+    interest: sender.interest,
+    terms: sender.terms,
+    delivery: cust.delivery
+  };
 
   // ===== rubrik (centrerad före rutan) =====
   bold(); doc.setFontSize(16);
@@ -566,19 +615,29 @@ $("pdf").addEventListener("click", ()=>{
   panel("Mottagare",[cust.name||"",cust.address||"",cust.phone||"",cust.email||""],left+colW+gap,y);
   y+=boxH+6;
 
-  // ===== referensfält (utan ordernummer) =====
+  // ===== referensfält (utan ordernummer) – med värden =====
   (function(){
-    const labels=["Vår referens","Er referens","Dröjsmålsränta","Betalningsvillkor","Leveransvillkor"];
+    const fields = [
+      { label:"Vår referens",      val: ref.our },
+      { label:"Er referens",       val: ref.your },
+      { label:"Dröjsmålsränta",    val: ref.interest },
+      { label:"Betalningsvillkor", val: ref.terms },
+      { label:"Leveransvillkor",   val: ref.delivery }
+    ];
     const cols=3, cellGap=6, cellW=round05((W-left-right-(cols-1)*cellGap)/cols), rowH=12;
     let idx=0;
     for(let r=0;r<2;r++){
       for(let c=0;c<cols;c++){
-        if(idx>=labels.length){ idx++; continue; }
         const x=left+c*(cellW+cellGap);
-        R(x,y,cellW,rowH);
-        normal(); doc.setFontSize(8); T(labels[idx],x+3,y+4.5);
-        R(x+2,y+5.5,cellW-4,rowH-7);
-        idx++;
+        if(idx<fields.length){
+          const f=fields[idx++];
+          R(x,y,cellW,rowH);
+          normal(); doc.setFontSize(8); T(f.label,x+3,y+4.5);
+          R(x+2,y+5.5,cellW-4,rowH-7);
+          doc.setFontSize(9); T(f.val, x+4, y+10);
+        }else{
+          R(x,y,cellW,rowH); R(x+2,y+5.5,cellW-4,rowH-7);
+        }
       }
       y+=rowH+3;
     }
@@ -606,7 +665,6 @@ $("pdf").addEventListener("click", ()=>{
     const nameLines = doc.splitTextToSize(it.name||"", cAnt-cBen-2);
     const rowH = Math.max(lineH, nameLines.length*lineH);
 
-    // sidbryt INNAN vi ritar om det blir för trångt
     if (y + rowH + rowPad + 10 > H - bottom) { doc.addPage(); y = top; }
 
     normal(); doc.setFontSize(10);
@@ -621,36 +679,31 @@ $("pdf").addEventListener("click", ()=>{
     HLine(y);
     y += 2;
   });
-// ===== Övriga uppgifter (fixad linjeplacering) =====
-const other = ($("otherInfo").value || "").trim();
-if (other) {
-  // lite luft från tabellen och sidbryt vid behov
-  if (y + 20 > H - bottom) { doc.addPage(); y = top; }
-  y += 2;
 
-  // rubrik
-  bold(); doc.setFontSize(10);
-  const titleBaseline = y + 5;        // konsekvent rubrik-baslinje
-  T("Övriga uppgifter", left, titleBaseline);
+  // ===== Övriga uppgifter (fixad linjeplacering) =====
+  const other = ($("otherInfo").value || "").trim();
+  if (other) {
+    if (y + 20 > H - bottom) { doc.addPage(); y = top; }
+    y += 2;
 
-  // linje direkt under rubriken på samma raster som tabellen
-  const topLineY = HLine(titleBaseline + 3);  // 0,5-mm-raster
-  y = topLineY + 4;
+    bold(); doc.setFontSize(10);
+    const titleBaseline = y + 5;
+    T("Övriga uppgifter", left, titleBaseline);
 
-  // text
-  normal(); doc.setFontSize(9);
-  const lines = doc.splitTextToSize(other, W - left - right);
-  lines.forEach(line => {
-    if (y + 6 > H - bottom) { doc.addPage(); y = top; }
-    T(line, left, y);
-    y += 5;
-  });
+    const topLineY = HLine(titleBaseline + 3);
+    y = topLineY + 4;
 
-  // avslutande linje och luft före summeringsrutorna
-  const bottomLineY = HLine(y + 2);
-  y = bottomLineY + 6;
-}
+    normal(); doc.setFontSize(9);
+    const lines = doc.splitTextToSize(other, W - left - right);
+    lines.forEach(line => {
+      if (y + 6 > H - bottom) { doc.addPage(); y = top; }
+      T(line, left, y);
+      y += 5;
+    });
 
+    const bottomLineY = HLine(y + 2);
+    y = bottomLineY + 6;
+  }
 
   // ===== moms + summering =====
   const sumExkl=items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
@@ -686,9 +739,6 @@ if (other) {
   lastPdfBlob=blob; lastPdfUrl=URL.createObjectURL(blob); lastPdfFilename=fileName;
   openPdfSheet(fileName);
 });
-
-
-
 
     // ===== Botten-sheet logik =====
     const sheet = $("pdfSheet");
@@ -755,9 +805,28 @@ if (other) {
       backdrop.addEventListener("click",close);
       document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
 
-      const senderSaved=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
-      $("senderCompany").value=senderSaved.company||""; $("senderAddress").value=senderSaved.address||""; $("senderPhone").value=senderSaved.phone||""; $("senderEmail").value=senderSaved.email||"";
-      $("senderSave").addEventListener("click", ()=>{ const data={company:$("senderCompany").value.trim(), address:$("senderAddress").value.trim(), phone:$("senderPhone").value.trim(), email:$("senderEmail").value.trim()}; saveJSON(LS_SENDER,data); alert("Avsändaruppgifter sparade."); });
+      // Ladda/spara avsändarprofil inkl. extra fält
+      const senderSaved=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:"",ourRef:"",terms:"",interest:""});
+      $("senderCompany").value=senderSaved.company||"";
+      $("senderAddress").value=senderSaved.address||"";
+      $("senderPhone").value=senderSaved.phone||"";
+      $("senderEmail").value=senderSaved.email||"";
+      $("senderOurRef").value=senderSaved.ourRef||"";
+      $("senderTerms").value=senderSaved.terms||"";
+      $("senderInterest").value=senderSaved.interest||"";
+      $("senderSave").addEventListener("click", ()=>{
+        const data={
+          company:$("senderCompany").value.trim(),
+          address:$("senderAddress").value.trim(),
+          phone:$("senderPhone").value.trim(),
+          email:$("senderEmail").value.trim(),
+          ourRef:$("senderOurRef").value.trim(),
+          terms:$("senderTerms").value.trim(),
+          interest:$("senderInterest").value.trim()
+        };
+        saveJSON(LS_SENDER,data);
+        alert("Avsändaruppgifter sparade.");
+      });
 
       if(logoDataURL){ setLogoPreview(); }
       $("logoFile").addEventListener("change", e=>{ const file=e.target.files?.[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); }; r.readAsDataURL(file); });
@@ -796,14 +865,6 @@ if (other) {
       }
       renderPresetList();
 
-      $("presetSave").addEventListener("click", ()=>{
-        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
-        if(!artikel||!pris) return;
-        const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
-        if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
-        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
-      });
-
       /* KUNDER LISTA – Redigera */
       function renderCustomerList(){
         const list=$("customerList");
@@ -811,7 +872,7 @@ if (other) {
         customers.forEach((c,idx)=>{
           const row=document.createElement("div");
           row.className="preset-item";
-          row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""}</span>
+          row.innerHTML=`<span>${c.name} — ${c.phone||""} ${c.email?"• "+c.email:""} ${c.yourRef?"• Ref: "+c.yourRef:""}</span>
                          <span>
                            <button data-cedit="${idx}">Redigera</button>
                            <button data-cdel="${idx}">Ta bort</button>
@@ -831,6 +892,8 @@ if (other) {
             $("custPhone").value = c.phone || "";
             $("custEmail").value = c.email || "";
             $("custAddress").value = c.address || "";
+            $("custYourRef").value = c.yourRef || "";
+            $("custDelivery").value = c.delivery || "";
           } else if(del!=null){
             customers.splice(Number(del),1);
             saveJSON(LS_CUSTOMERS,customers);
@@ -842,13 +905,19 @@ if (other) {
       renderCustomerList();
 
       $("customerSave").addEventListener("click", ()=>{
-        const name=$("custName").value.trim(), phone=$("custPhone").value.trim(), email=$("custEmail").value.trim(), address=$("custAddress").value.trim();
+        const name=$("custName").value.trim(),
+              phone=$("custPhone").value.trim(),
+              email=$("custEmail").value.trim(),
+              address=$("custAddress").value.trim(),
+              yourRef=$("custYourRef").value.trim(),
+              delivery=$("custDelivery").value.trim();
         if(!name){ alert("Ange kundnamn."); return; }
         const ex=customers.find(c=>c.name.toLowerCase()===name.toLowerCase());
-        if(ex){ ex.phone=phone; ex.email=email; ex.address=address; }
-        else { customers.push({name,phone,email,address}); }
+        if(ex){ Object.assign(ex,{phone,email,address,yourRef,delivery}); }
+        else { customers.push({name,phone,email,address,yourRef,delivery}); }
         saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist();
-        $("custName").value=""; $("custPhone").value=""; $("custEmail").value=""; $("custAddress").value=""; alert("Kund sparad.");
+        ["custName","custPhone","custEmail","custAddress","custYourRef","custDelivery"].forEach(id=>$(id).value="");
+        alert("Kund sparad.");
       });
 
       /* Styck-presets LISTA */
@@ -884,13 +953,12 @@ if (other) {
       }
       renderTplList();
 
-      $("tplSave").addEventListener("click", ()=>{
-        const name=$("tplName").value.trim(), price=parseFloat($("tplPrice").value);
-        if(!name||isNaN(price)){ alert("Ange benämning och pris."); return; }
-        const ex=itemTemplates.find(t=>t.name.toLowerCase()===name.toLowerCase());
-        if(ex){ ex.price=price; } else { itemTemplates.push({name,price}); }
-        saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist();
-        $("tplName").value=""; $("tplPrice").value=""; alert("Styck-preset sparad.");
+      $("presetSave").addEventListener("click", ()=>{
+        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
+        if(!artikel||!pris) return;
+        const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
+        if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
+        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
       });
     })();
 
