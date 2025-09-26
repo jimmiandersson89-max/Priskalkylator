@@ -1,7 +1,6 @@
 // ----- Priskalkylator service worker -----
-// Bumpa VERSION när du gjort större ändringar på HTML/CSS/JS/ikoner
-const VERSION    = 'V.Benjii.9';  // bumpad version
-const CACHE_NAME = rg-kalkylator-${VERSION};
+const VERSION    = 'V.Benjii.10';  // bumpad version
+const CACHE_NAME = `rg-kalkylator-${VERSION}`;
 
 const START_URL  = './index.html?source=pwa';
 
@@ -16,6 +15,8 @@ const CORE_ASSETS = [
   './Icon-192.png',
   './Icon-512.png',
   './Icon-512-maskable.png',
+  // Lägg till jsPDF så PDF funkar offline:
+  'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
 ];
 
 // Precache kärnfiler
@@ -35,16 +36,16 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// ====== NY SÄKERHETSKOLL ======
-// Blockera om appen inte körs som TWA eller PWA
+// ====== SÄKERHETSKOLL ======
 function isAllowedRequest(req) {
-  // tillåt alltid för core assets (annars bryts appen)
-  if (CORE_ASSETS.some(path => req.url.endsWith(path.replace('./','')))) return true;
+  // Tillåt alltid core assets
+  if (CORE_ASSETS.some(path => req.url.endsWith(path.replace('./','')) || req.url === path)) return true;
 
-  // tillåt bara om requesten kommer från ditt repo/app
+  // Tillåt din egen domän + jsDelivr (för jsPDF)
   const allowedHosts = [
-    'jimmiandersson89-max.github.io',   // din GitHub Pages
-    'localhost'                         // för test lokalt
+    self.location.hostname,           // din GitHub Pages-domän
+    'cdn.jsdelivr.net',               // jsPDF
+    'localhost'                       // lokal test
   ];
 
   try {
@@ -61,15 +62,13 @@ self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  // 🔒 Stoppa allt som inte är tillåtet
-  if (!isAllowedRequest(req)) {
+  // Blockera otillåtna hostar (men låt navigeringar gå igenom vår hantering nedan)
+  const isHTML = req.headers.get('accept')?.includes('text/html') || req.destination === 'document';
+
+  if (!isHTML && !isAllowedRequest(req)) {
     event.respondWith(new Response("Åtkomst nekad", { status: 403 }));
     return;
   }
-
-  const isHTML =
-    req.headers.get('accept')?.includes('text/html') ||
-    req.destination === 'document';
 
   if (isHTML) {
     event.respondWith((async () => {
