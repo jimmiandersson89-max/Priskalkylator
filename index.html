@@ -498,8 +498,8 @@ $("pdf").addEventListener("click", ()=>{
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:"mm", format:"a4" });
 
-  // ===== helpers =====
-  const left=12, right=12, top=12, bottom=14;
+  // ===== helpers (0.2 mm linjer) =====
+  const left=12, right=12, top=16, bottom=14;
   const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
   const L=(x1,y1,x2,y2)=>{ doc.setDrawColor(0); doc.setLineWidth(0.2); doc.line(x1,y1,x2,y2); };
   const R=(x,y,w,h)=>{ doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(x,y,w,h); };
@@ -507,97 +507,94 @@ $("pdf").addEventListener("click", ()=>{
   const bold=()=>doc.setFont("helvetica","bold");
   const normal=()=>doc.setFont("helvetica","normal");
 
-  // Datum & giltighet
-  const offerDate = new Date();
-  const dueDate   = new Date(offerDate.getTime() + 30*24*60*60*1000);
-  const fmt = d => d.toLocaleDateString("sv-SE");
+  // datum & nummer
+  const offerDate=new Date();
+  const dueDate=new Date(offerDate.getTime()+30*24*60*60*1000);
+  const fmt=d=>d.toLocaleDateString("sv-SE");
+  let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10); if(isNaN(n)||n<1||n>500) n=1;
+  const offerNo=n; localStorage.setItem(LS_OFFER_NO,String(offerNo>=500?1:offerNo+1));
 
-  // Offertnummer (din sekvens)
-  let n = parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
-  if(isNaN(n)||n<1||n>500) n=1;
-  const offerNo=n;
-  localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
-
-  // Data
   const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
-  const sender={ company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||"" };
+  const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||""};
   const cust={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
 
-  // ===== HEADER =====
+  // ===== header =====
   let y=top;
 
-  // Logga uppe vänster
-  if (logoDataURL) {
+  // logga vänster
+  if(logoDataURL){
     try{
       const p=doc.getImageProperties(logoDataURL);
       let w=60, h=w*(p.height/p.width); if(h>22){ h=22; w=h*(p.width/p.height); }
-      doc.addImage(logoDataURL, p.fileType||"PNG", left, y, w, h);
+      doc.addImage(logoDataURL, p.fileType||"PNG", left, y-2, w, h);
     }catch(e){}
   }
 
-  // Offert-ruta uppe höger
+  // offert-ruta höger (exakt måttraster)
   (function(){
-    const w=72, h=24, x=W-right-w, y0=y;
+    const w=78, h=30, x=W-right-w, y0=y-2;
     R(x,y0,w,h);
     bold(); doc.setFontSize(12); T("Offert", x+4, y0+7);
     normal(); doc.setFontSize(9);
-    const row=(label,val,ry)=>{ T(label,x+4,ry); R(x+30,ry-5,w-34,8); T(val,x+32,ry+1); };
-    row("Offertnr.",     String(offerNo), y0+13);
-    row("Offertdatum",   fmt(offerDate),  y0+21);
-    row("Förfallodatum", fmt(dueDate),    y0+29);
+
+    const rowH=9;           // höjd per rad
+    const labW=26;          // etikettbredd
+    const fldX=x+labW+6;    // fältruta start
+    const fldW=w-labW-10;   // fältruta bredd
+
+    const drawRow=(label,val,idx)=>{
+      const ry=y0+8+idx*rowH;
+      T(label, x+4, ry);
+      R(fldX, ry-6, fldW, 8);
+      T(val, fldX+2, ry);
+    };
+    drawRow("Offertnr.",     String(offerNo), 0);
+    drawRow("Offertdatum",   fmt(offerDate),  1);
+    drawRow("Förfallodatum", fmt(dueDate),    2);
   })();
 
-  y += 30;
+  y += 32;
 
-  // ===== Avsändare / Mottagare (stora rutor) =====
+  // ===== avsändare/mottagare =====
   const gap=6;
-  const colW=(W-left-right-gap)/2, boxH=32;
+  const colW=Math.round(((W-left-right-gap)/2)*2)/2; // runda till 0.5 mm
+  const boxH=34;
 
   const panel=(title, lines, x, y0)=>{
     R(x,y0,colW,boxH);
-    normal(); doc.setFontSize(8); T(title, x+4, y0+5);
-    bold(); doc.setFontSize(11); T(lines[0]||"", x+4, y0+12);
+    normal(); doc.setFontSize(8); T(title, x+4, y0+6);
+    bold(); doc.setFontSize(11); T(lines[0]||"", x+4, y0+13);
     normal(); doc.setFontSize(9);
-    let yy=y0+17; lines.slice(1).forEach(t=>{ if(t){ T(t,x+4,yy); yy+=5; }});
+    let yy=y0+18; lines.slice(1).forEach(t=>{ if(t){ T(t,x+4,yy); yy+=5; }});
   };
-
-  panel("Avsändare", [sender.company, sender.address, sender.phone, sender.email], left, y);
-  panel("Mottagare", [cust.name||"", cust.address||"", cust.phone||"", cust.email||""], left+colW+gap, y);
+  panel("Avsändare",[sender.company,sender.address,sender.phone,sender.email], left, y);
+  panel("Mottagare",[cust.name||"",cust.address||"",cust.phone||"",cust.email||""], left+colW+gap, y);
   y += boxH + 6;
 
-  // ===== Referensrad (utan 'Kundnummer') – 2 rader × 3 fält =====
+  // ===== referensfält (utan kundnummer) – 2 rader × 3 kolumner =====
   (function(){
-    const labels = [
-      "Vår referens","Er referens","Dröjsmålsränta",
-      "Betalningsvillkor","Leveransvillkor","Ordernummer"
-      // (Kundnummer borttagen)
-    ];
-    const cols=3, cellGap=6;
-    const cellW = (W-left-right-(cols-1)*cellGap)/cols;
-    const rowH=12;
-
-    for (let r=0; r<2; r++){
-      for (let c=0; c<cols; c++){
-        const idx=r*cols+c;
-        if (idx>=labels.length) continue; // inga tomma rutor
-        const x=left + c*(cellW+cellGap);
+    const labels=["Vår referens","Er referens","Dröjsmålsränta","Betalningsvillkor","Leveransvillkor","Ordernummer"];
+    const cols=3, cellGap=6, cellW=Math.round(((W-left-right-(cols-1)*cellGap)/cols)*2)/2, rowH=12;
+    for(let r=0;r<2;r++){
+      for(let c=0;c<cols;c++){
+        const i=r*cols+c; if(i>=labels.length) continue;
+        const x=left+c*(cellW+cellGap);
         R(x,y,cellW,rowH);
-        normal(); doc.setFontSize(8); T(labels[idx], x+3, y+4.5);
-        R(x+2, y+5.5, cellW-4, rowH-7); // värdefält (tomt)
+        normal(); doc.setFontSize(8); T(labels[i], x+3, y+4.5);
+        R(x+2, y+5.5, cellW-4, rowH-7);
       }
-      y += rowH + 3;
+      y+=rowH+3;
     }
   })();
+  y+=2;
 
-  y += 2;
-
-  // ===== Tabell (utan 'Artikelnummer') =====
+  // ===== tabell (utan artikelnummer) =====
   bold(); doc.setFontSize(11); T("Specifikation", left, y); y+=5;
   L(left,y,W-right,y); y+=6;
   normal(); doc.setFontSize(10);
 
-  // Kolumner: Benämning/Beskrivning, Antal, Enhet, Á-pris, Belopp
-  const cBen = left;                 // benämning start
+  // kolumnmått (på 0.5-raster)
+  const cBen = left;                 // 0..100 mm
   const cAnt = left + 110;
   const cEnh = left + 130;
   const cApr = left + 150;
@@ -608,57 +605,53 @@ $("pdf").addEventListener("click", ()=>{
   T("Enhet", cEnh, y);
   T("Á-pris", cApr, y);
   T("Belopp (SEK)", cBel, y, {align:"right"});
-  y += 4; L(left, y, W-right, y); y += 6;
+  y+=4; L(left,y,W-right,y); y+=6;
 
   const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
   const moms=0.25;
 
   items.forEach(it=>{
     if (y+8>H-bottom){ doc.addPage(); y=top; }
-    const qty=Number(it.qty||0);
-    const unit=Number(it.price||0);
-    const sum =qty*unit;
-
-    const lines = doc.splitTextToSize(it.name||"", cAnt - cBen - 2);
+    const qty=Number(it.qty||0), unit=Number(it.price||0), sum=qty*unit;
+    const lines=doc.splitTextToSize(it.name||"", cAnt-cBen-2);
     lines.forEach((ln,i)=>{
       if(i===0){
-        T(ln, cBen, y);
-        T(String(qty), cAnt, y);
-        T("st", cEnh, y);
-        T(fmt0p(unit)+" kr", cApr, y);
-        T(fmt0p(sum)+" kr", cBel, y, {align:"right"});
+        T(ln,cBen,y);
+        T(String(qty),cAnt,y);
+        T("st",cEnh,y);
+        T(fmt0p(unit)+" kr",cApr,y);
+        T(fmt0p(sum)+" kr",cBel,y,{align:"right"});
       }else{
-        y+=5; T(ln, cBen, y);
+        y+=5; T(ln,cBen,y);
       }
     });
-    y+=6; L(left, y, W-right, y); y+=2;
+    y+=6; L(left,y,W-right,y); y+=2;
   });
 
-  // ===== Övriga uppgifter =====
+  // ===== övriga uppgifter =====
   const other=($("otherInfo").value||"").trim();
   if(other){
     bold(); doc.setFontSize(10); T("Övriga uppgifter", left, y); y+=5;
     normal(); doc.setFontSize(9);
-    const lines = doc.splitTextToSize(other, W-left-right);
-    lines.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
-    y+=2; L(left, y, W-right, y); y+=4;
+    const ls=doc.splitTextToSize(other, W-left-right);
+    ls.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
+    y+=2; L(left,y,W-right,y); y+=4;
   }
 
-  // ===== Moms (25%) + summering =====
-  const sumExkl = items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
-  const momsBel = sumExkl*moms;
-  const sumInkl = sumExkl+momsBel;
+  // ===== moms + summering =====
+  const sumExkl=items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
+  const momsBel=sumExkl*moms, sumInkl=sumExkl+momsBel;
 
-  const boxW=(W-left-right-gap)/2, boxH2=26;
+  const boxW=Math.round(((W-left-right-gap)/2)*2)/2, boxH2=26;
 
-  // Momsunderlag
+  // momsunderlag
   R(left,y,boxW,boxH2);
   bold(); doc.setFontSize(10); T("Momsunderlag", left+4, y+7);
   normal(); doc.setFontSize(9);
   T("Moms 25%", left+4, y+14);
   T(fmt0p(momsBel)+" kr", left+boxW-4, y+14, {align:"right"});
 
-  // Summering
+  // summering
   const sx=left+boxW+gap;
   R(sx,y,boxW,boxH2);
   let ry=y+8;
@@ -670,33 +663,31 @@ $("pdf").addEventListener("click", ()=>{
 
   y+=boxH2+6;
 
-  // ===== Kommentar efter totalsumman =====
+  // kommentar
   const note=($("offerNote").value||"").trim();
   if(note){
     if(y+12>H-bottom){ doc.addPage(); y=top; }
     bold(); doc.setFontSize(11); T("Kommentar", left, y); y+=6;
     normal(); doc.setFontSize(9);
-    const ls = doc.splitTextToSize(note, W-left-right);
-    ls.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
-    y+=2; L(left, y, W-right, y); y+=2;
+    const ns=doc.splitTextToSize(note, W-left-right);
+    ns.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
+    y+=2; L(left,y,W-right,y); y+=2;
   }
 
-  // Giltighetstext
+  // giltighet
   normal(); doc.setFontSize(9);
   T("Offerten är giltig i 30 dagar från offertdatum.", W/2, y, {align:"center"});
 
-  // Filnamn
+  // filnamn & öppna panel
   const base=(cust.name||"offert").trim()||"offert";
   const safe=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
   const fileName=`${safe} Offert ${offerNo}.pdf`;
-
   const blob=doc.output("blob");
-  if (lastPdfUrl) { try{ URL.revokeObjectURL(lastPdfUrl); }catch(e){} }
-  lastPdfBlob=blob;
-  lastPdfUrl=URL.createObjectURL(blob);
-  lastPdfFilename=fileName;
+  if(lastPdfUrl){ try{ URL.revokeObjectURL(lastPdfUrl); }catch(e){} }
+  lastPdfBlob=blob; lastPdfUrl=URL.createObjectURL(blob); lastPdfFilename=fileName;
   openPdfSheet(fileName);
 });
+
 
     // ===== Botten-sheet logik =====
     const sheet = $("pdfSheet");
