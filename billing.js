@@ -1,11 +1,34 @@
-// billing.js
+// billing.js — Google Play Billing via Digital Goods API (TWA)
+// SKU måste matcha produkt-id i Play Console
 const SKU = 'manad75';
 
-// Kolla om prenumeration finns
-async function checkSubscription() {
+/**
+ * Hämtar produktdetaljer (pris, valuta, titel) för knappen/visning.
+ * Returnerar t.ex. { price: "79,00 kr", priceCurrencyCode: "SEK", priceAmountMicros: 79000000, title: "...", ... }
+ */
+async function getSkuDetail() {
   try {
     const dgs = await window.getDigitalGoodsService?.('https://play.google.com/billing');
+    if (!dgs) return null;
+    const [detail] = await dgs.getDetails([SKU]);
+    return detail || null;
+  } catch (err) {
+    console.error('Billing error (getDetails):', err);
+    return null;
+  }
+}
+
+/**
+ * Kollar om användaren har en aktiv prenumeration på SKU.
+ */
+async function checkSubscription() {
+  try {
+    // snabb lokalfallback – låser upp UI direkt efter köp
+    if (localStorage.getItem('hasPremium') === '1') return true;
+
+    const dgs = await window.getDigitalGoodsService?.('https://play.google.com/billing');
     if (!dgs) return false;
+
     const purchases = await dgs.listPurchases();
     return purchases.some(p => p.sku === SKU && p.purchaseState === 'PURCHASED');
   } catch (err) {
@@ -14,42 +37,27 @@ async function checkSubscription() {
   }
 }
 
-// Hämta produktdetaljer (pris, valuta, titel)
-async function getSkuDetail() {
-  try {
-    const dgs = await window.getDigitalGoodsService?.('https://play.google.com/billing');
-    if (!dgs) return null;
-    const [detail] = await dgs.getDetails([SKU]); // { price, priceCurrencyCode, priceAmountMicros, title, … }
-    return detail || null;
-  } catch (err) {
-    console.error('Billing error (getDetails):', err);
-    return null;
-  }
-}
-
-// Starta köpflöde
+/**
+ * Startar köpflödet för prenumerationen. Hämtar först korrekt pris från Play.
+ */
 async function startSubscription() {
   try {
-    // Hämta riktig prisinfo
     const detail = await getSkuDetail();
-
-    // Om Play-miljö saknas (t.ex. vanlig webbläsare) – förklara för användaren
     if (!detail) {
-      alert('Köp fungerar bara i appen via Google Play (TWA). Installera från Play och prova igen.');
+      alert('Köp fungerar bara i appen via Google Play. Installera från Play och prova igen.');
       return;
     }
 
-    // Bygg PaymentRequest med rätt SKU och belopp från Play
     const method = [{
       supportedMethods: 'https://play.google.com/billing',
       data: { sku: SKU }
     }];
 
-    // PaymentRequest behöver numeriskt belopp; räkna om från micros om möjligt
+    // PaymentRequest vill ha numeriskt belopp: konvertera från micros om finns.
     const currency = detail.priceCurrencyCode || 'SEK';
     const value = (detail.priceAmountMicros != null)
       ? String(detail.priceAmountMicros / 1e6)
-      : '79.00'; // fallback
+      : '79.00'; // fallback om getDetails inte gav micros
 
     const request = new PaymentRequest(method, {
       total: { label: detail.title || 'Premium', amount: { currency, value } }
@@ -58,10 +66,10 @@ async function startSubscription() {
     const resp = await request.show();
     await resp.complete('success');
 
-    // (valfritt) markera lokalt så UI direkt låser upp
+    // Markera lokalt så UI låser upp direkt – du kan byta mot servervalidering sen
     localStorage.setItem('hasPremium', '1');
     alert('Prenumeration startad!');
-
+    // location.reload(); // om du vill uppdatera UI direkt efter köp
   } catch (err) {
     console.error('Köp misslyckades:', err);
     alert('Köpet kunde inte genomföras.');
@@ -69,6 +77,6 @@ async function startSubscription() {
 }
 
 // Exponera för index.html
+window.getSkuDetail = getSkuDetail;
 window.checkSubscription = checkSubscription;
 window.startSubscription = startSubscription;
-window.getSkuDetail = getSkuDetail;
