@@ -4,7 +4,7 @@ async function checkSubscription() {
     if (!dgs) return false;
 
     const purchases = await dgs.listPurchases();
-    return purchases.some(p => p.sku === 'manad65' && p.purchaseState === 'PURCHASED');
+    return purchases.some(p => p.sku === 'manad75' && p.purchaseState === 'PURCHASED');
   } catch (err) {
     console.error("Billing error:", err);
     return false;
@@ -15,7 +15,7 @@ async function startSubscription() {
   try {
     const method = {
       supportedMethods: 'https://play.google.com/billing',
-      data: { sku: 'manad65' }
+      data: { sku: 'manad75' }
     };
 
     const request = new PaymentRequest([method], {
