@@ -621,15 +621,23 @@ $("pdf").addEventListener("click", ()=>{
     HLine(y);
     y += 2;
   });
-// ===== Övriga uppgifter =====
+// ===== Övriga uppgifter (fixad linjeplacering) =====
 const other = ($("otherInfo").value || "").trim();
 if (other) {
+  // lite luft från tabellen och sidbryt vid behov
   if (y + 20 > H - bottom) { doc.addPage(); y = top; }
+  y += 2;
 
+  // rubrik
   bold(); doc.setFontSize(10);
-  T("Övriga uppgifter", left, y);
-  y += 2; HLine(y); y += 4;
+  const titleBaseline = y + 5;        // konsekvent rubrik-baslinje
+  T("Övriga uppgifter", left, titleBaseline);
 
+  // linje direkt under rubriken på samma raster som tabellen
+  const topLineY = HLine(titleBaseline + 3);  // 0,5-mm-raster
+  y = topLineY + 4;
+
+  // text
   normal(); doc.setFontSize(9);
   const lines = doc.splitTextToSize(other, W - left - right);
   lines.forEach(line => {
@@ -638,8 +646,11 @@ if (other) {
     y += 5;
   });
 
-  y += 2; HLine(y); y += 6;
+  // avslutande linje och luft före summeringsrutorna
+  const bottomLineY = HLine(y + 2);
+  y = bottomLineY + 6;
 }
+
 
   // ===== moms + summering =====
   const sumExkl=items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
