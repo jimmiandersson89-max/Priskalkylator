@@ -533,6 +533,7 @@
     });
 
     // ====== PDF (ny layout) + efter-panel ======
+// ====== PDF (ny layout) + efter-panel ======
 $("pdf").addEventListener("click", ()=>{
   const { jsPDF } = window.jspdf;
   const doc = new jsPDF({ unit:"mm", format:"a4" });
@@ -554,19 +555,12 @@ $("pdf").addEventListener("click", ()=>{
   let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10); if(isNaN(n)||n<1||n>500) n=1;
   const offerNo=n; localStorage.setItem(LS_OFFER_NO,String(offerNo>=500?1:offerNo+1));
 
-  const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:"",ourRef:"",terms:"",interest:""});
-  const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||"", ourRef:s.ourRef||"", terms:s.terms||"", interest:s.interest||""};
-  const cust={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim(),
-               yourRef:($("kundYourRef").value||"").trim(), delivery:($("kundDelivery").value||"").trim() };
+  const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
+  const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||""};
+  const cust={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
 
-  // referensvärden till rutan
-  const ref = {
-    our: sender.ourRef,
-    your: cust.yourRef,
-    interest: sender.interest,
-    terms: sender.terms,
-    delivery: cust.delivery
-  };
+  // (placeholder-värden tills vi lägger in fält i UI)
+  const ref = { our:"", your:"", interest:"", terms:"", delivery:"" };
 
   // ===== rubrik (centrerad före rutan) =====
   bold(); doc.setFontSize(16);
@@ -587,7 +581,7 @@ $("pdf").addEventListener("click", ()=>{
     }catch(e){}
   }
 
-  // ===== offert-ruta höger (utan "Offert"-text i rutan) =====
+  // ===== offert-ruta höger =====
   (function(){
     const w=OFFER_BOX_W, h=30, x=offerBoxX, y0=y-8;
     R(x,y0,w,h);
@@ -601,7 +595,7 @@ $("pdf").addEventListener("click", ()=>{
 
   y+=36;
 
-  // ===== avsändare/mottagare =====
+  // ===== avsändare / mottagare =====
   const gap=6;
   const colW=round05((W-left-right-gap)/2), boxH=34;
   const panel=(title,lines,x,y0)=>{
@@ -615,34 +609,36 @@ $("pdf").addEventListener("click", ()=>{
   panel("Mottagare",[cust.name||"",cust.address||"",cust.phone||"",cust.email||""],left+colW+gap,y);
   y+=boxH+6;
 
-  // ===== referensfält (utan ordernummer) – med värden =====
-  (function(){
-    const fields = [
+  // ===== referensfält – 3 fält + 2 fält (ingen tom spalt) =====
+  ;(function(){
+    const fieldsRow1 = [
       { label:"Vår referens",      val: ref.our },
       { label:"Er referens",       val: ref.your },
-      { label:"Dröjsmålsränta",    val: ref.interest },
+      { label:"Dröjsmålsränta",    val: ref.interest }
+    ];
+    const fieldsRow2 = [
       { label:"Betalningsvillkor", val: ref.terms },
       { label:"Leveransvillkor",   val: ref.delivery }
     ];
-    const cols=3, cellGap=6, cellW=round05((W-left-right-(cols-1)*cellGap)/cols), rowH=12;
-    let idx=0;
-    for(let r=0;r<2;r++){
-      for(let c=0;c<cols;c++){
-        const x=left+c*(cellW+cellGap);
-        if(idx<fields.length){
-          const f=fields[idx++];
-          R(x,y,cellW,rowH);
-          normal(); doc.setFontSize(8); T(f.label,x+3,y+4.5);
-          R(x+2,y+5.5,cellW-4,rowH-7);
-          doc.setFontSize(9); T(f.val, x+4, y+10);
-        }else{
-          R(x,y,cellW,rowH); R(x+2,y+5.5,cellW-4,rowH-7);
-        }
-      }
-      y+=rowH+3;
-    }
+    const g = 6, rowH = 12;
+
+    const drawField = (x, w, label, value) => {
+      R(x, y, w, rowH);
+      normal(); doc.setFontSize(8); T(label, x+3, y+4.5);
+      R(x+2, y+5.5, w-4, rowH-7);
+      doc.setFontSize(9); T(value||"", x+4, y+10);
+    };
+
+    // rad 1: tre kolumner
+    let w1 = round05((W - left - right - 2*g) / 3);
+    fieldsRow1.forEach((f,i)=> drawField(left + i*(w1+g), w1, f.label, f.val));
+    y += rowH + 3;
+
+    // rad 2: två kolumner
+    let w2 = round05((W - left - right - g) / 2);
+    fieldsRow2.forEach((f,i)=> drawField(left + i*(w2+g), w2, f.label, f.val));
+    y += rowH + 5;
   })();
-  y+=2;
 
   // ===== tabell =====
   bold(); doc.setFontSize(11); T("Specifikation",left,y); y+=5; HLine(y); y+=6;
@@ -658,7 +654,7 @@ $("pdf").addEventListener("click", ()=>{
   const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
   const moms=0.25;
 
-  // ---- Rader: sidbryt innan + konsekventa linjer ----
+  // rader
   const lineH=5, rowPad=3;
   items.forEach(it=>{
     const qty = Number(it.qty||0), unit=Number(it.price||0), sum=qty*unit;
@@ -680,16 +676,14 @@ $("pdf").addEventListener("click", ()=>{
     y += 2;
   });
 
-  // ===== Övriga uppgifter (fixad linjeplacering) =====
+  // ===== Övriga uppgifter =====
   const other = ($("otherInfo").value || "").trim();
   if (other) {
     if (y + 20 > H - bottom) { doc.addPage(); y = top; }
     y += 2;
-
     bold(); doc.setFontSize(10);
     const titleBaseline = y + 5;
     T("Övriga uppgifter", left, titleBaseline);
-
     const topLineY = HLine(titleBaseline + 3);
     y = topLineY + 4;
 
@@ -713,7 +707,10 @@ $("pdf").addEventListener("click", ()=>{
   normal(); doc.setFontSize(9); T("Moms 25%",left+4,y+14); T(fmt0p(momsBel)+" kr",left+boxW-4,y+14,{align:"right"});
   const sx=left+boxW+gap; R(sx,y,boxW,boxH2);
   let ry=y+8; const row=(lbl,val,b=false)=>{ doc.setFont("helvetica",b?"bold":"normal"); T(lbl,sx+4,ry); T(val,sx+boxW-4,ry,{align:"right"}); ry+=6; };
-  normal(); doc.setFontSize(9); row("Belopp före moms",fmt0p(sumExkl)+" kr"); row(`Moms ${Math.round(moms*100)}%`,fmt0p(momsBel)+" kr"); row("Att betala (SEK)",fmt0p(sumInkl)+" kr",true);
+  normal(); doc.setFontSize(9);
+  row("Belopp före moms",fmt0p(sumExkl)+" kr");
+  row(`Moms ${Math.round(moms*100)}%`,fmt0p(momsBel)+" kr");
+  row("Att betala (SEK)",fmt0p(sumInkl)+" kr",true);
   y+=boxH2+6;
 
   // ===== kommentar =====
@@ -723,7 +720,8 @@ $("pdf").addEventListener("click", ()=>{
     normal(); doc.setFontSize(9);
     const ns=doc.splitTextToSize(note,W-left-right);
     ns.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
-    y+=2; HLine(y); y+=2;
+    // ingen extra linje här – så det blir inget streck före giltighetstexten
+    y += 6;
   }
 
   // giltighet
@@ -739,6 +737,7 @@ $("pdf").addEventListener("click", ()=>{
   lastPdfBlob=blob; lastPdfUrl=URL.createObjectURL(blob); lastPdfFilename=fileName;
   openPdfSheet(fileName);
 });
+
 
     // ===== Botten-sheet logik =====
     const sheet = $("pdfSheet");
