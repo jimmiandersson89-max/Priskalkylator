@@ -621,6 +621,25 @@ $("pdf").addEventListener("click", ()=>{
     HLine(y);
     y += 2;
   });
+// ===== Övriga uppgifter =====
+const other = ($("otherInfo").value || "").trim();
+if (other) {
+  if (y + 20 > H - bottom) { doc.addPage(); y = top; }
+
+  bold(); doc.setFontSize(10);
+  T("Övriga uppgifter", left, y);
+  y += 2; HLine(y); y += 4;
+
+  normal(); doc.setFontSize(9);
+  const lines = doc.splitTextToSize(other, W - left - right);
+  lines.forEach(line => {
+    if (y + 6 > H - bottom) { doc.addPage(); y = top; }
+    T(line, left, y);
+    y += 5;
+  });
+
+  y += 2; HLine(y); y += 6;
+}
 
   // ===== moms + summering =====
   const sumExkl=items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
