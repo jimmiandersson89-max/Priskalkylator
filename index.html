@@ -20,7 +20,7 @@
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
       --text:#ffffff; --muted:#b7c0cf; --btn:#16a34a; --btn-hover:#139043; --row:#0b0d12;
-      --danger:#b91c1c;
+      --danger:#b91c1c; --warning:#f59e0b;
     }
     *{ box-sizing:border-box }
     html,body{ height:100% }
@@ -78,34 +78,14 @@
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
 
-    .hamburger{ display:none; }
-    .drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998 }
-    .drawer{ position:fixed; top:0; left:0; height:100%; width:360px; max-width:92vw; background:#0f1115; border-right:1px solid #1e2430; box-shadow:8px 0 40px rgba(0,0,0,.35); transform:translateX(-100%); transition:.25s transform; z-index:9999; color:#e5e7eb; display:flex; flex-direction:column }
-    .drawer.open{ transform:translateX(0) }
-    .drawer-backdrop.open{ opacity:1; pointer-events:auto }
-    .drawer .hd{ padding:14px; border-bottom:1px solid #1e2430; font-size:16px; font-weight:700 }
-    .drawer .bd{ padding:14px; overflow:auto }
-    .drawer .grp{ margin-bottom:14px }
-    .drawer .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
-    .drawer .btn-mini{ padding:10px 12px; border:none; border-radius:10px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
-    .preset-list{ border:1px solid #1e2430; border-radius:12px; overflow:hidden }
-    .preset-item{ display:flex; align-items:center; justify-content:space-between; gap:8px; padding:10px 12px; border-bottom:1px solid #1e2430 }
-    .preset-item:last-child{ border-bottom:none }
-    .preset-item button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer }
-    .drawer .muted{ color:#9aa3b2; font-size:12px }
-
-    #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
-    .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
-
-    @media (orientation: landscape) { .drawer { width: 100vw; max-width: 100vw; } }
-    .sheet-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998; }
-    .sheet{ position:fixed; left:0; right:0; bottom:0; transform:translateY(100%); background:#0f1115; border-top-left-radius:16px; border-top-right-radius:16px; border:1px solid #1e2430; box-shadow:0 -10px 30px rgba(0,0,0,.4); padding:16px; z-index:9999; transition:.25s transform; color:#fff; }
-    .sheet.open{ transform:translateY(0) } .sheet-backdrop.open{ opacity:1; pointer-events:auto }
-    .sheet h3{ margin:0 0 6px; font-size:18px } .sheet p{ margin:0 0 12px; color:#b7c0cf; font-size:13px }
-    .sheet .row2{ display:grid; grid-template-columns:1fr 1fr; gap:10px }
-    .sheet .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
-    .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
-    .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
+    /* Premium/Trial UI */
+    .premium-bar{
+      margin:10px 0 0; padding:10px 12px; border-radius:12px;
+      background:#11151d; border:1px solid #2a2f3c; display:flex; gap:10px; align-items:center;
+    }
+    .premium-bar .badge{ font-size:12px; padding:4px 8px; border-radius:999px; background:var(--warning); color:#000; font-weight:700 }
+    .premium-bar .msg{ font-size:13px; color:#e5e7eb }
+    .hidden{ display:none !important; }
 
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #11151d; color: #fff; border: 1px solid #2a2f3c; border-radius: 12px; padding: 10px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10000; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
@@ -115,6 +95,12 @@
   <div class="wrap">
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
     <h1>Offert på språng</h1>
+
+    <!-- Premium status/CTA -->
+    <div id="premiumBar" class="premium-bar hidden" role="status" aria-live="polite">
+      <span class="badge" id="trialBadge">TEST</span>
+      <div class="msg" id="trialMsg">Du har 5 dagar kvar av testperioden.</div>
+    </div>
 
     <button class="btn" id="openDrawer" type="button">Fyll i dina företagsuppgifter här.</button>
 
@@ -155,6 +141,7 @@
         </div>
       </div>
 
+      <!-- Kund: extra uppgifter -->
       <div class="grid2">
         <div>
           <label for="kundYourRef">Er referens</label>
@@ -232,9 +219,12 @@
 
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
     <button class="btn" id="share" type="button">Dela priset</button>
+    <!-- Play prenumeration -->
+    <button class="btn" id="goPremium" type="button">Lås upp Premium – 79 kr/mån</button>
 
     <div id="versionLabel">V4.Benjii</div>
   </div>
+
   <!-- Drawer -->
   <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
@@ -253,6 +243,7 @@
           <div><label>Adress</label><input id="senderAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
 
+        <!-- Avsändare: extra fält -->
         <div class="row2" style="margin-bottom:8px">
           <div><label>Vår referens</label><input id="senderOurRef" type="text" placeholder="namn/initialer" /></div>
           <div><label>Betalningsvillkor</label><input id="senderTerms" type="text" placeholder="t.ex. 30 dagar netto" /></div>
@@ -282,10 +273,13 @@
           <div><label>E-post</label><input id="custEmail" type="email" placeholder="kund@exempel.se" /></div>
           <div><label>Adress</label><input id="custAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
+
+        <!-- Kundpreset: extra fält -->
         <div class="row2" style="margin-bottom:8px">
           <div><label>Er referens</label><input id="custYourRef" type="text" placeholder="kundens referens" /></div>
           <div><label>Leveransvillkor</label><input id="custDelivery" type="text" placeholder="t.ex. Fritt vårt lager" /></div>
         </div>
+
         <div class="row2" style="margin-top:8px">
           <button class="btn-mini" id="customerSave" type="button">Spara kundpreset</button>
         </div>
@@ -374,6 +368,14 @@
           LS_LOGO="rg_company_logo_dataurl", LS_SENDER="rg_sender_profile_v1",
           LS_CUSTOMERS="rg_customers_v1", LS_OFFER_NO="rg_offer_no_v1";
 
+    /* === Premium/Trial constants === */
+    const LS_TRIAL_START = "rg_trial_start_v1";
+    const LS_TRIAL_END   = "rg_trial_end_v1";
+    const TRIAL_DAYS     = 5;
+    const PLAY_PKG       = "se.reklamgiganten.priskalkylator"; // <-- ändra om paketnamn skiljer
+    const SKU_ID         = "manad75";                          // <-- din SKU i Play
+    const SUB_URL        = `https://play.google.com/store/account/subscriptions?sku=${SKU_ID}&package=${PLAY_PKG}`;
+
     let items=loadJSON(LS_ITEMS,[]), presets=loadJSON(LS_PRESETS,[]),
         customers=loadJSON(LS_CUSTOMERS,[]), itemTemplates=loadJSON(LS_TPLS,[]),
         logoDataURL=localStorage.getItem(LS_LOGO)||"";
@@ -386,49 +388,105 @@
 
     const fmt0=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
     const fmt2=n=>Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-    /* --- fortsättning efter const fmt2 --- */
 
-    /* ============ Förhandsrader (mått, styck, tid) ============ */
+    /* === Trial init & helpers === */
+    function initTrial(){
+      try{
+        let start = parseInt(localStorage.getItem(LS_TRIAL_START)||"0",10);
+        let end   = parseInt(localStorage.getItem(LS_TRIAL_END)||"0",10);
+        if(!start || !end){
+          const now = Date.now();
+          start = now;
+          end   = now + TRIAL_DAYS*24*60*60*1000;
+          localStorage.setItem(LS_TRIAL_START,String(start));
+          localStorage.setItem(LS_TRIAL_END,String(end));
+        }
+      }catch(e){}
+    }
+    function trialInfo(){
+      const now = Date.now();
+      const end = parseInt(localStorage.getItem(LS_TRIAL_END)||"0",10);
+      const ms  = end - now;
+      const days = Math.ceil(ms/(24*60*60*1000));
+      return { active: ms>0, days: Math.max(0,days) };
+    }
+    function showPremiumBar(status){
+      const bar = $("premiumBar");
+      const badge = $("trialBadge");
+      const msg = $("trialMsg");
+      if(status.subscribed){
+        bar.classList.add("hidden");
+        return;
+      }
+      // Not subscribed -> show bar (trial left or expired)
+      bar.classList.remove("hidden");
+      const t = trialInfo();
+      if(t.active){
+        badge.textContent = "TEST";
+        msg.textContent = `Du har ${t.days} dag${t.days===1?"":"ar"} kvar av testperioden.`;
+      }else{
+        badge.textContent = "LÅST";
+        msg.textContent = "Testperioden har gått ut. Lås upp Premium för att skapa/dela PDF.";
+      }
+    }
+
+    /* === Play subscription helpers === */
+    async function checkSubscription(){
+      try{
+        const dgs = await window.getDigitalGoodsService?.('https://play.google.com/billing');
+        if(!dgs) return false;
+        const purchases = await dgs.listPurchases();
+        return purchases?.some(p => p.sku === SKU_ID && p.purchaseState === 'PURCHASED');
+      }catch(e){
+        console.warn("Billing check failed:", e);
+        return false;
+      }
+    }
+    function startSubscription(){
+      // Öppnar Play → prenumerationssidan för din SKU
+      location.href = SUB_URL;
+    }
+    async function isPremium(){
+      // Premien gäller om prenumeration verifieras ELLER om trial är aktiv
+      const sub = await checkSubscription();
+      if(sub) return { subscribed:true, allowed:true };
+      const t = trialInfo();
+      return { subscribed:false, allowed:t.active };
+    }
+    async function guardPremium(){
+      const st = await isPremium();
+      showPremiumBar(st);
+      if(!st.allowed){
+        // Blockera och uppmana till premium
+        alert("Premium krävs för att skapa eller dela PDF. Klicka 'Lås upp Premium – 79 kr/mån' för att prenumerera.");
+        return false;
+      }
+      return true;
+    }
+
+    /* === App UI logic (oförändrat förutom premium-guard) === */
     function previewMeasureLine(){
-      const h=parseFloat($("hojd").value),
-            b=parseFloat($("bredd").value),
-            qty=parseFloat($("antal").value||"1");
-      const price=parseFloat($("pris").value),
-            moms=parseFloat($("moms").value||"0"),
-            box=$("measurePreview");
+      const h=parseFloat($("hojd").value), b=parseFloat($("bredd").value), qty=parseFloat($("antal").value||"1");
+      const price=parseFloat($("pris").value), moms=parseFloat($("moms").value||"0"), box=$("measurePreview");
       if(!h||!b||!price||!qty){ box.textContent="Skriv mått så visas radens pris här…"; return; }
-      const area=(h/1000)*(b/1000),
-            exkl=area*price*qty,
-            inkl=exkl*(1+moms);
+      const area=(h/1000)*(b/1000), exkl=area*price*qty, inkl=exkl*(1+moms);
       box.textContent=`Rad: ${fmt2(area)} m²/st × ${price} kr/m² × ${qty} st = ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
     function previewItemLine(){
-      const price=parseFloat($("itemPrice").value),
-            qty=parseFloat($("itemQty").value||"1"),
-            moms=parseFloat($("moms").value||"0"),
-            box=$("itemPreview");
+      const price=parseFloat($("itemPrice").value), qty=parseFloat($("itemQty").value||"1"), moms=parseFloat($("moms").value||"0"), box=$("itemPreview");
       if(!price||!qty){ box.textContent=""; return; }
-      const exkl=price*qty, inkl=exkl*(1+moms);
-      box.textContent=`Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
+      const exkl=price*qty, inkl=exkl*(1+moms); box.textContent=`Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
     function previewTimeLine(){
-      const rate=parseFloat($("hourRate").value),
-            hours=parseFloat($("hoursQty").value),
-            moms=parseFloat($("moms").value||"0"),
-            box=$("timePreview");
+      const rate=parseFloat($("hourRate").value), hours=parseFloat($("hoursQty").value), moms=parseFloat($("moms").value||"0"), box=$("timePreview");
       if(!rate||!hours){ box.textContent=""; return; }
-      const exkl=rate*hours, inkl=exkl*(1+moms);
-      box.textContent=`Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
+      const exkl=rate*hours, inkl=exkl*(1+moms); box.textContent=`Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
 
-    /* ==================== Lista & summering ==================== */
     function render(){
-      const list=$("itemsList");
-      list.innerHTML="";
-      let total=0;
+      const list=$("itemsList"); list.innerHTML=""; let total=0;
       items.forEach((it,i)=>{
-        const rowTotal=Number(it.price||0)*Number(it.qty||0);
-        total+=rowTotal;
+        const rowTotal=Number(it.price||0)*Number(it.qty||0); total+=rowTotal;
         const tr=document.createElement("tr");
         tr.innerHTML=`<td style="white-space:normal">${it.name}</td>
                       <td>${it.qty}</td>
@@ -437,22 +495,17 @@
         list.appendChild(tr);
       });
       $("itemsBox").style.display=items.length?"block":"none";
-      const moms=parseFloat($("moms").value||"0"),
-            sumExkl=total,
-            sumMoms=sumExkl*moms,
-            sumInkl=sumExkl+sumMoms;
-      $("result").textContent=`${fmt0(sumInkl)} kr`;
-      $("details").textContent=`${fmt0(sumExkl)} kr • Moms: ${fmt0(sumMoms)} kr`;
+      const moms=parseFloat($("moms").value||"0"), sumExkl=total, sumMoms=sumExkl*moms, sumInkl=sumExkl+sumMoms;
+      $("result").textContent=`${fmt0(sumInkl)} kr`; $("details").textContent=`${fmt0(sumExkl)} kr • Moms: ${fmt0(sumMoms)} kr`;
       saveJSON(LS_ITEMS, items);
     }
 
-    /* ===================== Datalistor ========================== */
     function refreshArtikelDatalist(){ const dl=$("artikelOptions"); dl.innerHTML=""; presets.forEach(p=>{ const o=document.createElement("option"); o.value=p.artikel; dl.appendChild(o); }); }
     function refreshCustomerDatalist(){ const dl=$("customerOptions"); dl.innerHTML=""; customers.forEach(c=>{ const o=document.createElement("option"); o.value=c.name; dl.appendChild(o); }); }
     function refreshItemDatalist(){ const dl=$("itemOptions"); dl.innerHTML=""; itemTemplates.forEach(t=>{ const o=document.createElement("option"); o.value=t.name; dl.appendChild(o); }); }
 
-    /* ===================== Händelser =========================== */
-    $("kundnamn").addEventListener("change", ()=>{
+    // Fyll fält vid val av kund
+    on("kundnamn","change", ()=>{
       const name=$("kundnamn").value.trim();
       const c=customers.find(x=>x.name.toLowerCase()===name.toLowerCase());
       if(c){
@@ -463,191 +516,51 @@
         $("kundDelivery").value = c.delivery|| "";
       }
     });
-    $("artikel").addEventListener("change", ()=>{
-      const name=$("artikel").value.trim();
-      const p=presets.find(x=>x.artikel.toLowerCase()===name.toLowerCase());
-      if(p){ $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); }
-    });
-    $("itemName").addEventListener("change", ()=>{
-      const name=$("itemName").value.trim();
-      const t=itemTemplates.find(x=>x.name.toLowerCase()===name.toLowerCase());
-      if(t){ $("itemPrice").value=t.price||""; previewItemLine(); }
-    });
-    $("moms").addEventListener("change", ()=>{
-      previewMeasureLine(); previewItemLine(); previewTimeLine(); render();
+
+    on("artikel","change", ()=>{ const name=$("artikel").value.trim(); const p=presets.find(x=>x.artikel.toLowerCase()===name.toLowerCase()); if(p){ $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); } });
+    on("itemName","change", ()=>{ const name=$("itemName").value.trim(); const t=itemTemplates.find(x=>x.name.toLowerCase()===name.toLowerCase()); if(t){ $("itemPrice").value=t.price||""; previewItemLine(); } });
+
+    on("moms","change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
+
+    on("addMeasure","click", ()=>{
+      const artikel=$("artikel").value.trim()||"Artikel";
+      const h=parseFloat($("hojd").value), b=parseFloat($("bredd").value), qty=parseInt($("antal").value), price=parseFloat($("pris").value);
+      if(!h||!b||!qty||!price) return;
+      const area=(h/1000)*(b/1000); const unitPrice=area*price;
+      const name=`${artikel} — ${h}×${b} mm • ${fmt2(area)} m²/st • á ${fmt2(price)} kr/m²`;
+      items.push({ name, price:unitPrice, qty }); render(); previewMeasureLine();
     });
 
-    $("addMeasure").addEventListener("click", ()=>{
-      const artikel=$("artikel").value.trim()||"Artikel";
-      const h=parseFloat($("hojd").value),
-            b=parseFloat($("bredd").value),
-            qty=parseInt($("antal").value),
-            price=parseFloat($("pris").value);
-      if(!h||!b||!qty||!price) return;
-      const area=(h/1000)*(b/1000);
-      const unitPrice=area*price;
-      const name=`${artikel} — ${h}×${b} mm • ${fmt2(area)} m²/st • á ${fmt2(price)} kr/m²`;
-      items.push({ name, price:unitPrice, qty });
-      render(); previewMeasureLine();
+    document.addEventListener("click", (e)=>{
+      const t=e.target; if(!(t instanceof HTMLElement)) return;
+      const idx=t.getAttribute("data-item"); if(idx!=null){ items.splice(Number(idx),1); render(); }
     });
-    document.addEventListener("click",(e)=>{
-      const t=e.target;
-      if(!(t instanceof HTMLElement)) return;
-      const idx=t.getAttribute("data-item");
-      if(idx!=null){ items.splice(Number(idx),1); render(); }
-    });
-    $("addItemBtn").addEventListener("click", ()=>{
-      const name=$("itemName").value.trim(),
-            price=parseFloat($("itemPrice").value),
-            qty=parseInt($("itemQty").value);
+
+    on("addItemBtn","click", ()=>{
+      const name=$("itemName").value.trim(), price=parseFloat($("itemPrice").value), qty=parseInt($("itemQty").value);
       if(!name||!price||!qty) return;
-      items.push({ name, price, qty });
-      $("itemName").value=""; $("itemPrice").value=""; $("itemQty").value="1";
+      items.push({ name, price, qty }); $("itemName").value=""; $("itemPrice").value=""; $("itemQty").value="1";
       render(); previewItemLine();
     });
-    $("addTimeBtn").addEventListener("click", ()=>{
-      const rate=parseFloat($("hourRate").value), hours=parseFloat($("hoursQty").value);
-      if(!rate||!hours) return;
-      items.push({ name:"Arbetstid", price:rate, qty:hours });
-      $("hourRate").value=""; $("hoursQty").value="";
-      render(); previewTimeLine();
+    on("addTimeBtn","click", ()=>{
+      const rate=parseFloat($("hourRate").value), hours=parseFloat($("hoursQty").value); if(!rate||!hours) return;
+      items.push({ name:"Arbetstid", price:rate, qty:hours }); $("hourRate").value=""; $("hoursQty").value=""; render(); previewTimeLine();
     });
-    ["hojd","bredd","antal","pris","artikel"].forEach(id=>{ $(id).addEventListener("input", previewMeasureLine); $(id).addEventListener("change", previewMeasureLine); });
-    ["itemPrice","itemQty"].forEach(id=>{ $(id).addEventListener("input", previewItemLine); $(id).addEventListener("change", previewItemLine); });
-    ["hourRate","hoursQty"].forEach(id=>{ $(id).addEventListener("input", previewTimeLine); $(id).addEventListener("change", previewTimeLine); });
 
-    $("share").addEventListener("click", ()=>{
+    ["hojd","bredd","antal","pris","artikel"].forEach(id=>{ on(id,"input", previewMeasureLine); on(id,"change", previewMeasureLine); });
+    ["itemPrice","itemQty"].forEach(id=>{ on(id,"input", previewItemLine); on(id,"change", previewItemLine); });
+    ["hourRate","hoursQty"].forEach(id=>{ on(id,"input", previewTimeLine); on(id,"change", previewTimeLine); });
+
+    on("share","click", ()=>{
       const text=`${$("result").textContent} (${$("details").textContent})`;
       if(navigator.share){ navigator.share({ title:"Offert", text }).catch(()=>{}); }
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
 
-    /* ================== Premium + 5-dagars test ================== */
-    const TRIAL_DAYS = 5;
-    const TRIAL_KEY = "rg_trial_started_at";
-    const PREMIUM_KEY = "rg_premium_active";
+    // ====== PDF (Premium-guard lagd här) ======
+    on("pdf","click", async ()=>{
+      if(!(await guardPremium())) return;
 
-    function nowMs(){ return Date.now(); }
-    function getTrialStarted(){
-      const v = localStorage.getItem(TRIAL_KEY);
-      return v ? Number(v) : null;
-    }
-    function startTrialIfNeeded(){
-      if(!getTrialStarted()){
-        localStorage.setItem(TRIAL_KEY, String(nowMs()));
-      }
-    }
-    function daysLeft(){
-      const start = getTrialStarted();
-      if(!start) return TRIAL_DAYS;
-      const msLeft = (start + TRIAL_DAYS*24*60*60*1000) - nowMs();
-      return Math.max(0, Math.ceil(msLeft / (24*60*60*1000)));
-    }
-    function isPremiumLocal(){ return localStorage.getItem(PREMIUM_KEY) === "1"; }
-    function setPremiumLocal(v){ localStorage.setItem(PREMIUM_KEY, v ? "1" : "0"); }
-
-    // Skapa Premium-bar dynamiskt (så vi slipper ändra din HTML-struktur)
-    function ensurePremiumBar(){
-      if ($("premiumBar")) return;
-      const bar = document.createElement("div");
-      bar.id = "premiumBar";
-      bar.className = "row";
-      bar.style.display = "grid";
-      bar.style.gridTemplateColumns = "1fr auto";
-      bar.style.alignItems = "center";
-      bar.style.gap = "10px";
-      bar.style.marginTop = "8px";
-      bar.innerHTML = `
-        <div id="premiumText" style="font-size:14px;color:#b7c0cf"></div>
-        <button id="upgradeBtn" class="btn" type="button" style="width:auto;white-space:nowrap">Uppgradera – 79 kr/mån</button>
-      `;
-      const h1 = document.querySelector("h1");
-      h1?.insertAdjacentElement("afterend", bar);
-    }
-
-    function updatePremiumUI(){
-      ensurePremiumBar();
-      const txt = $("premiumText");
-      const btn = $("upgradeBtn");
-      const left = daysLeft();
-      const premium = isPremiumLocal();
-      if (premium){
-        txt.textContent = "Premium aktiv – full tillgång till PDF och delning.";
-        btn.style.display = "none";
-        unlockPdfButtons();
-      } else {
-        if (left>0){
-          txt.textContent = `Gratis test kvar: ${left} dag${left===1?"":"ar"}. Efter test krävs Premium för PDF.`;
-          btn.style.display = "inline-block";
-          unlockPdfButtons(); // under test får de skapa/öppna PDF
-        } else {
-          txt.textContent = "Testperioden är slut. Uppgradera för att låsa upp PDF-funktionerna.";
-          btn.style.display = "inline-block";
-          lockPdfButtons();
-        }
-      }
-    }
-
-    function lockPdfButtons(){
-      const pdfBtn = $("pdf");
-      pdfBtn.disabled = false; // Vi låter klick trigga dialog/alert istället för att vara grå
-      pdfBtn.textContent = "Skapa offert (PDF) – låst";
-      pdfBtn.setAttribute("data-locked","1");
-    }
-    function unlockPdfButtons(){
-      const pdfBtn = $("pdf");
-      pdfBtn.textContent = "Skapa offert (PDF)";
-      pdfBtn.removeAttribute("data-locked");
-    }
-    function guardPdfAccess(){
-      const premium = isPremiumLocal();
-      const left = daysLeft();
-      if (premium || left>0) return true;
-      // låst: visa uppgraderingsmodal
-      openUpgradeModal();
-      return false;
-    }
-
-    /* ============== Google Play Billing (79 kr/mån) ============== */
-    async function checkSubscription(){
-      try{
-        const dgs = await window.getDigitalGoodsService?.('https://play.google.com/billing');
-        if (!dgs) return false;
-        const purchases = await dgs.listPurchases();
-        const active = purchases?.some(p => p.sku === 'manad75' && p.purchaseState === 'PURCHASED');
-        if (active) setPremiumLocal(true);
-        return !!active;
-      }catch(e){
-        console.error("Billing check error:", e);
-        return false;
-      }
-    }
-
-    async function startSubscription(){
-      try{
-        const method = {
-          supportedMethods: 'https://play.google.com/billing',
-          data: { sku: 'manad75' } // din SKU i Play Console
-        };
-        const details = {
-          total: { label: 'Premium – månadsprenumeration', amount: { currency: 'SEK', value: '79.00' } }
-        };
-        const request = new PaymentRequest([method], details);
-        const resp = await request.show();
-        await resp.complete('success');
-        setPremiumLocal(true);
-        closeUpgradeModal();
-        updatePremiumUI();
-        alert("Premium aktiverad! 🎉");
-      }catch(err){
-        console.error("Köp misslyckades:", err);
-        alert("Köpet avbröts eller misslyckades.");
-      }
-    }
-
-    /* =================== PDF – skyddad hook =================== */
-    // Vi lägger PDF-genereringen i egen funktion och kallar den bara om guard släpper igenom
-    async function generatePdf(){
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
 
@@ -668,12 +581,14 @@
 
       const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:"",ourRef:"",terms:"",interest:""});
       const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||""};
+
       const cust={
         name:($("kundnamn").value||"").trim(),
         phone:($("telefon").value||"").trim(),
         email:($("kundemail").value||"").trim(),
         address:($("kundadress").value||"").trim()
       };
+
       const ref = {
         our: (s.ourRef||""),
         your: ($("kundYourRef").value||"").trim(),
@@ -741,16 +656,19 @@
           { label:"Leveransvillkor",   val: ref.delivery }
         ];
         const g = 6, rowH = 12;
+
         const drawField = (x, w, label, value) => {
           R(x, y, w, rowH);
           normal(); doc.setFontSize(8); T(label, x+3, y+4.5);
           R(x+2, y+5.5, w-4, rowH-7);
           doc.setFontSize(9); T(value||"", x+4, y+10);
         };
-        let w1 = Math.round((W - left - right - 2*g) / 3 * 2) / 2;
+
+        let w1 = Math.round(((W - left - right - 2*g) / 3)*2)/2;
         fieldsRow1.forEach((f,i)=> drawField(left + i*(w1+g), w1, f.label, f.val));
         y += rowH + 3;
-        let w2 = Math.round((W - left - right - g) / 2 * 2) / 2;
+
+        let w2 = Math.round(((W - left - right - g) / 2)*2)/2;
         fieldsRow2.forEach((f,i)=> drawField(left + i*(w2+g), w2, f.label, f.val));
         y += rowH + 5;
       })();
@@ -767,13 +685,11 @@
       y+=4; HLine(y); y+=2;
 
       const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
-      const moms=parseFloat($("moms").value||"0.25");
+      const moms=0.25;
 
       const lineH=5, rowPad=3;
       items.forEach(it=>{
-        const qty = Number(it.qty||0),
-              unit=Number(it.price||0),
-              sum=qty*unit;
+        const qty = Number(it.qty||0), unit=Number(it.price||0), sum=qty*unit;
         const nameLines = doc.splitTextToSize(it.name||"", cAnt-cBen-2);
         const rowH = Math.max(lineH, nameLines.length*lineH);
 
@@ -818,9 +734,9 @@
       // Moms + summering
       const sumExkl=items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
       const momsBel=sumExkl*moms, sumInkl=sumExkl+momsBel;
-      const boxW=Math.round((W-left-right-6)/2*2)/2, boxH2=26;
+      const boxW=Math.round(((W-left-right-6)/2)*2)/2, boxH2=26;
       R(left,y,boxW,boxH2); bold(); doc.setFontSize(10); T("Momsunderlag",left+4,y+7);
-      normal(); doc.setFontSize(9); T(`Moms ${Math.round(moms*100)}%`,left+4,y+14); T(fmt0p(momsBel)+" kr",left+boxW-4,y+14,{align:"right"});
+      normal(); doc.setFontSize(9); T("Moms 25%",left+4,y+14); T(fmt0p(momsBel)+" kr",left+boxW-4,y+14,{align:"right"});
       const sx=left+boxW+6; R(sx,y,boxW,boxH2);
       let ry=y+8; const row=(lbl,val,b=false)=>{ doc.setFont("helvetica",b?"bold":"normal"); T(lbl,sx+4,ry); T(val,sx+boxW-4,ry,{align:"right"}); ry+=6; };
       normal(); doc.setFontSize(9);
@@ -844,22 +760,16 @@
       T("Offerten är giltig i 30 dagar från offertdatum.",W/2,y,{align:"center"});
 
       // Spara/visa
-      const base=(($("kundnamn").value||"offert").trim()||"offert");
+      const base=(cust.name||"offert").trim()||"offert";
       const safe=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
       const fileName=`${safe} Offert ${offerNo}.pdf`;
       const blob=doc.output("blob");
       if(lastPdfUrl){ try{ URL.revokeObjectURL(lastPdfUrl); }catch(e){} }
       lastPdfBlob=blob; lastPdfUrl=URL.createObjectURL(blob); lastPdfFilename=fileName;
       openPdfSheet(fileName);
-    }
-
-    // Ersätt PDF-knappen med en vakt som släpper igenom eller öppnar uppgraderingsdialog
-    $("pdf").addEventListener("click", async ()=>{
-      if (!guardPdfAccess()) return;
-      await generatePdf();
     });
 
-    /* ============== PDF-sheet logik (oförändrad) ============== */
+    // PDF-sheet logik
     const sheet = $("pdfSheet");
     const sheetBackdrop = $("pdfSheetBackdrop");
     const pdfNameEl = $("pdfName");
@@ -884,21 +794,9 @@
     sheetBackdrop.addEventListener("click", closePdfSheet);
     closeBtn.addEventListener("click", closePdfSheet);
 
-    // Även PDF-öppning/delning skyddas om test slut och ej premium
-    openBtn.addEventListener("click", ()=>{
-      if (!guardPdfAccess()) return;
-      if (!lastPdfUrl) return;
-      window.open(lastPdfUrl, "_blank");
-    });
-    dlBtn.addEventListener("click", ()=>{
-      if (!guardPdfAccess()) return;
-      if (!lastPdfUrl) return;
-      const a=document.createElement("a");
-      a.href=lastPdfUrl; a.download=lastPdfFilename;
-      document.body.appendChild(a); a.click(); a.remove();
-    });
+    openBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; window.open(lastPdfUrl, "_blank"); });
+    dlBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; const a=document.createElement("a"); a.href=lastPdfUrl; a.download=lastPdfFilename; document.body.appendChild(a); a.click(); a.remove(); });
     shareBtn.addEventListener("click", async ()=>{
-      if (!guardPdfAccess()) return;
       if (!lastPdfBlob) return;
       try{
         const file = new File([lastPdfBlob], lastPdfFilename, { type: "application/pdf" });
@@ -910,7 +808,7 @@
 
     window.addEventListener("beforeunload", ()=>{ if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} } });
 
-    /* =================== Drawer + sparande (oförändrat) =================== */
+    // Drawer + listor + sparande
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
       function open(){ drawer.classList.add("open"); backdrop.classList.add("open"); drawer.setAttribute("aria-hidden","false"); backdrop.setAttribute("aria-hidden","false"); document.body.style.overflow="hidden"; }
@@ -942,15 +840,8 @@
       });
 
       if(logoDataURL){ setLogoPreview(); }
-      $("logoFile").addEventListener("change", e=>{
-        const file=e.target.files?.[0]; if(!file) return;
-        const r=new FileReader();
-        r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); };
-        r.readAsDataURL(file);
-      });
-      $("logoClear").addEventListener("click", ()=>{
-        localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview();
-      });
+      $("logoFile").addEventListener("change", e=>{ const file=e.target.files?.[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); }; r.readAsDataURL(file); });
+      $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
 
       function renderPresetList(){
         const list=$("presetList"); list.innerHTML="";
@@ -964,14 +855,8 @@
         list.onclick=e=>{
           const t=e.target; if(!(t instanceof HTMLElement)) return;
           const edit=t.getAttribute("data-pedit"); const del=t.getAttribute("data-del");
-          if(edit!=null){
-            const p=presets[Number(edit)];
-            $("presetTitle").value=p.artikel||"";
-            $("presetPrice").value=p.pris??"";
-            $("presetVat").checked=(p.moms===0.25);
-          } else if(del!=null){
-            presets.splice(Number(del),1); saveJSON(LS_PRESETS,presets); renderPresetList();
-          }
+          if(edit!=null){ const p=presets[Number(edit)]; $("presetTitle").value=p.artikel||""; $("presetPrice").value=p.pris??""; $("presetVat").checked=(p.moms===0.25); }
+          else if(del!=null){ presets.splice(Number(del),1); saveJSON(LS_PRESETS,presets); renderPresetList(); }
         };
       }
       renderPresetList();
@@ -985,9 +870,11 @@
                          <span><button data-cedit="${idx}">Redigera</button><button data-cdel="${idx}">Ta bort</button></span>`;
           list.appendChild(row);
         });
+
         list.onclick=e=>{
           const t=e.target; if(!(t instanceof HTMLElement)) return;
           const edit=t.getAttribute("data-cedit"); const del=t.getAttribute("data-cdel");
+
           if(edit!=null){
             const c=customers[Number(edit)];
             $("custName").value = c.name || "";
@@ -1015,8 +902,7 @@
         const ex=customers.find(c=>c.name.toLowerCase()===name.toLowerCase());
         if(ex){ Object.assign(ex,{phone,email,address,yourRef,delivery}); }
         else { customers.push({name,phone,email,address,yourRef,delivery}); }
-        saveJSON(LS_CUSTOMERS,customers);
-        renderCustomerList(); refreshCustomerDatalist();
+        saveJSON(LS_CUSTOMERS,customers); renderCustomerList(); refreshCustomerDatalist();
         ["custName","custPhone","custEmail","custAddress","custYourRef","custDelivery"].forEach(id=>$(id).value="");
         alert("Kund sparad.");
       });
@@ -1033,85 +919,32 @@
         list.onclick=e=>{
           const t=e.target; if(!(t instanceof HTMLElement)) return;
           const edit=t.getAttribute("data-tedit"); const del=t.getAttribute("data-tdel");
-          if(edit!=null){
-            const it=itemTemplates[Number(edit)];
-            $("tplName").value=it.name||"";
-            $("tplPrice").value=it.price??"";
-          } else if(del!=null){
-            itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist();
-          }
+          if(edit!=null){ const it=itemTemplates[Number(edit)]; $("tplName").value=it.name||""; $("tplPrice").value=it.price??""; }
+          else if(del!=null){ itemTemplates.splice(Number(del),1); saveJSON(LS_TPLS,itemTemplates); renderTplList(); refreshItemDatalist(); }
         };
       }
       renderTplList();
 
       $("presetSave").addEventListener("click", ()=>{
-        const artikel=$("presetTitle").value.trim(),
-              pris=parseFloat($("presetPrice").value),
-              moms=$("presetVat").checked?0.25:0;
+        const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
         if(!artikel||!pris) return;
         const ex=presets.find(p=>p.artikel.toLowerCase()===artikel.toLowerCase());
         if(ex){ ex.pris=pris; ex.moms=moms; } else { presets.push({artikel,pris,moms}); }
-        saveJSON(LS_PRESETS,presets); renderPresetList();
-        $("presetTitle").value=""; $("presetPrice").value="";
-        alert("Preset sparad.");
+        saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
       });
     })();
 
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
+    render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
 
-    /* =================== Uppgraderingsmodal =================== */
-    function openUpgradeModal(){
-      $("upgradeModal")?.classList.add("open");
-      $("upgradeBackdrop")?.classList.add("open");
-      document.body.style.overflow="hidden";
-    }
-    function closeUpgradeModal(){
-      $("upgradeModal")?.classList.remove("open");
-      $("upgradeBackdrop")?.classList.remove("open");
-      document.body.style.overflow="";
-    }
+    /* === Wire premium CTA and initial state === */
+    on("goPremium","click", ()=> startSubscription());
+    initTrial();
+    (async () => { showPremiumBar(await isPremium()); })();
 
-    // Init
-    (async function initAll(){
-      startTrialIfNeeded();
-      ensurePremiumBar();
-      updatePremiumUI();
-      // Knyt knapp
-      document.addEventListener("click",(e)=>{
-        const t=e.target;
-        if (!(t instanceof HTMLElement)) return;
-        if (t.id==="upgradeBtn"){ startSubscription(); }
-        if (t.id==="upgradeClose"){ closeUpgradeModal(); }
-        if (t.id==="upgradeBackdrop"){ closeUpgradeModal(); }
-      });
-      // Kolla sub serverlöst via Digital Goods (om stöds)
-      await checkSubscription();
-      updatePremiumUI();
-      render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
-    })();
   </script>
 
-  <!-- Upgrade modal (minimal) -->
-  <style>
-    #upgradeBackdrop{position:fixed;inset:0;background:rgba(0,0,0,.55);opacity:0;pointer-events:none;transition:.2s;z-index:100000;}
-    #upgradeModal{position:fixed;left:50%;top:50%;transform:translate(-50%,-50%) scale(.98);opacity:0;pointer-events:none;background:#11151d;color:#fff;border:1px solid #2a2f3c;border-radius:16px;padding:18px;max-width:420px;width:min(92vw,420px);box-shadow:0 14px 40px rgba(0,0,0,.45);z-index:100001;}
-    #upgradeModal.open{opacity:1;pointer-events:auto;transform:translate(-50%,-50%) scale(1);}
-    #upgradeBackdrop.open{opacity:1;pointer-events:auto;}
-    #upgradeModal h3{margin:0 0 8px;font-size:18px}
-    #upgradeModal p{margin:0 0 12px;color:#b7c0cf;font-size:14px}
-    #upgradeModal .row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
-  </style>
-  <div id="upgradeBackdrop"></div>
-  <div id="upgradeModal" role="dialog" aria-modal="true" aria-labelledby="upgTitle" aria-describedby="upgText">
-    <h3 id="upgTitle">Lås upp PDF med Premium</h3>
-    <p id="upgText">Du har använt klart din gratis testperiod. Prenumerera för att skapa, spara och dela PDF-offerter.</p>
-    <div class="row2">
-      <button class="btn" id="upgradeBtn" type="button">Uppgradera – 79 kr/mån</button>
-      <button class="btn secondary" id="upgradeClose" type="button">Avbryt</button>
-    </div>
-  </div>
-
-  <!-- Gate (oförändrat) -->
+  <!-- Gate -->
   <style>
     #appGate{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.98); z-index:99999; color:#fff; text-align:center; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
     #appGate .box{ max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35) }
@@ -1136,7 +969,7 @@
     })();
   </script>
 
-  <!-- PWA (oförändrat) -->
+  <!-- PWA -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('/Priskalkylator/sw.js', { scope: '/Priskalkylator/' }).then(reg => {
