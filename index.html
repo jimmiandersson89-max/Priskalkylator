@@ -494,218 +494,209 @@
     });
 
     // ====== PDF (ny layout) + efter-panel ======
-    $("pdf").addEventListener("click", ()=>{
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF({ unit:"mm", format:"a4" });
+$("pdf").addEventListener("click", ()=>{
+  const { jsPDF } = window.jspdf;
+  const doc = new jsPDF({ unit:"mm", format:"a4" });
 
-      // Marginaler och hjälp
-      const left=15, right=15, top=18, bottom=18;
-      const pageW=doc.internal.pageSize.getWidth(), pageH=doc.internal.pageSize.getHeight();
-      const colGap = 6;
-      let y = top;
+  // ===== helpers =====
+  const left=12, right=12, top=12, bottom=14;
+  const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
+  const L=(x1,y1,x2,y2)=>{ doc.setDrawColor(0); doc.setLineWidth(0.2); doc.line(x1,y1,x2,y2); };
+  const R=(x,y,w,h)=>{ doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(x,y,w,h); };
+  const T=(t,x,y,opts)=>doc.text(String(t),x,y,opts||{});
+  const bold=()=>doc.setFont("helvetica","bold");
+  const normal=()=>doc.setFont("helvetica","normal");
 
-      const line = (x1,y1,x2,y2)=>{ doc.setDrawColor(0); doc.setLineWidth(0.2); doc.line(x1,y1,x2,y2); };
-      const box  = (x,y,w,h)=>{ doc.setDrawColor(0); doc.setLineWidth(0.2); doc.rect(x,y,w,h); };
+  // Datum & giltighet
+  const offerDate = new Date();
+  const dueDate   = new Date(offerDate.getTime() + 30*24*60*60*1000);
+  const fmt = d => d.toLocaleDateString("sv-SE");
 
-      // Datum & giltighet
-      const offerDate = new Date();
-      const dueDate   = new Date(offerDate.getTime() + 30*24*60*60*1000);
-      const fmtDate = d => d.toLocaleDateString("sv-SE");
+  // Offertnummer (din sekvens)
+  let n = parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
+  if(isNaN(n)||n<1||n>500) n=1;
+  const offerNo=n;
+  localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
 
-      // Offertnummer (behåll din sekvens 1..500)
-      let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10);
-      if(isNaN(n)||n<1||n>500) n=1;
-      const offerNo=n;
-      localStorage.setItem(LS_OFFER_NO, String(offerNo>=500?1:offerNo+1));
+  // Data
+  const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
+  const sender={ company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||"" };
+  const cust={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
 
-      // Avsändare/Kund
-      const savedSender=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:""});
-      const sender={ company:savedSender.company||"Företag", address:savedSender.address||"", phone:savedSender.phone||"", email:savedSender.email||"" };
-      const customer={ name:($("kundnamn").value||"").trim(), phone:($("telefon").value||"").trim(), email:($("kundemail").value||"").trim(), address:($("kundadress").value||"").trim() };
+  // ===== HEADER =====
+  let y=top;
 
-      // Logo (om finns)
-      if(logoDataURL){
-        try{
-          const p=doc.getImageProperties(logoDataURL);
-          const maxW=70,maxH=26; let w=maxW,h=maxW*(p.height/p.width);
-          if(h>maxH){ h=maxH; w=h*(p.width/p.height); }
-          doc.addImage(logoDataURL,p.fileType||"PNG", left, y-4, w, h);
-        }catch(e){}
+  // Logga uppe vänster
+  if (logoDataURL) {
+    try{
+      const p=doc.getImageProperties(logoDataURL);
+      let w=60, h=w*(p.height/p.width); if(h>22){ h=22; w=h*(p.width/p.height); }
+      doc.addImage(logoDataURL, p.fileType||"PNG", left, y, w, h);
+    }catch(e){}
+  }
+
+  // Offert-ruta uppe höger
+  (function(){
+    const w=72, h=24, x=W-right-w, y0=y;
+    R(x,y0,w,h);
+    bold(); doc.setFontSize(12); T("Offert", x+4, y0+7);
+    normal(); doc.setFontSize(9);
+    const row=(label,val,ry)=>{ T(label,x+4,ry); R(x+30,ry-5,w-34,8); T(val,x+32,ry+1); };
+    row("Offertnr.",     String(offerNo), y0+13);
+    row("Offertdatum",   fmt(offerDate),  y0+21);
+    row("Förfallodatum", fmt(dueDate),    y0+29);
+  })();
+
+  y += 30;
+
+  // ===== Avsändare / Mottagare (stora rutor) =====
+  const gap=6;
+  const colW=(W-left-right-gap)/2, boxH=32;
+
+  const panel=(title, lines, x, y0)=>{
+    R(x,y0,colW,boxH);
+    normal(); doc.setFontSize(8); T(title, x+4, y0+5);
+    bold(); doc.setFontSize(11); T(lines[0]||"", x+4, y0+12);
+    normal(); doc.setFontSize(9);
+    let yy=y0+17; lines.slice(1).forEach(t=>{ if(t){ T(t,x+4,yy); yy+=5; }});
+  };
+
+  panel("Avsändare", [sender.company, sender.address, sender.phone, sender.email], left, y);
+  panel("Mottagare", [cust.name||"", cust.address||"", cust.phone||"", cust.email||""], left+colW+gap, y);
+  y += boxH + 6;
+
+  // ===== Referensrad (utan 'Kundnummer') – 2 rader × 3 fält =====
+  (function(){
+    const labels = [
+      "Vår referens","Er referens","Dröjsmålsränta",
+      "Betalningsvillkor","Leveransvillkor","Ordernummer"
+      // (Kundnummer borttagen)
+    ];
+    const cols=3, cellGap=6;
+    const cellW = (W-left-right-(cols-1)*cellGap)/cols;
+    const rowH=12;
+
+    for (let r=0; r<2; r++){
+      for (let c=0; c<cols; c++){
+        const idx=r*cols+c;
+        if (idx>=labels.length) continue; // inga tomma rutor
+        const x=left + c*(cellW+cellGap);
+        R(x,y,cellW,rowH);
+        normal(); doc.setFontSize(8); T(labels[idx], x+3, y+4.5);
+        R(x+2, y+5.5, cellW-4, rowH-7); // värdefält (tomt)
       }
+      y += rowH + 3;
+    }
+  })();
 
-      // Övre högra ruta: Offertnr/Offertdatum/Förfallodatum
-      (function(){
-        const w = 70, h = 22, x = pageW - right - w, y0 = y-2;
-        box(x, y0, w, h);
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text("Offert", x+4, y0+6);
-        doc.setFont("helvetica","normal"); doc.setFontSize(9);
-        const rows = [
-          ["Offertnr.", String(offerNo)],
-          ["Offertdatum", fmtDate(offerDate)],
-          ["Förfallodatum", fmtDate(dueDate)]
-        ];
-        let ry = y0+6;
-        rows.forEach(([k,v],i)=>{
-          if(i===0) ry += 4;
-          doc.text(k, x+4, ry+5);
-          box(x+30, ry+1, w-34, 8);
-          doc.text(v, x+32, ry+7);
-          ry += 9;
-        });
-      })();
+  y += 2;
 
-      y += 26;
+  // ===== Tabell (utan 'Artikelnummer') =====
+  bold(); doc.setFontSize(11); T("Specifikation", left, y); y+=5;
+  L(left,y,W-right,y); y+=6;
+  normal(); doc.setFontSize(10);
 
-      // Paneler två kolumner
-      const colW = (pageW-left-right-colGap)/2;
+  // Kolumner: Benämning/Beskrivning, Antal, Enhet, Á-pris, Belopp
+  const cBen = left;                 // benämning start
+  const cAnt = left + 110;
+  const cEnh = left + 130;
+  const cApr = left + 150;
+  const cBel = W - right;
 
-      function panel(title, lines, x, y0){
-        const h = 30;
-        box(x, y0, colW, h);
-        doc.setFont("helvetica","normal"); doc.setFontSize(8); doc.text(title, x+4, y0+5);
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text(lines[0]||"", x+4, y0+11);
-        doc.setFont("helvetica","normal"); doc.setFontSize(9);
-        let yy = y0+16;
-        lines.slice(1).forEach(t=>{ if(t){ doc.text(t, x+4, yy); yy+=5; }});
+  T("Benämning/Beskrivning", cBen, y);
+  T("Antal", cAnt, y);
+  T("Enhet", cEnh, y);
+  T("Á-pris", cApr, y);
+  T("Belopp (SEK)", cBel, y, {align:"right"});
+  y += 4; L(left, y, W-right, y); y += 6;
+
+  const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
+  const moms=0.25;
+
+  items.forEach(it=>{
+    if (y+8>H-bottom){ doc.addPage(); y=top; }
+    const qty=Number(it.qty||0);
+    const unit=Number(it.price||0);
+    const sum =qty*unit;
+
+    const lines = doc.splitTextToSize(it.name||"", cAnt - cBen - 2);
+    lines.forEach((ln,i)=>{
+      if(i===0){
+        T(ln, cBen, y);
+        T(String(qty), cAnt, y);
+        T("st", cEnh, y);
+        T(fmt0p(unit)+" kr", cApr, y);
+        T(fmt0p(sum)+" kr", cBel, y, {align:"right"});
+      }else{
+        y+=5; T(ln, cBen, y);
       }
-
-      panel("Avsändare", [
-        sender.company,
-        sender.address,
-        sender.phone,
-        sender.email
-      ], left, y);
-
-      panel("Mottagare", [
-        customer.name||"",
-        customer.address||"",
-        customer.phone||"",
-        customer.email||""
-      ], left+colW+colGap, y);
-
-      y += 36;
-
-      // Specifikationstabell
-      doc.setFont("helvetica","bold"); doc.setFontSize(11);
-      doc.text("Specifikation", left, y); y += 5;
-
-      const c1 = left;                 // Benämning
-      const c2 = left + 100;           // Antal
-      const c3 = left + 120;           // Á-pris
-      const c4 = pageW - right;        // Belopp
-      line(left, y, pageW-right, y); y += 6;
-      doc.setFontSize(10);
-      doc.text("Benämning/Beskrivning", c1, y);
-      doc.text("Antal", c2, y);
-      doc.text("Á-pris", c3, y);
-      doc.text("Belopp (SEK)", c4, y, {align:"right"});
-      y += 4; line(left, y, pageW-right, y); y += 6;
-      doc.setFont("helvetica","normal");
-
-      const momsSats = 0.25; // endast 25 %
-      const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
-
-      items.forEach(it=>{
-        const qty = Number(it.qty||0);
-        const unit = Number(it.price||0); // á-pris (per rad i din logik)
-        const rowTotal = unit*qty;
-
-        const nameLines = doc.splitTextToSize(it.name||"", 96);
-        nameLines.forEach((lineTxt, idx)=>{
-          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.text(lineTxt, c1, y);
-          if (idx === 0){
-            doc.text(String(qty), c2, y);
-            doc.text(fmt0p(unit)+" kr", c3, y);
-            doc.text(fmt0p(rowTotal)+" kr", c4, y, {align:"right"});
-          }
-          y += 5;
-        });
-        y += 1; line(left, y, pageW-right, y); y += 4;
-      });
-
-      // Övriga uppgifter (från textarea "otherInfo")
-      const otherInfo = ($("otherInfo").value||"").trim();
-      if (otherInfo) {
-        doc.setFont("helvetica","bold"); doc.setFontSize(10);
-        doc.text("Övriga uppgifter", left, y); y += 5;
-        doc.setFont("helvetica","normal"); doc.setFontSize(9);
-        const lines = doc.splitTextToSize(otherInfo, pageW-left-right);
-        lines.forEach(lineTxt=>{
-          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.text(lineTxt, left, y);
-          y += 5;
-        });
-        y += 4;
-      }
-
-      // Summering + Momsunderlag (25%)
-      const sumExkl = items.reduce((s,it)=> s + Number(it.price||0)*Number(it.qty||0), 0);
-      const momsBelopp = sumExkl * momsSats;
-      const sumInkl = sumExkl + momsBelopp;
-
-      const momBoxW = (pageW-left-right-colGap)/2;
-      const momBoxH = 26;
-
-      // Momsunderlag
-      box(left, y, momBoxW, momBoxH);
-      doc.setFont("helvetica","bold"); doc.setFontSize(10);
-      doc.text("Momsunderlag", left+4, y+6);
-      doc.setFont("helvetica","normal"); doc.setFontSize(9);
-      doc.text("Moms 25%", left+4, y+12);
-      doc.text(fmt0p(momsBelopp)+" kr", left+momBoxW-4, y+12, {align:"right"});
-
-      // Summering
-      const sumX = left + momBoxW + colGap;
-      const sumW = momBoxW;
-      box(sumX, y, sumW, momBoxH);
-      doc.setFont("helvetica","normal"); doc.setFontSize(9);
-      let sy = y+8;
-      const row = (label, value, bold=false)=>{
-        doc.setFont("helvetica", bold?"bold":"normal");
-        doc.text(label, sumX+4, sy);
-        doc.text(value, sumX+sumW-4, sy, {align:"right"});
-        sy += 6;
-      };
-      row("Belopp före moms", fmt0p(sumExkl)+" kr");
-      row(`Moms ${Math.round(momsSats*100)}%`, fmt0p(momsBelopp)+" kr");
-      row("Att betala (SEK)", fmt0p(sumInkl)+" kr", true);
-
-      y += momBoxH + 6;
-
-      // Kommentar (efter totalsumma)
-      const note = ($("offerNote").value||"").trim();
-      if (note) {
-        if (y+12 > pageH-bottom) { doc.addPage(); y=top; }
-        doc.setFont("helvetica","bold"); doc.setFontSize(11);
-        doc.text("Kommentar", left, y); y += 6;
-        doc.setFont("helvetica","normal"); doc.setFontSize(9);
-        const wrapped = doc.splitTextToSize(note, pageW - left - right);
-        wrapped.forEach(lineTxt=>{
-          if (y+6 > pageH-bottom) { doc.addPage(); y=top; }
-          doc.text(lineTxt, left, y); y += 5;
-        });
-        y += 2; line(left, y, pageW-right, y); y += 4;
-      }
-
-      // Giltighet
-      doc.setFont("helvetica","normal"); doc.setFontSize(9);
-      doc.text("Offerten är giltig i 30 dagar från offertdatum.", pageW/2, y, {align:"center"});
-
-      // Filnamn
-      const base=(customer.name||"offert").trim()||"offert";
-      const safeBase=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
-      const fileName = `${safeBase} Offert ${offerNo}.pdf`;
-
-      const blob = doc.output("blob");
-      if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} }
-      lastPdfBlob = blob;
-      lastPdfUrl = URL.createObjectURL(blob);
-      lastPdfFilename = fileName;
-      openPdfSheet(fileName);
     });
+    y+=6; L(left, y, W-right, y); y+=2;
+  });
+
+  // ===== Övriga uppgifter =====
+  const other=($("otherInfo").value||"").trim();
+  if(other){
+    bold(); doc.setFontSize(10); T("Övriga uppgifter", left, y); y+=5;
+    normal(); doc.setFontSize(9);
+    const lines = doc.splitTextToSize(other, W-left-right);
+    lines.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
+    y+=2; L(left, y, W-right, y); y+=4;
+  }
+
+  // ===== Moms (25%) + summering =====
+  const sumExkl = items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
+  const momsBel = sumExkl*moms;
+  const sumInkl = sumExkl+momsBel;
+
+  const boxW=(W-left-right-gap)/2, boxH2=26;
+
+  // Momsunderlag
+  R(left,y,boxW,boxH2);
+  bold(); doc.setFontSize(10); T("Momsunderlag", left+4, y+7);
+  normal(); doc.setFontSize(9);
+  T("Moms 25%", left+4, y+14);
+  T(fmt0p(momsBel)+" kr", left+boxW-4, y+14, {align:"right"});
+
+  // Summering
+  const sx=left+boxW+gap;
+  R(sx,y,boxW,boxH2);
+  let ry=y+8;
+  const row=(lbl,val,b=false)=>{ doc.setFont("helvetica",b?"bold":"normal"); T(lbl,sx+4,ry); T(val,sx+boxW-4,ry,{align:"right"}); ry+=6; };
+  normal(); doc.setFontSize(9);
+  row("Belopp före moms", fmt0p(sumExkl)+" kr");
+  row(`Moms ${Math.round(moms*100)}%`, fmt0p(momsBel)+" kr");
+  row("Att betala (SEK)", fmt0p(sumInkl)+" kr", true);
+
+  y+=boxH2+6;
+
+  // ===== Kommentar efter totalsumman =====
+  const note=($("offerNote").value||"").trim();
+  if(note){
+    if(y+12>H-bottom){ doc.addPage(); y=top; }
+    bold(); doc.setFontSize(11); T("Kommentar", left, y); y+=6;
+    normal(); doc.setFontSize(9);
+    const ls = doc.splitTextToSize(note, W-left-right);
+    ls.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
+    y+=2; L(left, y, W-right, y); y+=2;
+  }
+
+  // Giltighetstext
+  normal(); doc.setFontSize(9);
+  T("Offerten är giltig i 30 dagar från offertdatum.", W/2, y, {align:"center"});
+
+  // Filnamn
+  const base=(cust.name||"offert").trim()||"offert";
+  const safe=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
+  const fileName=`${safe} Offert ${offerNo}.pdf`;
+
+  const blob=doc.output("blob");
+  if (lastPdfUrl) { try{ URL.revokeObjectURL(lastPdfUrl); }catch(e){} }
+  lastPdfBlob=blob;
+  lastPdfUrl=URL.createObjectURL(blob);
+  lastPdfFilename=fileName;
+  openPdfSheet(fileName);
+});
 
     // ===== Botten-sheet logik =====
     const sheet = $("pdfSheet");
