@@ -5,6 +5,14 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Offert på språng</title>
 
+  <script async src="https://www.googletagmanager.com/gtag/js?id=G-92JKEJPVZD"></script>
+  <script>
+    window.dataLayer = window.dataLayer || [];
+    function gtag(){dataLayer.push(arguments);}
+    gtag('js', new Date());
+
+    gtag('config', 'G-92JKEJPVZD');
+  </script>
   <base href="/Priskalkylator/">
   <link rel="manifest" href="/Priskalkylator/manifest.webmanifest">
   <meta name="theme-color" content="#0f1115" />
@@ -349,25 +357,6 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
-  <script src="https://www.gstatic.com/firebase/8.10.1/firebase-app.js"></script>
-  <script src="https://www.gstatic.com/firebase/8.10.1/firebase-analytics.js"></script>
-
-  <script>
-    // Din webbapps Firebase-konfiguration
-    const firebaseConfig = {
-      apiKey: "AIzaSyD0-1gqZP_y92fty7lw9-S1D2rhaFG3cf8",
-      authDomain: "offert-a526c.firebaseapp.com",
-      projectId: "offert-a526c",
-      storageBucket: "offert-a526c.firebasestorage.app",
-      messagingSenderId: "37656926013",
-      appId: "1:37656926013:web:1511d4e3b052063c779754",
-      measurementId: "G-92JKEJPVZD"
-    };
-
-    // Initiera Firebase och Analytics med den globala syntaxen
-    const app = firebase.initializeApp(firebaseConfig);
-    firebase.analytics();
-  </script>
   <script>
     "use strict";
     const $ = id => document.getElementById(id);
