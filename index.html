@@ -4,13 +4,11 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Offert på språng</title>
-
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-92JKEJPVZD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
     function gtag(){dataLayer.push(arguments);}
     gtag('js', new Date());
-
     gtag('config', 'G-92JKEJPVZD');
   </script>
   <base href="/Priskalkylator/">
@@ -23,7 +21,6 @@
   <link rel="apple-touch-icon" href="/Priskalkylator/Apple-touch-icon.png">
   <meta name="apple-mobile-web-app-capable" content="yes">
   <meta name="apple-mobile-web-app-status-bar-style" content="black">
-
   <style>
     :root{
       --bg:#0f1115; --card:#1f2937; --line:#2a2f3c; --focus:#3b82f6;
@@ -40,12 +37,12 @@
     .wrap{
       position:relative; width:100%; max-width:920px; background:var(--card);
       border-radius:22px; box-shadow:0 14px 40px rgba(0,0,0,.35); padding:22px 18px 20px;
+        /* VIKTIGT: Lägg till ID för att kunna styra innehållet */
+        display:none; /* Döljer appen tills åtkomst är beviljad */
     }
-
     .logo{ display:block; margin:10px auto 8px; width:220px; max-width:65%; border-radius:12px }
     h1{ margin:6px 0 8px; text-align:center; font-size:30px }
     #openDrawer.btn{ margin-top:6px; margin-bottom:10px }
-
     h2{ margin:16px 0 8px; font-size:18px; color:var(--muted) }
     label{ display:block; font-size:12px; color:var(--muted); margin:10px 0 6px }
     input,select,textarea{
@@ -54,17 +51,13 @@
     }
     textarea{ min-height:90px; resize:vertical }
     input:focus,select:focus,textarea:focus{ border-color:var(--focus); box-shadow:0 0 0 3px rgba(59,130,246,.25) }
-
     #otherInfo::placeholder, #offerNote::placeholder{
       font-size:13px; line-height:1.4; color:#a6afbf; opacity:1;
     }
-
     .grid2{ display:grid; gap:12px }
     .grid3{ display:grid; gap:12px }
     @media (min-width:720px){ .grid2{ grid-template-columns:1fr 1fr } .grid3{ grid-template-columns:1fr 1fr 1fr } }
-
     .row{ background:var(--row); border:1px solid var(--line); border-radius:16px; padding:12px; margin-top:12px }
-
     .compact-list{ margin-top:10px; border:1px solid var(--line); border-radius:14px; overflow:hidden }
     .compact-list table{ width:100%; border-collapse:collapse; font-size:14px }
     .compact-list th,.compact-list td{ padding:10px 10px; border-bottom:1px solid #2a2f3c; white-space:nowrap }
@@ -76,16 +69,13 @@
     .compact-list th:last-child,.compact-list td:last-child{
       position:sticky; right:0; background:var(--row); box-shadow:-6px 0 10px rgba(0,0,0,.12); z-index:1;
     }
-
     .remove{ background:var(--danger); color:#fff; border:none; border-radius:10px; padding:8px 12px; cursor:pointer; font-size:14px; line-height:1 }
     .remove:hover{ filter:brightness(1.06) }
-
     .out{ margin-top:16px; border-radius:14px; padding:14px 12px; background:var(--row); border:1px dashed var(--line); min-height:24px }
     .hint{ color:var(--muted); font-size:12px; margin-top:6px }
     .btn{ margin-top:12px; width:100%; border:none; border-radius:14px; padding:14px 16px; font-size:16px; color:#fff; cursor:pointer; background:var(--btn) }
     .btn:hover{ background:var(--btn-hover) }
     .btn.secondary{ background:#0b0d12; border:1px solid var(--line); color:#fff }
-
     .hamburger{ display:none; }
     .drawer-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998 }
     .drawer{ position:fixed; top:0; left:0; height:100%; width:360px; max-width:92vw; background:#0f1115; border-right:1px solid #1e2430; box-shadow:8px 0 40px rgba(0,0,0,.35); transform:translateX(-100%); transition:.25s transform; z-index:9999; color:#e5e7eb; display:flex; flex-direction:column }
@@ -101,12 +91,9 @@
     .preset-item:last-child{ border-bottom:none }
     .preset-item button{ border:none; background:#11151d; color:#fff; padding:8px 10px; border-radius:9px; cursor:pointer }
     .drawer .muted{ color:#9aa3b2; font-size:12px }
-
     #versionLabel{ margin-top:12px; margin-bottom:10px; text-align:center; font-size:13px; color:#b7c0cf }
     .logoPreview{ width:100%; max-width:260px; display:block; margin:6px 0 8px; border-radius:12px; background:#11151d; padding:8px }
-
     @media (orientation: landscape) { .drawer { width: 100vw; max-width: 100vw; } }
-
     .sheet-backdrop{ position:fixed; inset:0; background:rgba(0,0,0,.45); opacity:0; pointer-events:none; transition:.2s opacity; z-index:9998; }
     .sheet{ position:fixed; left:0; right:0; bottom:0; transform:translateY(100%); background:#0f1115; border-top-left-radius:16px; border-top-right-radius:16px; border:1px solid #1e2430; box-shadow:0 -10px 30px rgba(0,0,0,.4); padding:16px; z-index:9999; transition:.25s transform; color:#fff; }
     .sheet.open{ transform:translateY(0) } .sheet-backdrop.open{ opacity:1; pointer-events:auto }
@@ -115,21 +102,18 @@
     .sheet .row3{ display:grid; grid-template-columns:1fr 1fr 1fr; gap:10px }
     .btn-mini{ padding:12px 14px; border:none; border-radius:12px; cursor:pointer; background:var(--btn); color:#fff; font-weight:700 }
     .btn-mini.secondary{ background:#0b0d12; border:1px solid var(--line) }
-
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #11151d; color: #fff; border: 1px solid #2a2f3c; border-radius: 12px; padding: 10px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10000; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
   </style>
 </head>
 <body>
-  <div class="wrap">
+
+  <div class="wrap" id="appContent">
     <img class="logo" id="companyLogo" src="/Priskalkylator/Icon-512.png" alt="Logotyp" />
     <h1>Offert på språng</h1>
-
     <button class="btn" id="openDrawer" type="button">Fyll i dina företagsuppgifter här.</button>
-
     <div class="row" style="margin-top:10px">
       <h2 style="color:#fff;margin:0 0 8px">Fyll i kunduppgifter nedan</h2>
-
       <div class="grid2">
         <div>
           <label for="kundnamn">Kundnamn</label>
@@ -141,7 +125,6 @@
           <input id="telefon" type="tel" placeholder="t.ex. 0701-234567" />
         </div>
       </div>
-
       <div class="grid2">
         <div>
           <label for="kundemail">E-post</label>
@@ -152,7 +135,6 @@
           <input id="kundadress" type="text" placeholder="Gatuadress, postnr & ort" />
         </div>
       </div>
-
       <div class="grid2">
         <div>
           <label for="moms">Välj moms</label>
@@ -162,7 +144,6 @@
           </select>
         </div>
       </div>
-
       <div class="grid2">
         <div>
           <label for="kundYourRef">Er referens</label>
@@ -174,7 +155,6 @@
         </div>
       </div>
     </div>
-
     <div class="row">
       <h2>Lägg till mått</h2>
       <div class="grid2">
@@ -196,7 +176,6 @@
       <div id="measurePreview" class="hint">Skriv mått så visas radens pris här…</div>
       <button class="btn" id="addMeasure" type="button">Beräkna & lägg till mått</button>
       <div class="hint">Tips: skriv namnet på en sparad preset i <b>Artikel</b> så fylls pris och moms automatiskt.</div>
-
       <h2>Lägg till stycksaker</h2>
       <div class="grid3">
         <div><label for="itemName">Benämning</label><input id="itemName" type="text" list="itemOptions" placeholder="t.ex. Skruvar" /></div>
@@ -205,7 +184,6 @@
       </div>
       <div id="itemPreview" class="hint"></div>
       <button class="btn" id="addItemBtn" type="button">Beräkna & lägg till stycksak</button>
-
       <div class="grid3" style="margin-top:12px">
         <div><label for="hourRate">Timpenning (kr/h)</label><input id="hourRate" type="number" min="0" step="1" placeholder="t.ex. 650" /></div>
         <div><label for="hoursQty">Antal timmar</label><input id="hoursQty" type="number" min="0" step="0.25" placeholder="t.ex. 1.5" /></div>
@@ -214,7 +192,6 @@
         </div>
       </div>
       <div id="timePreview" class="hint"></div>
-
       <div class="compact-list" id="itemsBox" style="margin-top:12px; display:none">
         <table>
           <thead><tr><th>Benämning</th><th>Antal</th><th>Summa</th><th class="act">Åtgärd</th></tr></thead>
@@ -223,20 +200,15 @@
       </div>
       <datalist id="itemOptions"></datalist>
     </div>
-
     <label style="margin-top:14px">Beräknat pris (alla poster)</label>
     <div id="result" class="out">Lägg till ett mått eller en post.</div>
     <div id="details" class="hint"></div>
-
     <label for="otherInfo" style="margin-top:12px">Övriga uppgifter</label>
     <textarea id="otherInfo" placeholder="Här kan du skriva i övriga uppgifter. Dessa hamnar alltid under specifikationer i offerten (pdf)"></textarea>
-
     <label for="offerNote" style="margin-top:12px">Kommentar</label>
     <textarea id="offerNote" placeholder="Skriv din kommentar här, den läggs till i offerten (Pdf)"></textarea>
-
     <button class="btn secondary" id="pdf" type="button">Skapa offert (PDF)</button>
     <button class="btn" id="share" type="button">Dela priset</button>
-
     <div id="versionLabel">V4.Benjii</div>
   </div>
 
@@ -245,7 +217,6 @@
     <div class="hd">Förinställningar</div>
     <div class="bd">
       <div class="grp"><a class="btn-mini" href="/Priskalkylator/">Åter till kalkylator</a></div>
-
       <div class="grp">
         <div style="margin-bottom:8px"><b>Avsändare – uppgifter som alltid syns i PDF</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -256,7 +227,6 @@
           <div><label>E-post</label><input id="senderEmail" type="email" placeholder="du@foretag.se" /></div>
           <div><label>Adress</label><input id="senderAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
-
         <div class="row2" style="margin-bottom:8px">
           <div><label>Vår referens</label><input id="senderOurRef" type="text" placeholder="namn/initialer" /></div>
           <div><label>Betalningsvillkor</label><input id="senderTerms" type="text" placeholder="t.ex. 30 dagar netto" /></div>
@@ -264,7 +234,6 @@
         <div class="row2" style="margin-bottom:8px">
           <div><label>Dröjsmålsränta</label><input id="senderInterest" type="text" placeholder="t.ex. 8% + ref.ränta" /></div>
         </div>
-
         <div style="margin-bottom:8px"><b>PDF-logga (visas endast i PDF)</b></div>
         <input id="logoFile" type="file" accept="image/*" />
         <img id="logoPreview" class="logoPreview" alt="Förhandsvisning" style="display:none" />
@@ -274,7 +243,6 @@
         </div>
         <span class="muted">Uppgifterna sparas lokalt (denna enhet).</span>
       </div>
-
       <div class="grp">
         <div style="margin-bottom:8px"><b>Spara kund som preset</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -285,22 +253,18 @@
           <div><label>E-post</label><input id="custEmail" type="email" placeholder="kund@exempel.se" /></div>
           <div><label>Adress</label><input id="custAddress" type="text" placeholder="Gatuadress, postnr ort" /></div>
         </div>
-
         <div class="row2" style="margin-bottom:8px">
           <div><label>Er referens</label><input id="custYourRef" type="text" placeholder="kundens referens" /></div>
           <div><label>Leveransvillkor</label><input id="custDelivery" type="text" placeholder="t.ex. Fritt vårt lager" /></div>
         </div>
-
         <div class="row2" style="margin-top:8px">
           <button class="btn-mini" id="customerSave" type="button">Spara kundpreset</button>
         </div>
       </div>
-
       <div class="grp">
         <div style="margin-bottom:8px"><b>Sparade kunder</b></div>
         <div class="preset-list" id="customerList"></div>
       </div>
-
       <div class="grp">
         <div style="margin-bottom:8px"><b>Skapa egna m²-presets</b></div>
         <label>Förinställd text (titel)</label>
@@ -317,7 +281,6 @@
         <div style="margin-bottom:8px"><b>Sparade m²-presets</b></div>
         <div class="preset-list" id="presetList"></div>
       </div>
-
       <div class="grp">
         <div style="margin-bottom:8px"><b>Skapa styck-presets</b></div>
         <div class="row2" style="margin-bottom:8px">
@@ -332,7 +295,6 @@
         <div style="margin-bottom:8px"><b>Sparade styck-presets</b></div>
         <div class="preset-list" id="tplList"></div>
       </div>
-
       <div class="grp" style="margin-top:20px">
         <a class="btn-mini" href="/Priskalkylator/">Åter till kalkylator</a>
       </div>
@@ -361,7 +323,6 @@
     "use strict";
     const $ = id => document.getElementById(id);
     const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
-
     function toast(msg, ms = 1800){
       const el = $('toast');
       if (!el) return;
@@ -371,24 +332,18 @@
       el._t = setTimeout(()=> el.classList.remove('show'), ms);
     }
     window.alert = toast;
-
     const LS_PRESETS="rg_presets_v1", LS_ITEMS="rg_items_v1", LS_TPLS="rg_item_templates_v1",
           LS_LOGO="rg_company_logo_dataurl", LS_SENDER="rg_sender_profile_v1",
           LS_CUSTOMERS="rg_customers_v1", LS_OFFER_NO="rg_offer_no_v1";
-
     let items=loadJSON(LS_ITEMS,[]), presets=loadJSON(LS_PRESETS,[]),
         customers=loadJSON(LS_CUSTOMERS,[]), itemTemplates=loadJSON(LS_TPLS,[]),
         logoDataURL=localStorage.getItem(LS_LOGO)||"";
-
     let lastPdfBlob = null, lastPdfUrl = null, lastPdfFilename = "offert.pdf";
-
     function loadJSON(k,f){ try{ return JSON.parse(localStorage.getItem(k)||JSON.stringify(f)); }catch{ return f; } }
     function saveJSON(k,v){ localStorage.setItem(k, JSON.stringify(v)); }
     function setLogoPreview(){ const el=$("logoPreview"); if(logoDataURL){ el.src=logoDataURL; el.style.display="block"; } else { el.style.display="none"; } }
-
     const fmt0=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
     const fmt2=n=>Number(n||0).toLocaleString("sv-SE",{minimumFractionDigits:2,maximumFractionDigits:2});
-
     function previewMeasureLine(){
       const h=parseFloat($("hojd").value), b=parseFloat($("bredd").value), qty=parseFloat($("antal").value||"1");
       const price=parseFloat($("pris").value), moms=parseFloat($("moms").value||"0"), box=$("measurePreview");
@@ -406,7 +361,6 @@
       if(!rate||!hours){ box.textContent=""; return; }
       const exkl=rate*hours, inkl=exkl*(1+moms); box.textContent=`Rad: ${fmt0(exkl)} kr exkl • ${fmt0(inkl)} kr inkl moms`;
     }
-
     function render(){
       const list=$("itemsList"); list.innerHTML=""; let total=0;
       items.forEach((it,i)=>{
@@ -423,11 +377,9 @@
       $("result").textContent=`${fmt0(sumInkl)} kr`; $("details").textContent=`${fmt0(sumExkl)} kr • Moms: ${fmt0(sumMoms)} kr`;
       saveJSON(LS_ITEMS, items);
     }
-
     function refreshArtikelDatalist(){ const dl=$("artikelOptions"); dl.innerHTML=""; presets.forEach(p=>{ const o=document.createElement("option"); o.value=p.artikel; dl.appendChild(o); }); }
     function refreshCustomerDatalist(){ const dl=$("customerOptions"); dl.innerHTML=""; customers.forEach(c=>{ const o=document.createElement("option"); o.value=c.name; dl.appendChild(o); }); }
     function refreshItemDatalist(){ const dl=$("itemOptions"); dl.innerHTML=""; itemTemplates.forEach(t=>{ const o=document.createElement("option"); o.value=t.name; dl.appendChild(o); }); }
-
     // Fyll fält vid val av kund
     $("kundnamn").addEventListener("change", ()=>{
       const name=$("kundnamn").value.trim();
@@ -440,12 +392,9 @@
         $("kundDelivery").value = c.delivery|| "";
       }
     });
-
     $("artikel").addEventListener("change", ()=>{ const name=$("artikel").value.trim(); const p=presets.find(x=>x.artikel.toLowerCase()===name.toLowerCase()); if(p){ $("pris").value=p.pris; $("moms").value=p.moms; previewMeasureLine(); } });
     $("itemName").addEventListener("change", ()=>{ const name=$("itemName").value.trim(); const t=itemTemplates.find(x=>x.name.toLowerCase()===name.toLowerCase()); if(t){ $("itemPrice").value=t.price||""; previewItemLine(); } });
-
     $("moms").addEventListener("change", ()=>{ previewMeasureLine(); previewItemLine(); previewTimeLine(); render(); });
-
     $("addMeasure").addEventListener("click", ()=>{
       const artikel=$("artikel").value.trim()||"Artikel";
       const h=parseFloat($("hojd").value), b=parseFloat($("bredd").value), qty=parseInt($("antal").value), price=parseFloat($("pris").value);
@@ -454,12 +403,10 @@
       const name=`${artikel} — ${h}×${b} mm • ${fmt2(area)} m²/st • á ${fmt2(price)} kr/m²`;
       items.push({ name, price:unitPrice, qty }); render(); previewMeasureLine();
     });
-
     document.addEventListener("click", (e)=>{
       const t=e.target; if(!(t instanceof HTMLElement)) return;
       const idx=t.getAttribute("data-item"); if(idx!=null){ items.splice(Number(idx),1); render(); }
     });
-
     $("addItemBtn").addEventListener("click", ()=>{
       const name=$("itemName").value.trim(), price=parseFloat($("itemPrice").value), qty=parseInt($("itemQty").value);
       if(!name||!price||!qty) return;
@@ -470,22 +417,18 @@
       const rate=parseFloat($("hourRate").value), hours=parseFloat($("hoursQty").value); if(!rate||!hours) return;
       items.push({ name:"Arbetstid", price:rate, qty:hours }); $("hourRate").value=""; $("hoursQty").value=""; render(); previewTimeLine();
     });
-
     ["hojd","bredd","antal","pris","artikel"].forEach(id=>{ $(id).addEventListener("input", previewMeasureLine); $(id).addEventListener("change", previewMeasureLine); });
     ["itemPrice","itemQty"].forEach(id=>{ $(id).addEventListener("input", previewItemLine); $(id).addEventListener("change", previewItemLine); });
     ["hourRate","hoursQty"].forEach(id=>{ $(id).addEventListener("input", previewTimeLine); $(id).addEventListener("change", previewTimeLine); });
-
     $("share").addEventListener("click", ()=>{
       const text=`${$("result").textContent} (${$("details").textContent})`;
       if(navigator.share){ navigator.share({ title:"Offert", text }).catch(()=>{}); }
       else { navigator.clipboard?.writeText(text).then(()=>alert("Belopp kopierat!")).catch(()=>alert(text)); }
     });
-
     // ====== PDF ======
     $("pdf").addEventListener("click", ()=>{
       const { jsPDF } = window.jspdf;
       const doc = new jsPDF({ unit:"mm", format:"a4" });
-
       const round05 = v => Math.round(v*2)/2;
       const left=12, right=12, top=14, bottom=14;
       const W=doc.internal.pageSize.getWidth(), H=doc.internal.pageSize.getHeight();
@@ -494,23 +437,19 @@
       const T=(t,x,y,opts)=>doc.text(String(t),round05(x),round05(y),opts||{});
       const bold=()=>doc.setFont("helvetica","bold");
       const normal=()=>doc.setFont("helvetica","normal");
-
       const offerDate=new Date();
       const dueDate=new Date(offerDate.getTime()+30*24*60*60*1000);
       const fmt=d=>d.toLocaleDateString("sv-SE");
       let n=parseInt(localStorage.getItem(LS_OFFER_NO)||"1",10); if(isNaN(n)||n<1||n>500) n=1;
       const offerNo=n; localStorage.setItem(LS_OFFER_NO,String(offerNo>=500?1:offerNo+1));
-
       const s=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:"",ourRef:"",terms:"",interest:""});
       const sender={company:s.company||"Företag", address:s.address||"", phone:s.phone||"", email:s.email||""};
-
       const cust={
         name:($("kundnamn").value||"").trim(),
         phone:($("telefon").value||"").trim(),
         email:($("kundemail").value||"").trim(),
         address:($("kundadress").value||"").trim()
       };
-
       // *** HÄR hämtas värden till referens/villkor ***
       const ref = {
         our: (s.ourRef||""),
@@ -519,7 +458,6 @@
         terms: (s.terms||""),
         delivery: ($("kundDelivery").value||"").trim()
       };
-
       // Rubrik
       bold(); doc.setFontSize(16);
       const OFFER_BOX_W = 78;
@@ -527,7 +465,6 @@
       const titleX       = (left + offerBoxX) / 2;
       T("Offert", titleX, top);
       let y=top+8;
-
       // Logga
       if(logoDataURL){
         try{
@@ -538,7 +475,6 @@
           doc.addImage(logoDataURL, p.fileType||"PNG", left, y-6, w, h);
         }catch(e){}
       }
-
       // Offert-ruta
       (function(){
         const w=OFFER_BOX_W, h=30, x=offerBoxX, y0=y-8;
@@ -550,9 +486,7 @@
         row("Offertdatum", fmt(offerDate),1);
         row("Förfallodatum", fmt(dueDate),2);
       })();
-
       y+=36;
-
       // Avsändare/Mottagare
       const gap=6;
       const colW=round05((W-left-right-gap)/2), boxH=34;
@@ -566,7 +500,6 @@
       panel("Avsändare",[sender.company,sender.address,sender.phone,sender.email],left,y);
       panel("Mottagare",[cust.name||"",cust.address||"",cust.phone||"",cust.email||""],left+colW+gap,y);
       y+=boxH+6;
-
       // Referens/villkor (3 + 2 kolumner)
       (function(){
         const fieldsRow1 = [
@@ -579,23 +512,19 @@
           { label:"Leveransvillkor",   val: ref.delivery }
         ];
         const g = 6, rowH = 12;
-
         const drawField = (x, w, label, value) => {
           R(x, y, w, rowH);
           normal(); doc.setFontSize(8); T(label, x+3, y+4.5);
           R(x+2, y+5.5, w-4, rowH-7);
           doc.setFontSize(9); T(value||"", x+4, y+10);
         };
-
         let w1 = round05((W - left - right - 2*g) / 3);
         fieldsRow1.forEach((f,i)=> drawField(left + i*(w1+g), w1, f.label, f.val));
         y += rowH + 3;
-
         let w2 = round05((W - left - right - g) / 2);
         fieldsRow2.forEach((f,i)=> drawField(left + i*(w2+g), w2, f.label, f.val));
         y += rowH + 5;
       })();
-
       // Tabell
       bold(); doc.setFontSize(11); T("Specifikation",left,y); y+=5; HLine(y); y+=6;
       normal(); doc.setFontSize(10);
@@ -606,18 +535,14 @@
       T("Á-pris",cApr,y);
       T("Belopp (SEK)",cBel,y,{align:"right"});
       y+=4; HLine(y); y+=2;
-
       const fmt0p=n=>Number(n||0).toLocaleString("sv-SE",{maximumFractionDigits:0});
       const moms=0.25;
-
       const lineH=5, rowPad=3;
       items.forEach(it=>{
         const qty = Number(it.qty||0), unit=Number(it.price||0), sum=qty*unit;
         const nameLines = doc.splitTextToSize(it.name||"", cAnt-cBen-2);
         const rowH = Math.max(lineH, nameLines.length*lineH);
-
         if (y + rowH + rowPad + 10 > H - bottom) { doc.addPage(); y = top; }
-
         normal(); doc.setFontSize(10);
         T(nameLines[0]||"", cBen, y+lineH);
         T(String(qty), cAnt, y+lineH);
@@ -625,12 +550,10 @@
         T(fmt0p(unit)+" kr", cApr, y+lineH);
         T(fmt0p(sum)+" kr", cBel, y+lineH, {align:"right"});
         for(let i=1;i<nameLines.length;i++){ T(nameLines[i], cBen, y+lineH*(i+1)); }
-
         y += rowH + rowPad;
         HLine(y);
         y += 2;
       });
-
       // Övriga uppgifter
       const other = ($("otherInfo").value || "").trim();
       if (other) {
@@ -641,7 +564,6 @@
         T("Övriga uppgifter", left, titleBaseline);
         const topLineY = HLine(titleBaseline + 3);
         y = topLineY + 4;
-
         normal(); doc.setFontSize(9);
         const lines = doc.splitTextToSize(other, W - left - right);
         lines.forEach(line => {
@@ -649,11 +571,9 @@
           T(line, left, y);
           y += 5;
         });
-
         const bottomLineY = HLine(y + 2);
         y = bottomLineY + 6;
       }
-
       // Moms + summering
       const sumExkl=items.reduce((s,it)=>s+Number(it.price||0)*Number(it.qty||0),0);
       const momsBel=sumExkl*moms, sumInkl=sumExkl+momsBel;
@@ -667,7 +587,6 @@
       row(`Moms ${Math.round(moms*100)}%`,fmt0p(momsBel)+" kr");
       row("Att betala (SEK)",fmt0p(sumInkl)+" kr",true);
       y+=boxH2+6;
-
       // Kommentar
       const note=($("offerNote").value||"").trim();
       if(note){
@@ -677,11 +596,9 @@
         ns.forEach(t=>{ if(y+6>H-bottom){ doc.addPage(); y=top; } T(t,left,y); y+=5; });
         y += 6; // ingen linje här; då blir det inget streck före giltighetstexten
       }
-
       // Giltighet
       normal(); doc.setFontSize(9);
       T("Offerten är giltig i 30 dagar från offertdatum.",W/2,y,{align:"center"});
-
       // Spara/visa
       const base=(cust.name||"offert").trim()||"offert";
       const safe=base.replace(/[^\w\- åäöÅÄÖ]/g,"_");
@@ -691,7 +608,6 @@
       lastPdfBlob=blob; lastPdfUrl=URL.createObjectURL(blob); lastPdfFilename=fileName;
       openPdfSheet(fileName);
     });
-
     // PDF-sheet logik
     const sheet = $("pdfSheet");
     const sheetBackdrop = $("pdfSheetBackdrop");
@@ -700,7 +616,6 @@
     const dlBtn = $("downloadPdfBtn");
     const shareBtn = $("sharePdfBtn");
     const closeBtn = $("closeSheetBtn");
-
     function openPdfSheet(name){
       pdfNameEl.textContent = name;
       sheet.classList.add("open");
@@ -716,7 +631,6 @@
     }
     sheetBackdrop.addEventListener("click", closePdfSheet);
     closeBtn.addEventListener("click", closePdfSheet);
-
     openBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; window.open(lastPdfUrl, "_blank"); });
     dlBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; const a=document.createElement("a"); a.href=lastPdfUrl; a.download=lastPdfFilename; document.body.appendChild(a); a.click(); a.remove(); });
     shareBtn.addEventListener("click", async ()=>{
@@ -728,9 +642,7 @@
         } else { window.open(lastPdfUrl, "_blank"); }
       }catch(e){}
     });
-
     window.addEventListener("beforeunload", ()=>{ if (lastPdfUrl) { try { URL.revokeObjectURL(lastPdfUrl); } catch(e) {} } });
-
     // Drawer + listor + sparande
     (function(){
       const btn=$("openDrawer"), drawer=$("drawer"), backdrop=$("drawerBackdrop");
@@ -739,7 +651,6 @@
       btn.addEventListener("click",e=>{ e.stopPropagation(); open(); });
       backdrop.addEventListener("click",close);
       document.addEventListener("keydown",e=>{ if(e.key==="Escape") close(); });
-
       const senderSaved=loadJSON(LS_SENDER,{company:"",address:"",phone:"",email:"",ourRef:"",terms:"",interest:""});
       $("senderCompany").value=senderSaved.company||"";
       $("senderAddress").value=senderSaved.address||"";
@@ -761,11 +672,9 @@
         saveJSON(LS_SENDER,data);
         alert("Avsändaruppgifter sparade.");
       });
-
       if(logoDataURL){ setLogoPreview(); }
       $("logoFile").addEventListener("change", e=>{ const file=e.target.files?.[0]; if(!file) return; const r=new FileReader(); r.onload=()=>{ logoDataURL=r.result; localStorage.setItem(LS_LOGO,logoDataURL); setLogoPreview(); alert("PDF-logga sparad!"); }; r.readAsDataURL(file); });
       $("logoClear").addEventListener("click", ()=>{ localStorage.removeItem(LS_LOGO); logoDataURL=""; setLogoPreview(); });
-
       function renderPresetList(){
         const list=$("presetList"); list.innerHTML="";
         presets.forEach((p,idx)=>{
@@ -783,7 +692,6 @@
         };
       }
       renderPresetList();
-
       function renderCustomerList(){
         const list=$("customerList"); list.innerHTML="";
         customers.forEach((c,idx)=>{
@@ -793,11 +701,9 @@
                          <span><button data-cedit="${idx}">Redigera</button><button data-cdel="${idx}">Ta bort</button></span>`;
           list.appendChild(row);
         });
-
         list.onclick=e=>{
           const t=e.target; if(!(t instanceof HTMLElement)) return;
           const edit=t.getAttribute("data-cedit"); const del=t.getAttribute("data-cdel");
-
           if(edit!=null){
             const c=customers[Number(edit)];
             $("custName").value = c.name || "";
@@ -813,7 +719,6 @@
         };
       }
       renderCustomerList();
-
       $("customerSave").addEventListener("click", ()=>{
         const name=$("custName").value.trim(),
               phone=$("custPhone").value.trim(),
@@ -829,7 +734,6 @@
         ["custName","custPhone","custEmail","custAddress","custYourRef","custDelivery"].forEach(id=>$(id).value="");
         alert("Kund sparad.");
       });
-
       function renderTplList(){
         const list=$("tplList"); list.innerHTML="";
         itemTemplates.forEach((tpl,idx)=>{
@@ -847,26 +751,20 @@
         };
       }
       renderTplList();
-
       $("tplSave").addEventListener("click", () => {
         const name  = $("tplName").value.trim();
         const price = parseFloat($("tplPrice").value);
-
         if (!name || isNaN(price)) { alert("Ange benämning och pris/st."); return; }
-
         const ex = itemTemplates.find(t => t.name.toLowerCase() === name.toLowerCase());
         if (ex) { ex.price = price; }
         else { itemTemplates.push({ name, price }); }
-
         saveJSON(LS_TPLS, itemTemplates);
         renderTplList();
         refreshItemDatalist();
-
         $("tplName").value = "";
         $("tplPrice").value = "";
         alert("Styck-preset sparad.");
       });
-
       $("presetSave").addEventListener("click", ()=>{
         const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
         if(!artikel||!pris) return;
@@ -875,32 +773,120 @@
         saveJSON(LS_PRESETS,presets); renderPresetList(); $("presetTitle").value=""; $("presetPrice").value=""; alert("Preset sparad.");
       });
     })();
-
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
     render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
   </script>
 
   <style>
-    #appGate{ position:fixed; inset:0; display:none; place-items:center; background:rgba(0,0,0,.98); z-index:99999; color:#fff; text-align:center; padding:24px; font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif; }
-    #appGate .box{ max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35) }
-    #appGate h3{ margin:0 0 8px; font-size:20px } #appGate p{ margin:6px 0 0; color:#b7c0cf; font-size:14px }
+    /* TILLÄGG: Nya stilar för prenumerationslåset */
+    .app-gate-box { max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35) }
+    .app-gate-box h3 { margin:0 0 8px; font-size:20px }
+    .app-gate-box p { margin:6px 0 0; color:#b7c0cf; font-size:14px }
+    .app-gate-box a { color:var(--focus); text-decoration:underline; font-weight:bold; }
+    /* SLUT TILLÄGG */
+   
+    #accessGate{
+        position:fixed; inset:0; display:none; place-items:center;
+        background:rgba(0,0,0,.98); z-index:99999; color:#fff;
+        text-align:center; padding:24px;
+        font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+    }
   </style>
-  <div id="appGate" aria-live="assertive" aria-hidden="true">
-    <div class="box">
-      <h3>Åtkomst nekad</h3>
-      <p>Den här tjänsten kan bara användas i <b>Offert på språng</b>-appen.</p>
+
+    <div id="accessGate" aria-live="assertive" aria-hidden="true">
+    <div class="app-gate-box" id="gateBox">
+      <h3 id="gateTitle">Åtkomst nekad</h3>
+      <p id="gateText">Laddar säkerhetskontroll...</p>
     </div>
   </div>
-  <script>
-    (function () {
-      var isFromTWA = document.referrer && document.referrer.indexOf('android-app://se.reklamgiganten.priskalkylator') === 0;
-      if (isFromTWA) { try { sessionStorage.setItem('twa_ok', '1'); } catch(e) {} }
-      var allowed = isFromTWA || (function(){ try { return sessionStorage.getItem('twa_ok') === '1'; } catch(e) { return false; } })();
-      if (!allowed) {
-        var app = document.querySelector('.wrap'); if (app) app.style.display = 'none';
-        var gate = document.getElementById('appGate'); if (gate) gate.style.display = 'grid';
+
+    <script>
+    // VIKTIGT: Denna adress är ditt App-ID och måste vara samma som i index.js
+    const APP_PACKAGE_NAME = 'se.reklamgiganten.priskalkylator';
+   
+    // --- FUNKTIONER FÖR GATE ---
+    function showGate(title, text, isPaywall = false) {
+        const appContent = document.getElementById('appContent');
+        const gate = document.getElementById('accessGate');
+        const gateTitle = document.getElementById('gateTitle');
+        const gateText = document.getElementById('gateText');
+       
+        if (appContent) appContent.style.display = 'none';
+        if (gate) gate.style.display = 'grid';
+        if (gateTitle) gateTitle.textContent = title;
+        if (gateText) {
+            gateText.innerHTML = text;
+            if (isPaywall) {
+                // Lägg till länk för att bli prenumerant om det är paywall
+                gateText.innerHTML += `<p style="margin-top:20px;"><a href="https://play.google.com/store/apps/details?id=${APP_PACKAGE_NAME}" target="_blank">Tryck här för att bli prenumerant</a></p>`;
+            }
+        }
         document.body.style.overflow = 'hidden';
-      }
+    }
+
+    function allowAccess() {
+        const appContent = document.getElementById('appContent');
+        const gate = document.getElementById('accessGate');
+        if (appContent) appContent.style.display = 'block';
+        if (gate) gate.style.display = 'none';
+        document.body.style.overflow = '';
+    }
+   
+    // --- PRENUMERATIONSKONTROLL (DIN NYA LOGIK) ---
+    // ERSÄTT DENNA FUNKTION MED DIN RIKTIGA FIREBASE CALL!
+    function checkSubscriptionStatus(purchaseToken) {
+        // HÄR SKA DIN RIKTIGA KOD LIGGA FÖR ATT ANROPA FIREBASE-FUNKTIONEN 'checkSubscription'
+        // Exempel: return firebase.functions().httpsCallable('checkSubscription')({ purchaseToken: purchaseToken });
+
+        // FÖR ATT FÅ PRENUMERATIONSLÅSET ATT VISAS FÖR TESTNING SÄTTER VI DET TILL false
+        return new Promise(resolve => {
+            // Här ska du anropa din Firebase Function och returnera resolve(true) eller resolve(false)
+            // Vi sätter det till false (ej prenumerant) för att visa Paywall
+            resolve(false);
+        });
+    }
+
+
+    // --- HUVUDKONTROLL (KÖRS VID START) ---
+    (function () {
+        // 1. TWA/PLAY STORE SÄKERHETSKONTROLL (Ursprunglig kod)
+        const isFromTWA = document.referrer && document.referrer.indexOf(`android-app://${APP_PACKAGE_NAME}`) === 0;
+        let allowed = isFromTWA || (function(){ try { return sessionStorage.getItem('twa_ok') === '1'; } catch(e) { return false; } })();
+
+        if (!allowed) {
+            // TWA-LÅSET: Ej startad från Play Store/app-ikon
+            showGate("Åtkomst nekad", "Den här tjänsten kan bara användas när den startas från <b>Offert på språng</b>-appen.");
+            return;
+        }
+
+        // --- 2. PRENUMERATION KONTROLL ---
+       
+        // Simulerad hämtning av Purchase Token (MÅSTE VARA DITT RIKTIGA API-ANROP!)
+        // Din app måste först hämta Purchase Token via Google Play Billing Library.
+        const purchaseToken = sessionStorage.getItem('last_purchase_token') || 'SIMULERAD_TOKEN';
+
+        // 2.1 Visa laddningsstatus
+        showGate("Laddar...", "Verifierar prenumerationsstatus mot Google Play.");
+
+        // 2.2 Anropa servern
+        checkSubscriptionStatus(purchaseToken)
+            .then(isSubscribed => {
+                if (isSubscribed) {
+                    allowAccess(); // Allt OK, visa appen
+                } else {
+                    // PRENUMERATIONSLÅSET: Användare har tillgång via TWA men ingen aktiv prenumeration
+                    showGate(
+                        "Åtkomst nekad!",
+                        "Bli prenumerant och få tillgång till kalkylatorn.",
+                        true // true visar paywall-länken
+                    );
+                }
+            })
+            .catch(error => {
+                // Fel vid anrop (t.ex. servern är nere)
+                showGate("Ett fel uppstod", "Kunde inte verifiera prenumerationen. Kontrollera din internetanslutning eller prova igen senare.");
+                console.error("Subscription check failed:", error);
+            });
     })();
   </script>
 
