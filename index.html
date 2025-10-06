@@ -852,7 +852,26 @@
         };
       }
       renderTplList();
+// ⬇️ LÄGG TILL DETTA BLOCK ⬇️
+$("tplSave").addEventListener("click", () => {
+  const name  = $("tplName").value.trim();
+  const price = parseFloat($("tplPrice").value);
 
+  if (!name || isNaN(price)) { alert("Ange benämning och pris/st."); return; }
+
+  const ex = itemTemplates.find(t => t.name.toLowerCase() === name.toLowerCase());
+  if (ex) { ex.price = price; }
+  else { itemTemplates.push({ name, price }); }
+
+  saveJSON(LS_TPLS, itemTemplates);
+  renderTplList();
+  refreshItemDatalist();
+
+  $("tplName").value = "";
+  $("tplPrice").value = "";
+  alert("Styck-preset sparad.");
+});
+// ⬆️ SLUT PÅ NYTT BLOCK ⬆️
       $("presetSave").addEventListener("click", ()=>{
         const artikel=$("presetTitle").value.trim(), pris=parseFloat($("presetPrice").value), moms=$("presetVat").checked?0.25:0;
         if(!artikel||!pris) return;
