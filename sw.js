@@ -1,5 +1,5 @@
 // ----- Priskalkylator service worker -----
-const VERSION    = 'V.Benjii.11';  // bumpad version
+const VERSION    = 'V.Benjii.12';  // bumpad version
 const CACHE_NAME = `rg-kalkylator-${VERSION}`;
 
 const START_URL  = './index.html?source=pwa';
