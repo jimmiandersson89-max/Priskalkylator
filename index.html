@@ -4,6 +4,10 @@
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Offert på språng</title>
+ 
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-app.js"></script>
+<script src="https://www.gstatic.com/firebasejs/8.10.1/firebase-functions.js"></script>
+ 
   <script async src="https://www.googletagmanager.com/gtag/js?id=G-92JKEJPVZD"></script>
   <script>
     window.dataLayer = window.dataLayer || [];
@@ -800,11 +804,29 @@
     </div>
   </div>
 
-    <script>
+  <script>
+    // -----------------------------------------------------------
+    // FIREBASE CONFIG (Klistras in från din input)
+    // -----------------------------------------------------------
+    const firebaseConfig = {
+        apiKey: "AIzaSyD0-1gqZP_y92fty7lw9-S1D2rhaFG3cf8",
+        authDomain: "offert-a526c.firebaseapp.com",
+        projectId: "offert-a526c",
+        storageBucket: "offert-a526c.firebasestorage.app",
+        messagingSenderId: "37656926013",
+        appId: "1:37656926013:web:1511d4e3b052063c779754",
+        measurementId: "G-92JKEJPVZD"
+    };
+
+    // Initialisera Firebase
+    firebase.initializeApp(firebaseConfig);
+    const functions = firebase.functions();
+    const checkSubscription = functions.httpsCallable('checkSubscription');
+
     // VIKTIGT: Denna adress är ditt App-ID och måste vara samma som i index.js
     const APP_PACKAGE_NAME = 'se.reklamgiganten.priskalkylator';
    
-    // --- FUNKTIONER FÖR GATE ---
+    // --- FUNKTIONER FÖR GATE (Låset) ---
     function showGate(title, text, isPaywall = false) {
         const appContent = document.getElementById('appContent');
         const gate = document.getElementById('accessGate');
@@ -832,24 +854,29 @@
         document.body.style.overflow = '';
     }
    
-    // --- PRENUMERATIONSKONTROLL (DIN NYA LOGIK) ---
-    // ERSÄTT DENNA FUNKTION MED DIN RIKTIGA FIREBASE CALL!
+    // --- PRENUMERATIONSKONTROLL (DIN RIKTIGA LOGIK) ---
     function checkSubscriptionStatus(purchaseToken) {
-        // HÄR SKA DIN RIKTIGA KOD LIGGA FÖR ATT ANROPA FIREBASE-FUNKTIONEN 'checkSubscription'
-        // Exempel: return firebase.functions().httpsCallable('checkSubscription')({ purchaseToken: purchaseToken });
-
-        // FÖR ATT FÅ PRENUMERATIONSLÅSET ATT VISAS FÖR TESTNING SÄTTER VI DET TILL false
-        return new Promise(resolve => {
-            // Här ska du anropa din Firebase Function och returnera resolve(true) eller resolve(false)
-            // Vi sätter det till false (ej prenumerant) för att visa Paywall
-            resolve(false);
-        });
+        if (!purchaseToken || purchaseToken === 'SIMULERAD_TOKEN') {
+            // Om vi inte har någon token, kan vi inte kolla. Anta att användaren inte betalat.
+            return Promise.resolve(false);
+        }
+       
+        // Anropa din driftsatta serverfunktion (i index.js)
+        return checkSubscription({ purchaseToken: purchaseToken })
+            .then(result => {
+                // Servern svarar med om prenumerationen är aktiv (true/false)
+                return result.data.isSubscribed === true;
+            })
+            .catch(error => {
+                console.error("Firebase Function Error:", error);
+                // Vid fel (t.ex. nätverksproblem), neka åtkomst för säkerhets skull
+                return false;
+            });
     }
-
 
     // --- HUVUDKONTROLL (KÖRS VID START) ---
     (function () {
-        // 1. TWA/PLAY STORE SÄKERHETSKONTROLL (Ursprunglig kod)
+        // 1. TWA/PLAY STORE SÄKERHETSKONTROLL
         const isFromTWA = document.referrer && document.referrer.indexOf(`android-app://${APP_PACKAGE_NAME}`) === 0;
         let allowed = isFromTWA || (function(){ try { return sessionStorage.getItem('twa_ok') === '1'; } catch(e) { return false; } })();
 
@@ -861,9 +888,11 @@
 
         // --- 2. PRENUMERATION KONTROLL ---
        
-        // Simulerad hämtning av Purchase Token (MÅSTE VARA DITT RIKTIGA API-ANROP!)
+        // Simulerad hämtning av Purchase Token (MÅSTE ERSÄTTAS MED RIKTIGT ANROP!)
         // Din app måste först hämta Purchase Token via Google Play Billing Library.
-        const purchaseToken = sessionStorage.getItem('last_purchase_token') || 'SIMULERAD_TOKEN';
+        // VIKTIGT: Du MÅSTE se till att din Android-kod sparar det aktuella purchaseToken
+        // till sessionStorage['last_purchase_token'] efter ett köp/uppdatering.
+        const purchaseToken = sessionStorage.getItem('last_purchase_token');
 
         // 2.1 Visa laddningsstatus
         showGate("Laddar...", "Verifierar prenumerationsstatus mot Google Play.");
@@ -874,7 +903,7 @@
                 if (isSubscribed) {
                     allowAccess(); // Allt OK, visa appen
                 } else {
-                    // PRENUMERATIONSLÅSET: Användare har tillgång via TWA men ingen aktiv prenumeration
+                    // PRENUMERATIONSLÅSET
                     showGate(
                         "Åtkomst nekad!",
                         "Bli prenumerant och få tillgång till kalkylatorn.",
@@ -883,27 +912,8 @@
                 }
             })
             .catch(error => {
-                // Fel vid anrop (t.ex. servern är nere)
+                // Fel vid anrop (t.ex. nätverksproblem)
                 showGate("Ett fel uppstod", "Kunde inte verifiera prenumerationen. Kontrollera din internetanslutning eller prova igen senare.");
-                console.error("Subscription check failed:", error);
             });
     })();
-  </script>
-
-  <script>
-    if ('serviceWorker' in navigator) {
-      navigator.serviceWorker.register('/Priskalkylator/sw.js', { scope: '/Priskalkylator/' }).then(reg => {
-        if (reg.waiting) reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-        reg.addEventListener('updatefound', () => {
-          const sw = reg.installing; if (!sw) return;
-          sw.addEventListener('statechange', () => {
-            if (sw.state === 'installed' && reg.waiting) {
-              reg.waiting.postMessage({ type: 'SKIP_WAITING' });
-            }
-          });
-        });
-      }).catch(console.error);
-    }
-  </script>
-</body>
-</html>
+</script>
