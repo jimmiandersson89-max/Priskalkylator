@@ -17,6 +17,7 @@
   "fullScopeUrl": "/Priskalkylator/",
   "iconUrl": "/Priskalkylator/Icon-512.png",
   "maskableIconUrl": "/Priskalkylator/Icon-512-maskable.png",
+
   "splashScreenFadeOutDuration": 300,
 
   "signingKey": {
@@ -45,15 +46,11 @@
   "generatorApp": "bubblewrap-cli",
   "fallbackType": "customtabs",
 
-  "features": {
-    "playBilling": { "enabled": true }
-  },
-
+  "features": { "playBilling": { "enabled": true } },
   "alphaDependencies": { "enabled": false },
   "enableSiteSettingsShortcut": true,
   "isChromeOSOnly": false,
   "isMetaQuest": false,
-
   "minSdkVersion": 21,
   "orientation": "any",
 
@@ -61,5 +58,7 @@
   "additionalTrustedOrigins": [],
   "retainedBundles": [],
   "protocolHandlers": [],
-  "fileHandlers": []
+  "fileHandlers": [],
+
+  "forceOfflineBuild": true
 }
