@@ -17,7 +17,7 @@
   "fullScopeUrl": "/Priskalkylator/",
   "iconUrl": "/Priskalkylator/Icon-512.png",
   "maskableIconUrl": "/Priskalkylator/Icon-512-maskable.png",
-  "webManifestUrl": "/Priskalkylator/manifest.webmanifest",
+  "webManifestUrl": "https://jimmiandersson89-max.github.io/Priskalkylator/manifest.webmanifest",
 
   "splashScreenFadeOutDuration": 300,
 
