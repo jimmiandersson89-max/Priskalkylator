@@ -1,5 +1,5 @@
 // ----- Priskalkylator service worker -----
-const VERSION    = 'V.Benjii.12';  // bumpad version
+const VERSION    = 'V.Benjii.13';                  // bumpa vid varje deploy
 const CACHE_NAME = `rg-kalkylator-${VERSION}`;
 
 const START_URL  = './index.html?source=pwa';
@@ -7,6 +7,7 @@ const START_URL  = './index.html?source=pwa';
 const CORE_ASSETS = [
   './',
   './index.html',
+  './index.js',                                     // viktigt: precacha appens logik
   START_URL,
   './manifest.webmanifest',
   './sw.js',
@@ -15,11 +16,11 @@ const CORE_ASSETS = [
   './Icon-192.png',
   './Icon-512.png',
   './Icon-512-maskable.png',
-  // Lägg till jsPDF så PDF funkar offline:
+  // jsPDF för PDF offline
   'https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js',
 ];
 
-// Precache kärnfiler
+// --- Install: precacha kärnfiler ---
 self.addEventListener('install', (event) => {
   event.waitUntil(
     caches.open(CACHE_NAME).then((cache) => cache.addAll(CORE_ASSETS))
@@ -27,7 +28,7 @@ self.addEventListener('install', (event) => {
   self.skipWaiting();
 });
 
-// Rensa gamla cachar
+// --- Activate: rensa gamla cachar ---
 self.addEventListener('activate', (event) => {
   event.waitUntil((async () => {
     const keys = await caches.keys();
@@ -36,41 +37,16 @@ self.addEventListener('activate', (event) => {
   })());
 });
 
-// ====== SÄKERHETSKOLL ======
-function isAllowedRequest(req) {
-  // Tillåt alltid core assets
-  if (CORE_ASSETS.some(path => req.url.endsWith(path.replace('./','')) || req.url === path)) return true;
-
-  // Tillåt din egen domän + jsDelivr (för jsPDF)
-  const allowedHosts = [
-    self.location.hostname,           // din GitHub Pages-domän
-    'cdn.jsdelivr.net',               // jsPDF
-    'localhost'                       // lokal test
-  ];
-
-  try {
-    const url = new URL(req.url);
-    return allowedHosts.includes(url.hostname);
-  } catch {
-    return false;
-  }
-}
-// ====== SLUT SÄKERHETSKOLL ======
-
-// Strategi: HTML = network-first, övrigt = stale-while-revalidate
+// --- Fetch: HTML = network-first, annat = stale-while-revalidate ---
 self.addEventListener('fetch', (event) => {
   const req = event.request;
   if (req.method !== 'GET') return;
 
-  // Blockera otillåtna hostar (men låt navigeringar gå igenom vår hantering nedan)
-  const isHTML = req.headers.get('accept')?.includes('text/html') || req.destination === 'document';
-
-  if (!isHTML && !isAllowedRequest(req)) {
-    event.respondWith(new Response("Åtkomst nekad", { status: 403 }));
-    return;
-  }
+  const isHTML =
+    req.headers.get('accept')?.includes('text/html') || req.destination === 'document';
 
   if (isHTML) {
+    // Network-first för dokument så GitHub-uppdateringar syns direkt
     event.respondWith((async () => {
       try {
         const fresh = await fetch(req, { cache: 'no-store' });
@@ -79,33 +55,33 @@ self.addEventListener('fetch', (event) => {
         return fresh;
       } catch {
         const cache = await caches.open(CACHE_NAME);
-        const cached =
-          (await cache.match(req)) ||
-          (await cache.match(START_URL)) ||
-          (await cache.match('./index.html'));
-        return cached || Response.error();
+        return (await cache.match(req)) ||
+               (await cache.match(START_URL)) ||
+               (await cache.match('./index.html')) ||
+               Response.error();
       }
     })());
     return;
   }
 
-  // stale-while-revalidate för övrigt
+  // Övriga resurser: stale-while-revalidate
   event.respondWith((async () => {
     const cache = await caches.open(CACHE_NAME);
     const cached = await cache.match(req);
-    const fetchPromise = fetch(req)
-      .then((res) => {
-        if (res && res.status === 200 && res.type !== 'opaque') {
-          cache.put(req, res.clone());
-        }
-        return res;
-      })
-      .catch(() => cached);
+
+    const fetchPromise = fetch(req).then((res) => {
+      // undvik att cacha opaque / felaktiga svar
+      if (res && res.status === 200 && res.type !== 'opaque') {
+        cache.put(req, res.clone());
+      }
+      return res;
+    }).catch(() => cached);
+
     return cached || fetchPromise;
   })());
 });
 
-// Tillåt att sidan ber SW hoppa över "waiting"
+// Tillåt att sidan beordrar SW att hoppa över "waiting"
 self.addEventListener('message', (event) => {
   if (event.data && event.data.type === 'SKIP_WAITING') {
     self.skipWaiting();
