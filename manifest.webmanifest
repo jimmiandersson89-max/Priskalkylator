@@ -1,50 +1,67 @@
 {
+  "packageId": "se.reklamgiganten.priskalkylator",
+  "host": "jimmiandersson89-max.github.io",
   "name": "Offert på språng – Priskalkylator",
-  "short_name": "offert-Pdf",
-  "description": "En smidig priskalkylator för dekaler, print, vinyl och solfilm.",
-  "id": "se.reklamgiganten.priskalkylator",
-
-  "start_url": "/Priskalkylator/",
-  "scope": "/Priskalkylator/",
+  "launcherName": "Offert-Pdf",
   "display": "standalone",
-  "display_override": ["standalone", "browser"],
-  "orientation": "portrait",
+  "themeColor": "#0F1115",
+  "themeColorDark": "#000000",
+  "navigationColor": "#000000",
+  "navigationColorDark": "#000000",
+  "navigationDividerColor": "#000000",
+  "navigationDividerColorDark": "#000000",
+  "backgroundColor": "#0F1115",
+  "enableNotifications": true,
 
-  "background_color": "#0f1115",
-  "theme_color": "#0f1115",
-  "categories": ["business", "productivity"],
+  "startUrl": "/Priskalkylator/",
+  "fullScopeUrl": "/Priskalkylator/",
+  "iconUrl": "/Priskalkylator/Icon-512.png",
+  "maskableIconUrl": "/Priskalkylator/Icon-512-maskable.png",
+  "webManifestUrl": "/Priskalkylator/manifest.webmanifest",
 
-  "icons": [
-    { "src": "/Priskalkylator/Icon-192.png",          "sizes": "192x192",   "type": "image/png" },
-    { "src": "/Priskalkylator/Icon-512.png",          "sizes": "512x512",   "type": "image/png" },
-    { "src": "/Priskalkylator/Icon-512-maskable.png", "sizes": "512x512",   "type": "image/png", "purpose": "maskable" },
-    { "src": "/Priskalkylator/Icon-1024.png",         "sizes": "1024x1024", "type": "image/png" },
-    { "src": "/Priskalkylator/Apple-touch-icon.png",  "sizes": "180x180",   "type": "image/png" }
-  ],
+  "splashScreenFadeOutDuration": 300,
 
-  "screenshots": [
-    { "src": "/Priskalkylator/screenshot1.png", "sizes": "1280x720", "type": "image/png", "form_factor": "wide" }
-  ],
+  "signingKey": {
+    "path": "C:\\Users\\pc\\Desktop\\Priskalkylator-main\\android.keystore",
+    "alias": "android"
+  },
+
+  "appVersionName": "12",
+  "appVersionCode": 16,
 
   "shortcuts": [
     {
       "name": "Ny offert",
-      "short_name": "Ny offert",
-      "description": "Starta en ny offert",
-      "url": "/Priskalkylator/?reset=true",
-      "icons": [{ "src": "/Priskalkylator/Icon-512.png", "sizes": "512x512", "type": "image/png" }]
+      "shortName": "Ny offert",
+      "url": "/Priskalkylator/index.html?reset=true",
+      "chosenIconUrl": "/Priskalkylator/Icon-512.png"
     },
     {
       "name": "Skapa PDF",
-      "short_name": "Skapa PDF",
-      "description": "Gå direkt till PDF-knappen",
-      "url": "/Priskalkylator/#pdf",
-      "icons": [{ "src": "/Priskalkylator/Icon-512.png", "sizes": "512x512", "type": "image/png" }]
+      "shortName": "Skapa PDF",
+      "url": "/Priskalkylator/index.html#pdf",
+      "chosenIconUrl": "/Priskalkylator/Icon-512.png"
     }
   ],
 
-  "related_applications": [],
-  "prefer_related_applications": false,
-  "lang": "sv",
-  "dir": "ltr"
+  "generatorApp": "bubblewrap-cli",
+  "fallbackType": "customtabs",
+
+  "features": {
+    "playBilling": { "enabled": true }
+  },
+
+  "alphaDependencies": { "enabled": false },
+  "enableSiteSettingsShortcut": true,
+  "isChromeOSOnly": false,
+  "isMetaQuest": false,
+
+  "minSdkVersion": 21,
+  "orientation": "any",
+
+  "fingerprints": [],
+  "additionalTrustedOrigins": [],
+  "retainedBundles": [],
+  "protocolHandlers": [],
+  "fileHandlers": []
 }
