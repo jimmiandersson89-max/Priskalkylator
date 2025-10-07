@@ -106,29 +106,19 @@
     #toast { position: fixed; left: 50%; bottom: 24px; transform: translateX(-50%); background: #11151d; color: #fff; border: 1px solid #2a2f3c; border-radius: 12px; padding: 10px 14px; font-size: 14px; box-shadow: 0 8px 24px rgba(0,0,0,.35); opacity: 0; pointer-events: none; transition: opacity .2s, transform .2s; z-index: 10000; }
     #toast.show { opacity: 1; transform: translateX(-50%) translateY(-6px); }
 
-    /* === TWA-lås overlay (tillagd) === */
+    /* --- LÅS overlay (tillägg) --- */
     #accessGate{
       position:fixed; inset:0; display:none; place-items:center;
-      background:rgba(0,0,0,.96); z-index:100000; color:#fff; text-align:center; padding:24px;
+      background:rgba(0,0,0,.95); z-index:100000; color:#fff; text-align:center; padding:24px;
       font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
     }
-    .app-gate-box{
-      max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c;
-      border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35)
-    }
-    .app-gate-box h3{ margin:0 0 8px; font-size:20px }
-    .app-gate-box p{ margin:6px 0 0; color:#b7c0cf; font-size:14px }
+    .app-gate-box { max-width:560px; width:min(92vw,560px); background:#11151d; border:1px solid #2a2f3c; border-radius:16px; padding:22px; box-shadow:0 12px 30px rgba(0,0,0,.35) }
+    .app-gate-box h3 { margin:0 0 8px; font-size:20px }
+    .app-gate-box p { margin:6px 0 0; color:#b7c0cf; font-size:14px }
+    .app-gate-box a { color:#3b82f6; text-decoration:underline; font-weight:700; }
   </style>
 </head>
 <body>
-
-  <!-- TWA-lås overlay (tillagd) -->
-  <div id="accessGate" aria-live="assertive" aria-hidden="true">
-    <div class="app-gate-box">
-      <h3>Åtkomst nekad</h3>
-      <p>Den här tjänsten kan bara användas när den startas från <b>Offert på språng</b>-appen (Google Play).</p>
-    </div>
-  </div>
 
   <div class="wrap" id="appContent">
     <img class="logo" id="companyLogo" src="./Icon-512.png" alt="Logotyp" />
@@ -748,7 +738,7 @@
     sheetBackdrop.addEventListener("click", closePdfSheet);
     closeBtn.addEventListener("click", closePdfSheet);
     openBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; window.open(lastPdfUrl, "_blank"); });
-    dlBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; const a=document.createElement("a"); a.href=lastPdfUrl; a.download={lastPdfFilename}; document.body.appendChild(a); a.click(); a.remove(); });
+    dlBtn.addEventListener("click", ()=>{ if (!lastPdfUrl) return; const a=document.createElement("a"); a.href=lastPdfUrl; a.download=lastPdfFilename; document.body.appendChild(a); a.click(); a.remove(); });
     shareBtn.addEventListener("click", async ()=>{
       if (!lastPdfBlob) return;
       try{
@@ -934,19 +924,45 @@
     }
   </script>
 
-  <!-- === TWA-lås logik (tillagd) === -->
+  <!-- ====== TWA-lås (endast Play/TWA eller installerad PWA) ====== -->
+  <div id="accessGate" aria-live="assertive" aria-hidden="true">
+    <div class="app-gate-box">
+      <h3>Åtkomst nekad</h3>
+      <p id="gateText">Den här tjänsten kan bara användas via appen från Google Play eller som installerad PWA.</p>
+      <p style="margin-top:14px;">
+        <a href="https://play.google.com/store/apps/details?id=se.reklamgiganten.priskalkylator" target="_blank" rel="noopener">Öppna i Google Play</a>
+      </p>
+    </div>
+  </div>
   <script>
-    (function () {
-      // Måste matcha appens packageId
-      const APP_PACKAGE_NAME = 'se.reklamgiganten.priskalkylator';
+    (function(){
+      const PKG = 'se.reklamgiganten.priskalkylator';
+      const gate = document.getElementById('accessGate');
 
-      // Tillåts endast om sidan öppnats via TWA från appen
-      const fromTwa = !!document.referrer && document.referrer.indexOf('android-app://' + APP_PACKAGE_NAME) === 0;
-
-      if (!fromTwa) {
-        const gate = document.getElementById('accessGate');
-        if (gate) { gate.style.display = 'grid'; gate.setAttribute('aria-hidden','false'); }
+      function showGate(){
+        if (!gate) return;
+        gate.style.display = 'grid';
         document.body.style.overflow = 'hidden';
+      }
+      function allow(){
+        if (!gate) return;
+        gate.style.display = 'none';
+        document.body.style.overflow = '';
+        try{ sessionStorage.setItem('twa_ok','1'); }catch(e){}
+      }
+
+      const ref = document.referrer || '';
+      const fromTWA = ref.startsWith(`android-app://${PKG}`);
+      const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
+                           || (window.navigator && window.navigator.standalone === true);
+      const sessionOk = (()=>{ try{ return sessionStorage.getItem('twa_ok') === '1'; }catch(e){ return false; } })();
+
+      const allowed = fromTWA || isStandalone || sessionOk;
+
+      if (allowed) {
+        allow();
+      } else {
+        showGate();
       }
     })();
   </script>
