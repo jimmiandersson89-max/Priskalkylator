@@ -1,5 +1,5 @@
 // ----- Priskalkylator service worker -----
-const VERSION    = 'V.Benjii.16';                  // bumpa vid varje deploy
+const VERSION    = 'V.Benjii.17';                  // bumpa vid varje deploy
 const CACHE_NAME = `rg-kalkylator-${VERSION}`;
 
 const START_URL  = './index.html?source=pwa';
