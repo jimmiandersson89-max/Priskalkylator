@@ -971,7 +971,44 @@
   async function checkSubscriptionStatus() {
     const gate = document.getElementById("subscriptionGate");
     try {
-      const testToken = "TEST123";
+      <script>
+  async function checkSubscriptionStatus() {
+    const gate = document.getElementById("subscriptionGate");
+    let token = "TEST123"; // fallback ifall inget hittas
+
+    // 🔍 Hämta riktig token om TWA (Bubblewrap) och prenumeration finns
+    if ('billing' in navigator && navigator.billing.getPurchases) {
+      try {
+        const purchases = await navigator.billing.getPurchases();
+        if (purchases && purchases.length > 0) {
+          token = purchases[0].purchaseToken;
+        }
+      } catch (e) {
+        console.error("Fel vid hämtning av purchaseToken:", e);
+      }
+    }
+
+    try {
+      const res = await fetch(
+        "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(token)
+      );
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      console.log("Prenumerationssvar:", data);
+      if (data && data.active === true) {
+        gate.style.display = "none";
+      } else {
+        gate.style.display = "grid";
+      }
+    } catch (err) {
+      console.error("Fel vid kontroll av prenumeration:", err);
+      gate.style.display = "grid";
+    }
+  }
+
+  window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
+</script>
+
       const res = await fetch(
         "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(testToken)
       );
