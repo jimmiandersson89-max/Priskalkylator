@@ -966,5 +966,65 @@
       }
     })();
   </script>
+
+<!-- Firebase SDKs -->
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+
+<script>
+  const firebaseConfig = {
+    apiKey: "AIzaSyD0-1gqZP_y92fty7lw9-S1D2rhaFG3cf8",
+    authDomain: "offert-a526c.firebaseapp.com",
+    projectId: "offert-a526c",
+    storageBucket: "offert-a526c.appspot.com",
+    messagingSenderId: "37656926013",
+    appId: "1:37656926013:web:1511d4e3b052063c779754",
+    measurementId: "G-92JKEJPVZD"
+  };
+  firebase.initializeApp(firebaseConfig);
+</script>
+
+<!-- Prenumerationslås (visas om ej aktiv prenumeration) -->
+<div id="subscriptionGate" style="
+  display: none;
+  position: fixed;
+  inset: 0;
+  background: rgba(0,0,0,0.95);
+  z-index: 100000;
+  color: #fff;
+  display: grid;
+  place-items: center;
+  text-align: center;
+  padding: 24px;
+  font-family: system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;
+">
+  <div style="max-width: 520px; background: #11151d; padding: 28px; border-radius: 16px; border: 1px solid #2a2f3c;">
+    <h2 style="margin-top: 0; font-size: 22px;">Offert på språng</h2>
+    <p style="margin: 12px 0 24px; font-size: 16px; color: #b7c0cf;">
+      Du måste prenumerera för att använda Offert på språng.
+    </p>
+    <button disabled style="
+      background-color: #22c55e;
+      color: white;
+      border: none;
+      padding: 14px 22px;
+      font-size: 16px;
+      border-radius: 10px;
+      cursor: not-allowed;
+      opacity: 0.6;
+    " title="Aktiveras när appen är publicerad i Google Play">
+      Prenumerera nu
+    </button>
+  </div>
+</div>
+
+<script>
+  // Enkelt exempel: visa spärren direkt (du ersätter detta med Firebase-kontroll)
+  window.addEventListener("DOMContentLoaded", function () {
+    const gate = document.getElementById("subscriptionGate");
+    if (gate) gate.style.display = "grid";
+  });
+</script>
+
 </body>
 </html>
