@@ -5,12 +5,10 @@
   <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
   <title>Offert på språng</title>
 
-  <!-- PWA -->
   <link rel="manifest" href="./manifest.webmanifest">
   <meta name="theme-color" content="#0f1115" />
   <meta name="description" content="Offert på språng – en smidig priskalkylator för dekaler, print, vinyl och solfilm.">
 
-  <!-- Ikoner -->
   <link rel="icon" type="image/png" sizes="192x192" href="./Icon-192.png">
   <link rel="icon" type="image/png" sizes="512x512" href="./Icon-512.png">
   <link rel="apple-touch-icon" href="./Apple-touch-icon.png">
@@ -251,7 +249,6 @@
     <div id="versionLabel">V4.Benjii</div>
   </div>
 
-  <!-- Drawer -->
   <div class="drawer-backdrop" id="drawerBackdrop" aria-hidden="true"></div>
   <aside class="drawer" id="drawer" aria-label="Förinställningar" aria-hidden="true">
     <div class="hd">Förinställningar</div>
@@ -350,7 +347,6 @@
     </div>
   </aside>
 
-  <!-- PDF Sheet -->
   <div id="pdfSheetBackdrop" class="sheet-backdrop" aria-hidden="true"></div>
   <div id="pdfSheet" class="sheet" aria-live="polite" aria-hidden="true">
     <h3>Offert skapad</h3>
@@ -367,7 +363,6 @@
 
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
-  <!-- jsPDF för PDF-export -->
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
 
   <script>
@@ -924,40 +919,111 @@
     render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
   </script>
 
-  <!-- Service worker (valfritt, funkar även utan) -->
   <script>
     if ('serviceWorker' in navigator) {
       navigator.serviceWorker.register('./sw.js').catch(()=>{});
     }
   </script>
 
-  <!-- ====== TWA-lås (endast Play/TWA eller installerad PWA) ====== -->
   <div id="accessGate" aria-live="assertive" aria-hidden="true">
     <div class="app-gate-box">
       <h3>Åtkomst nekad</h3>
       <p id="gateText">Den här tjänsten kan bara användas via appen från Google Play eller som installerad PWA.</p>
+      
+      <button class="btn" id="buySubscriptionBtn" style="margin-top:16px; display:none;">Köp Månadsprenumeration (79 kr/mån)</button>
+
       <p style="margin-top:14px;">
         <a href="https://play.google.com/store/apps/details?id=se.reklamgiganten.priskalkylator" target="_blank" rel="noopener">Öppna i Google Play</a>
       </p>
     </div>
   </div>
   <script>
+    const PKG = 'se.reklamgiganten.priskalkylator';
+    const SUBSCRIPTION_PRODUCT_ID = 'manad79'; // <--- KORREKT ID FÖR PRENUMERATION HÄR
+
+    const gate = document.getElementById('accessGate');
+    const gateText = document.getElementById('gateText');
+    const buyBtn = document.getElementById("buySubscriptionBtn");
+
+    function showGate(message, showBuyButton = true){
+      if (!gate) return;
+      gateText.textContent = message;
+      gate.style.display = 'grid';
+      document.body.style.overflow = 'hidden';
+      if(buyBtn) buyBtn.style.display = (showBuyButton && 'billing' in navigator) ? 'block' : 'none';
+    }
+    function allow(){
+      if (!gate) return;
+      gate.style.display = 'none';
+      document.body.style.overflow = '';
+      try{ sessionStorage.setItem('twa_ok','1'); }catch(e){}
+    }
+    
+    // NY FUNKTION: Startar köpflödet
+    async function handleBuyClick() {
+        if (!('billing' in navigator)) {
+            alert('Köpfunktion inte tillgänglig.');
+            return;
+        }
+        try {
+            // STARTAR KÖPFLÖDET
+            await navigator.billing.buy({ sku: SUBSCRIPTION_PRODUCT_ID }); 
+            alert("Köpet startat, kontrollerar status...");
+            // Kontrollera status igen efter köpförsök
+            checkSubscriptionStatus(); 
+        } catch (e) {
+            console.error("Köp misslyckades eller avbröts:", e);
+            alert("Köp avbröts eller misslyckades.");
+        }
+    }
+    if(buyBtn) buyBtn.onclick = handleBuyClick;
+
+    // NY FUNKTION: Kontrollerar prenumerationsstatus
+    async function checkSubscriptionStatus() {
+        // Kör endast om TWA är godkänt
+        if (gate.style.display !== 'none') return;
+        
+        let token = null; 
+
+        if ('billing' in navigator && navigator.billing.getPurchases) {
+          try {
+            const purchases = await navigator.billing.getPurchases();
+            if (purchases && purchases.length > 0) {
+              token = purchases[0].purchaseToken;
+            }
+          } catch (e) {
+            console.error("Fel vid hämtning av purchaseToken. Fortsätter utan token.", e);
+            // Ingen hardkodad "TEST123" längre - token är null om den inte hittas
+          }
+        }
+        
+        // Om ingen token hittades eller om köpfunktionen inte finns, visa köplåset direkt
+        if (!token) {
+            showGate('Din prenumeration är inte aktiv.', true);
+            return; 
+        }
+
+        // Token hittades - Verifiera mot backend
+        try {
+          const res = await fetch(
+            "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(token)
+          );
+          if (!res.ok) throw new Error("HTTP " + res.status);
+          const data = await res.json();
+          
+          if (data && data.active === true) {
+            allow(); // Prenumeration aktiv - Lås upp!
+          } else {
+            showGate('Din prenumeration har löpt ut.', true); // Token hittades, men den är inte aktiv
+          }
+        } catch (err) {
+          console.error("Fel vid kontroll av prenumeration:", err);
+          showGate("Kunde inte verifiera prenumeration. Försök igen eller köp ny.", true);
+        }
+    }
+
+    // ORIGINAL TWA-LÅS LOGIK
     (function(){
-      const PKG = 'se.reklamgiganten.priskalkylator';
-      const gate = document.getElementById('accessGate');
-
-      function showGate(){
-        if (!gate) return;
-        gate.style.display = 'grid';
-        document.body.style.overflow = 'hidden';
-      }
-      function allow(){
-        if (!gate) return;
-        gate.style.display = 'none';
-        document.body.style.overflow = '';
-        try{ sessionStorage.setItem('twa_ok','1'); }catch(e){}
-      }
-
       const ref = document.referrer || '';
       const fromTWA = ref.startsWith(`android-app://${PKG}`);
       const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
@@ -968,51 +1034,13 @@
 
       if (allowed) {
         allow();
+        // Lösning på Problem 3: Kör prenumerationskontrollen först EFTER TWA är OK
+        checkSubscriptionStatus();
       } else {
-        showGate();
+        // TWA verifiering misslyckades. Visa det ursprungliga felet.
+        showGate('Den här tjänsten kan bara användas via appen från Google Play eller som installerad PWA.', false);
       }
     })();
   </script>
-  <!-- Firebase prenumerationskontroll -->
-<script>
-  async function checkSubscriptionStatus() {
-    const gate = document.getElementById("accessGate");
-    let token = "TEST123";
-
-    if ('billing' in navigator && navigator.billing.getPurchases) {
-      try {
-        const purchases = await navigator.billing.getPurchases();
-        if (purchases && purchases.length > 0) {
-          token = purchases[0].purchaseToken;
-        }
-      } catch (e) {
-        console.error("Fel vid hämtning av purchaseToken:", e);
-      }
-    }
-
-    try {
-      const res = await fetch(
-        "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(token)
-      );
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      console.log("Prenumerationssvar:", data);
-      if (data && data.active === true) {
-        gate.style.display = "none";
-        document.body.style.overflow = '';
-      } else {
-        gate.style.display = "grid";
-        document.body.style.overflow = 'hidden';
-      }
-    } catch (err) {
-      console.error("Fel vid kontroll av prenumeration:", err);
-      gate.style.display = "grid";
-      document.body.style.overflow = 'hidden';
-    }
-  }
-
-  window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
-</script>
-
 </body>
 </html>
