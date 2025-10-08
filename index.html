@@ -967,6 +967,27 @@
     })();
   </script>
 
+
+
+      const res = await fetch(
+        "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(testToken)
+      );
+      if (!res.ok) throw new Error("HTTP " + res.status);
+      const data = await res.json();
+      console.log("Prenumerationssvar:", data);
+      if (data && data.active === true) {
+        gate.style.display = "none";
+      } else {
+        gate.style.display = "grid";
+      }
+    } catch (err) {
+      console.error("Fel vid kontroll av prenumeration:", err);
+      gate.style.display = "grid";
+    }
+  }
+  window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
+</script>
+
 <script>
   async function checkSubscriptionStatus() {
     const gate = document.getElementById("subscriptionGate");
@@ -1008,25 +1029,5 @@
 
   window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
 </script>
-
-      const res = await fetch(
-        "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(testToken)
-      );
-      if (!res.ok) throw new Error("HTTP " + res.status);
-      const data = await res.json();
-      console.log("Prenumerationssvar:", data);
-      if (data && data.active === true) {
-        gate.style.display = "none";
-      } else {
-        gate.style.display = "grid";
-      }
-    } catch (err) {
-      console.error("Fel vid kontroll av prenumeration:", err);
-      gate.style.display = "grid";
-    }
-  }
-  window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
-</script>
-
 </body>
 </html>
