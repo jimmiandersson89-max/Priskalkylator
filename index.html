@@ -988,16 +988,12 @@
   window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
 </script>
 
+
 <script>
   async function checkSubscriptionStatus() {
-    const gate = document.getElementById("subscriptionGate");
-    try {
-      <script>
-  async function checkSubscriptionStatus() {
-    const gate = document.getElementById("subscriptionGate");
+    const gate = document.getElementById("accessGate");
     let token = "TEST123"; // fallback ifall inget hittas
 
-    // 🔍 Hämta riktig token om TWA (Bubblewrap) och prenumeration finns
     if ('billing' in navigator && navigator.billing.getPurchases) {
       try {
         const purchases = await navigator.billing.getPurchases();
@@ -1026,8 +1022,8 @@
       gate.style.display = "grid";
     }
   }
-
   window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
 </script>
+
 </body>
 </html>
