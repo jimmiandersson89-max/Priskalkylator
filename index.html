@@ -1000,17 +1000,15 @@
       if (data && data.active === true) {
         gate.style.display = "none";
         document.body.style.overflow = '';
-    } else {
-  // TILLFÄLLIGT BORTA FÖR TESTNING
-  // gate.style.display = "grid"; 
-  // document.body.style.overflow = 'hidden';
-}
-} catch (err) {
-  console.error("Fel vid kontroll av prenumeration:", err);
-  // TILLFÄLLIGT BORTA FÖR TESTNING
-  // gate.style.display = "grid";
-  // document.body.style.overflow = 'hidden';
-}
+      } else {
+        gate.style.display = "grid";
+        document.body.style.overflow = 'hidden';
+      }
+    } catch (err) {
+      console.error("Fel vid kontroll av prenumeration:", err);
+      gate.style.display = "grid";
+      document.body.style.overflow = 'hidden';
+    }
   }
 
   window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
