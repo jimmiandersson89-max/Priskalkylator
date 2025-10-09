@@ -357,7 +357,34 @@
   <div id="toast" role="status" aria-live="polite" aria-atomic="true"></div>
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
+  
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
+    // --- Din Firebase-konfiguration (SKRIV IN DINA DATA HÄR!) ---
+    const firebaseConfig = {
+      apiKey: "AIzaSyC-vX9GvbnZpMfZBl8V3N7D2Y2JXX4s1dM", // ERSÄTT DENNA
+      authDomain: "offert-a526c.firebaseapp.com", // ERSÄTT DENNA
+      projectId: "offert-a526c", // ERSÄTT DENNA
+      appId: "1:275934132952:web:4cd85e2f22b91a0a35fd3b" // ERSÄTT DENNA
+    };
+
+    // --- Initiera Firebase ---
+    const app = initializeApp(firebaseConfig);
+    const functions = getFunctions(app);
+    const checkSubscriptionOnCall = httpsCallable(functions, "checkSubscription");
+
+    window.firebaseCheckSubscription = async (token) => {
+        try {
+            const result = await checkSubscriptionOnCall({ token: token });
+            return result.data; // Skickar tillbaka { active: true/false, ... }
+        } catch (err) {
+            console.error("Fel vid anrop av Cloud Function:", err);
+            return { active: false, error: err.message };
+        }
+    };
+  </script>
   <script>
     "use strict";
     const $ = id => document.getElementById(id);
@@ -956,7 +983,12 @@
         try {
             await navigator.billing.buy({ sku: SUBSCRIPTION_PRODUCT_ID }); 
             alert("Köpet startat, kontrollerar status...");
-            checkSubscriptionStatus(); // Kontrollera status igen efter köpförsök
+            // Använder den globalt tillgängliga funktionen från det första script-blocket
+            if (window.firebaseCheckSubscription) {
+                checkSubscriptionStatus(); 
+            } else {
+                 alert("Fel: Firebase SDK laddas fortfarande. Försök igen om en sekund.");
+            }
         } catch (e) {
             console.error("Köp misslyckades eller avbröts:", e);
             alert("Köp avbröts eller misslyckades.");
@@ -966,9 +998,16 @@
 
     // NY FUNKTION: Kontrollerar prenumerationsstatus (Enda dörrvakten)
     async function checkSubscriptionStatus() {
+        // Kontrollera att Firebase SDK är laddat innan vi fortsätter
+        if (!window.firebaseCheckSubscription) {
+             console.error("Firebase SDK inte laddat. Försöker igen om 500ms.");
+             setTimeout(checkSubscriptionStatus, 500); // Försök igen
+             return;
+        }
+        
         let token = null; 
 
-        // Försök hämta befintliga köp från Google Play Billing
+        // 1. Försök hämta befintliga köp från Google Play Billing
         if ('billing' in navigator && navigator.billing.getPurchases) {
           try {
             const purchases = await navigator.billing.getPurchases();
@@ -982,18 +1021,13 @@
         
         // --- LÅS-LOGIK ---
         if (!token) {
-            // INGEN TOKEN HITTADES. Visa låset och knappen.
             showGate('Din prenumeration är inte aktiv.', true);
             return; 
         }
 
-        // Token hittades - Verifiera mot backend
+        // 2. Token hittades - Verifiera mot backend (nu med korrekt onCall-anrop)
         try {
-          const res = await fetch(
-            "https://us-central1-offert-a526c.cloudfunctions.net/checkSubscription?token=" + encodeURIComponent(token)
-          );
-          if (!res.ok) throw new Error("HTTP " + res.status);
-          const data = await res.json();
+          const data = await window.firebaseCheckSubscription(token);
           
           if (data && data.active === true) {
             allow(); // Prenumeration aktiv - Lås upp!
