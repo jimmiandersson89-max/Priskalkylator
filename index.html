@@ -1094,5 +1094,16 @@
     window.addEventListener("DOMContentLoaded", checkSubscriptionStatus);
 
   </script>
+  <script>
+document.addEventListener("DOMContentLoaded", () => {
+  if ("billing" in navigator) {
+    alert("✅ Google Play Billing är aktiv i denna app!");
+  } else {
+    alert("❌ Ingen Play Billing-funktion hittades.\nAppen körs troligen inte via Play Store.");
+  }
+});
+</script>
+
+  
 </body>
 </html>
