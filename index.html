@@ -358,33 +358,44 @@
 
   <script src="https://cdn.jsdelivr.net/npm/jspdf@2.5.1/dist/jspdf.umd.min.js"></script>
   
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
-    import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+<!-- Säker Firebase-initiering utan synlig API-nyckel -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
 
-    // --- Din Firebase-konfiguration (SKRIV IN DINA DATA HÄR!) ---
-    const firebaseConfig = {
-      apiKey: "AIzaSyC-vX9GvbnZpMfZBl8V3N7D2Y2JXX4s1dM", // ERSÄTT DENNA
-      authDomain: "offert-a526c.firebaseapp.com", // ERSÄTT DENNA
-      projectId: "offert-a526c", // ERSÄTT DENNA
-      appId: "1:275934132952:web:4cd85e2f22b91a0a35fd3b" // ERSÄTT DENNA
-    };
+  // === Steg 1: Hämta konfig säkert från din Firebase Hosting ===
+  async function loadFirebaseConfig() {
+    try {
+      const res = await fetch("https://offert-a526c.web.app/config.json", { cache: "no-store" });
+      if (!res.ok) throw new Error("Misslyckades att hämta Firebase-konfig.");
+      const cfg = await res.json();
+      initFirebase(cfg);
+    } catch (err) {
+      console.error("Fel vid laddning av Firebase-konfig:", err);
+    }
+  }
 
-    // --- Initiera Firebase ---
+  // === Steg 2: Initiera Firebase efter att config laddats ===
+  function initFirebase(firebaseConfig) {
     const app = initializeApp(firebaseConfig);
     const functions = getFunctions(app);
     const checkSubscriptionOnCall = httpsCallable(functions, "checkSubscription");
 
     window.firebaseCheckSubscription = async (token) => {
-        try {
-            const result = await checkSubscriptionOnCall({ token: token });
-            return result.data; // Skickar tillbaka { active: true/false, ... }
-        } catch (err) {
-            console.error("Fel vid anrop av Cloud Function:", err);
-            return { active: false, error: err.message };
-        }
+      try {
+        const result = await checkSubscriptionOnCall({ token });
+        return result.data;
+      } catch (err) {
+        console.error("Fel vid anrop av Cloud Function:", err);
+        return { active: false, error: err.message };
+      }
     };
-  </script>
+  }
+
+  // === Start ===
+  loadFirebaseConfig();
+</script>
+
   <script>
     "use strict";
     const $ = id => document.getElementById(id);
