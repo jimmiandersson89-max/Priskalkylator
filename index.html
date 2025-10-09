@@ -924,17 +924,21 @@
     </div>
   </div>
   <script>
+    // INGA MER TWA-KONTROLLER! VI KÖR DIREKT TILL PRENUMERATIONSLÅSET.
+    
     const SUBSCRIPTION_PRODUCT_ID = 'manad79'; // KORREKT ID FÖR PRENUMERATION
 
     const gate = document.getElementById('accessGate');
     const gateText = document.getElementById('gateText');
     const buyBtn = document.getElementById("buySubscriptionBtn");
 
+    // Funktion för att visa/gömma låset
     function showGate(message, showBuyButton = true){
       if (!gate) return;
       gateText.textContent = message;
       gate.style.display = 'grid';
       document.body.style.overflow = 'hidden';
+      // Visar knappen endast om köpfunktionen finns i webbläsaren (dvs Android)
       if(buyBtn) buyBtn.style.display = (showBuyButton && 'billing' in navigator) ? 'block' : 'none';
     }
     function allow(){
@@ -952,7 +956,7 @@
         try {
             await navigator.billing.buy({ sku: SUBSCRIPTION_PRODUCT_ID }); 
             alert("Köpet startat, kontrollerar status...");
-            checkSubscriptionStatus(); 
+            checkSubscriptionStatus(); // Kontrollera status igen efter köpförsök
         } catch (e) {
             console.error("Köp misslyckades eller avbröts:", e);
             alert("Köp avbröts eller misslyckades.");
@@ -962,11 +966,9 @@
 
     // NY FUNKTION: Kontrollerar prenumerationsstatus (Enda dörrvakten)
     async function checkSubscriptionStatus() {
-        // Kontrollera om låset redan är uppe. Om det är det, låt den köra.
-        // Om den inte är det (display:none), då måste den köra
-        
         let token = null; 
 
+        // Försök hämta befintliga köp från Google Play Billing
         if ('billing' in navigator && navigator.billing.getPurchases) {
           try {
             const purchases = await navigator.billing.getPurchases();
@@ -981,6 +983,7 @@
         // --- LÅS-LOGIK ---
         if (!token) {
             // INGEN TOKEN HITTADES. Visa låset och knappen.
+            // *Detta är vad som ska hända för en ny kund.*
             showGate('Din prenumeration är inte aktiv.', true);
             return; 
         }
