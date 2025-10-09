@@ -1021,26 +1021,6 @@
           showGate("Kunde inte verifiera prenumeration. Försök igen eller köp ny.", true);
         }
     }
-
-    // ORIGINAL TWA-LÅS LOGIK
-    (function(){
-      const ref = document.referrer || '';
-      const fromTWA = ref.startsWith(`android-app://${PKG}`);
-      const isStandalone = window.matchMedia && window.matchMedia('(display-mode: standalone)').matches
-                           || (window.navigator && window.navigator.standalone === true);
-      const sessionOk = (()=>{ try{ return sessionStorage.getItem('twa_ok') === '1'; }catch(e){ return false; } })();
-
-      const allowed = fromTWA || isStandalone || sessionOk;
-
-      if (allowed) {
-        allow();
-        // Lösning på Problem 3: Kör prenumerationskontrollen först EFTER TWA är OK
-        checkSubscriptionStatus();
-      } else {
-        // TWA verifiering misslyckades. Visa det ursprungliga felet.
-        showGate('Den här tjänsten kan bara användas via appen från Google Play eller som installerad PWA.', false);
-      }
-    })();
   </script>
 </body>
 </html>
