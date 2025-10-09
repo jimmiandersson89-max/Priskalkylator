@@ -8,20 +8,24 @@ const PACKAGE_NAME = 'se.reklamgiganten.priskalkylator';
 const SUBSCRIPTION_ID = 'manad79';
 
 /**
-* Kontrollerar prenumerationsstatusen säkert via Google Play Developer API.
-* Denna funktion körs på din Firebase-server.
-* * Data som skickas hit från din PWA (frontend) måste innehålla:
-* - subscriptionToken (köpkvittot från Google Play)
-*/
+ * Kontrollerar prenumerationsstatusen säkert via Google Play Developer API.
+ * Denna funktion körs på din Firebase-server.
+ */
 exports.checkSubscription = functions.https.onCall(async (data, context) => {
-    // 1. Säkerhetskoll: Kontrollera att användaren är inloggad via Firebase Auth.
-    // Vi rekommenderar att du implementerar inloggning i din PWA.
-    if (!context.auth) {
-        throw new new functions.https.HttpsError('unauthenticated', 'Endast inloggade användare får begära status.');
+    // 1. Säkerhetskoll (VIKTIGT): Kontrollera att användaren är inloggad via Firebase Auth.
+    // Om du INTE använder Firebase Auth, KOMMENTERA BORT detta block.
+    // if (!context.auth) {
+    //     throw new functions.https.HttpsError('unauthenticated', 'Endast inloggade användare får begära status.');
+    // }
+
+    const subscriptionToken = data.token;
+
+    if (!subscriptionToken) {
+        // Om ingen token skickas, returnera false direkt.
+        return { active: false, error: 'Token saknas' };
     }
 
     // 2. Autentisera mot Google Play Developer API
-    // Vi använder det tjänstkonto du skapade (play-billing-access) som nu har 'Finans'-rollen.
     const auth = new google.auth.GoogleAuth({
         scopes: ['https://www.googleapis.com/auth/androidpublisher']
     });
@@ -30,3 +34,40 @@ exports.checkSubscription = functions.https.onCall(async (data, context) => {
         version: 'v3',
         auth: auth
     });
+
+    // 3. Anropa Google Play Developer API för att verifiera prenumerationen
+    try {
+        const response = await androidPublisher.purchases.subscriptions.get({
+            packageName: PACKAGE_NAME,
+            subscriptionId: SUBSCRIPTION_ID,
+            token: subscriptionToken
+        });
+
+        const sub = response.data;
+        
+        // Kritiska kontroller:
+        // Expireringstiden måste vara i framtiden (statusen "subscriptionState" kan variera)
+        const expiryTimeMs = parseInt(sub.expiryTimeMillis);
+        const isActive = expiryTimeMs > Date.now();
+        
+        // Ytterligare check: Kontrollera om prenumerationen är aktiv/ej hållen (tilläggskontroll)
+        const isNotHeld = sub.subscriptionState !== 2; // State 2 = On Hold
+        
+        // 4. Returnera slutgiltigt svar till appen
+        return { 
+            active: isActive && isNotHeld,
+            expiryTime: sub.expiryTimeMillis,
+            status: 'success'
+        };
+
+    } catch (error) {
+        console.error("Fel vid API-anrop till Google Play:", error.message);
+
+        // Om API-anropet misslyckas (t.ex. ogiltig token), returnera false.
+        return { 
+            active: false, 
+            error: 'Verifiering misslyckades',
+            message: error.message
+        };
+    }
+});
