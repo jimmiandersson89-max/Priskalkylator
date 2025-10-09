@@ -948,6 +948,45 @@
     function initPreviews(){ previewMeasureLine(); previewItemLine(); previewTimeLine(); }
     render(); refreshArtikelDatalist(); refreshCustomerDatalist(); refreshItemDatalist(); initPreviews();
   </script>
+<!-- Säker Firebase-initiering utan synlig API-nyckel -->
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-app.js";
+  import { getFunctions, httpsCallable } from "https://www.gstatic.com/firebasejs/10.12.0/firebase-functions.js";
+
+  // === Steg 1: Hämta konfig säkert via Cloud Function ===
+  async function loadFirebaseConfig() {
+    const configUrl = "https://us-central1-offert-a526c.cloudfunctions.net/getConfig";
+    try {
+      const res = await fetch(configUrl, { cache: "no-store" });
+      if (!res.ok) throw new Error("Misslyckades att hämta Firebase-konfiguration");
+      const cfg = await res.json();
+      initFirebase(cfg);
+    } catch (err) {
+      console.error("Fel vid hämtning av Firebase-konfig:", err);
+      alert("Kunde inte hämta Firebase-konfiguration. Försök igen senare.");
+    }
+  }
+
+  // === Steg 2: Initiera Firebase efter att config laddats ===
+  function initFirebase(firebaseConfig) {
+    const app = initializeApp(firebaseConfig);
+    const functions = getFunctions(app);
+    const checkSubscriptionOnCall = httpsCallable(functions, "checkSubscription");
+
+    window.firebaseCheckSubscription = async (token) => {
+      try {
+        const result = await checkSubscriptionOnCall({ token });
+        return result.data;
+      } catch (err) {
+        console.error("Fel vid anrop av Cloud Function:", err);
+        return { active: false, error: err.message };
+      }
+    };
+  }
+
+  // === Start ===
+  loadFirebaseConfig();
+</script>
 
   <div id="accessGate" aria-live="assertive" aria-hidden="true">
     <div class="app-gate-box">
